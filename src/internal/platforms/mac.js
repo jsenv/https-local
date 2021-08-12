@@ -1,5 +1,10 @@
+/*
+ * TODO: add a check to see if firefox is installed, if yes
+ * log how to trus certs for firefox on mac
+ * see https://github.com/davewasmer/devcert/blob/master/src/platforms/darwin.ts
+ */
+
 import { createDetailedMessage } from "@jsenv/logger"
-// https://github.com/davewasmer/devcert/blob/master/src/platforms/darwin.ts
 
 import { exec } from "../exec.js"
 

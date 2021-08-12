@@ -47,6 +47,7 @@
   "dependencies": {
     "@jsenv/logger": "4.0.1",
     "@jsenv/util": "4.1.1",
+    "filenamify": "5.0.0",
     "is-ip": "3.1.0",
     "node-forge": "0.10.0"
   },

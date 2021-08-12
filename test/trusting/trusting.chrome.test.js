@@ -1,6 +1,7 @@
 import { getCertificate } from "@jsenv/https-certificate"
 
 const certificate = await getCertificate(["localhost"], {
+  addRootCertificateToPlatformTrustStore: false,
   rootCertificateParams: {
     commonName: "https://github.com/jsenv/https-certificate",
     countryName: "FR",
@@ -14,3 +15,4 @@ const certificate = await getCertificate(["localhost"], {
     validityInDays: 1,
   },
 })
+console.log(certificate)

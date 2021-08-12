@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs"
+import filenamify from "filenamify"
 import { createLogger } from "@jsenv/logger"
 import { resolveUrl, readFile, writeFile, urlToFileSystemPath } from "@jsenv/util"
 
@@ -12,6 +13,7 @@ export const getCertificate = async (
   altNames,
   {
     logLevel,
+    addRootCertificateToPlatformTrustStore = true,
     certificateParams = {},
     rootCertificateParams = {
       organizationName: "jsenv",
@@ -22,17 +24,19 @@ export const getCertificate = async (
   const logger = createLogger({ logLevel })
 
   const { organizationalUnitName, organizationName } = rootCertificateParams
-  const rootCertificateName = organizationalUnitName || organizationName
+  let rootCertificateName = organizationalUnitName || organizationName
   if (typeof rootCertificateName !== "string") {
     throw new TypeError(
       `organizationalUnitName or organizationName must be a string but received ${organizationName}`,
     )
   }
+  rootCertificateName = filenamify(rootCertificateName)
 
   const rootCertificate = await getOrCreateRootCertificate({
     logger,
     rootCertificateName,
     rootCertificateParams,
+    addRootCertificateToPlatformTrustStore,
   })
   const certificate = await getOrCreateCertificate({
     logger,
@@ -48,6 +52,7 @@ const getOrCreateRootCertificate = async ({
   logger,
   rootCertificateName,
   rootCertificateParams,
+  addRootCertificateToPlatformTrustStore,
 }) => {
   const rootCertificateFileUrl = resolveUrl(`${rootCertificateName}.crt`, CERTIFICATES_DIR_PATH)
   const rootCertificatePrivateKeyFileUrl = resolveUrl(
@@ -64,9 +69,11 @@ const getOrCreateRootCertificate = async ({
     const rootCertificate = await createRootCertificate(rootCertificateParams)
     await writeFile(rootCertificatePrivateKeyFileUrl, rootCertificate.privateKeyPem)
     await writeFile(rootCertificateFileUrl, rootCertificate.certificatePem)
-    await platformTrustStore.registerRootCertificateFile({
-      certificateFileUrl: rootCertificateFileUrl,
-    })
+    if (addRootCertificateToPlatformTrustStore) {
+      await platformTrustStore.registerRootCertificateFile({
+        certificateFileUrl: rootCertificateFileUrl,
+      })
+    }
     await writeFile(rootCertificateJSONFileUrl, JSON.stringify({ serialNumber }, null, "  "))
     return rootCertificate
   }
@@ -137,10 +144,7 @@ const getOrCreateCertificate = async ({
 }) => {
   const certificateName = `${rootCertificateName}_child`
   const certificateFileUrl = resolveUrl(`${certificateName}.crt`, CERTIFICATES_DIR_PATH)
-  const certificatePrivateKeyFileUrl = resolveUrl(
-    `${rootCertificateName}.key`,
-    CERTIFICATES_DIR_PATH,
-  )
+  const certificatePrivateKeyFileUrl = resolveUrl(`${certificateName}.key`, CERTIFICATES_DIR_PATH)
 
   const createNewCertificate = async () => {
     const rootCertificateJSONFileUrl = resolveUrl(
@@ -148,13 +152,17 @@ const getOrCreateCertificate = async ({
       CERTIFICATES_DIR_PATH,
     )
     const rootCertificateJSON = await readFile(rootCertificateJSONFileUrl, { as: "json" })
-    const lastSerialNumber = await readFile(rootCertificateJSONFileUrl, { as: "json" }).serialNumber
+    const lastSerialNumber = rootCertificateJSON.serialNumber
     await writeFile(
       rootCertificateJSONFileUrl,
-      JSON.stringify({
-        ...rootCertificateJSON,
-        serialNumber: lastSerialNumber + 1,
-      }),
+      JSON.stringify(
+        {
+          ...rootCertificateJSON,
+          serialNumber: lastSerialNumber + 1,
+        },
+        null,
+        "  ",
+      ),
     )
     const certificate = await createCertificate({
       rootCertificate,

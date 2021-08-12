@@ -140,7 +140,7 @@ export const createCertificate = async ({
         serverAuth: true,
       },
       authorityKeyIdentifier: {
-        keyIdentifier: rootCertificate.generateSubjectKeyIdentifier().getBytes(),
+        keyIdentifier: forgeRootCertificate.generateSubjectKeyIdentifier().getBytes(),
       },
       subjectAltName: subjectAltNamesFromAltNames(altNames),
     }),

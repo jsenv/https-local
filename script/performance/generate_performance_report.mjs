@@ -24,7 +24,7 @@ export const generatePerformanceReport = async () => {
 
   return {
     groups: {
-      "@jsenv/template-node-package package": {
+      "@jsenv/https-certificate package": {
         ...importMetrics,
         ...npmTarballMetrics,
       },

@@ -1,5 +1,5 @@
 {
-  "name": "@jsenv/template-node-package",
+  "name": "@jsenv/https-certificate",
   "version": "0.0.1",
   "private": true,
   "description": "Package description",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jsenv/jsenv-template-node-package"
+    "url": "https://github.com/jsenv/self-cert"
   },
   "engines": {
     "node": ">=14.17.0"
@@ -22,41 +22,26 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./main.js",
-      "require": {
-        "production": "./dist/prod/template_node_package.prod.cjs",
-        "default": "./dist/dev/template_node_package.dev.cjs"
-      }
+      "import": "./main.js"
     },
     "./*": "./*"
-  },
-  "imports": {
-    "#env": {
-      "production": "./env.prod.js",
-      "default": "./env.dev.js"
-    }
   },
   "files": [
     "/dist/",
     "/src/",
-    "/main.js",
-    "/env.dev.js",
-    "/env.prod.js"
+    "/main.js"
   ],
   "scripts": {
     "eslint-check": "node ./node_modules/eslint/bin/eslint.js .",
     "generate-importmap": "node ./script/importmap/generate_importmap.mjs",
     "measure-performances": "node ./script/performance/generate_performance_report.mjs --local",
-    "dist": "npm run build-dev && npm run build-prod",
-    "build-dev": "node --experimental-import-meta-resolve ./script/build/build.mjs",
-    "build-prod": "node --conditions=production --experimental-import-meta-resolve ./script/build/build.mjs",
     "test": "node ./script/test/test.mjs",
     "test-with-coverage": "npm run test -- --coverage",
     "prettier-format": "node ./script/prettier/prettier_format.mjs",
     "prettier-format-stage": "npm run prettier-format -- --staged",
     "prettier-check": "npm run prettier-format -- --dry-run",
     "postinstall": "npm run generate-importmap",
-    "prepublishOnly": "node ./script/publish/remove_postinstall.mjs && npm run dist",
+    "prepublishOnly": "node ./script/publish/remove_postinstall.mjs",
     "postpublish": "node ./script/publish/restore_postinstall.mjs"
   },
   "dependencies": {},

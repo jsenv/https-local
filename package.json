@@ -44,7 +44,11 @@
     "prepublishOnly": "node ./script/publish/remove_postinstall.mjs",
     "postpublish": "node ./script/publish/restore_postinstall.mjs"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@jsenv/logger": "4.0.1",
+    "@jsenv/util": "4.1.1",
+    "node-forge": "0.10.0"
+  },
   "devDependencies": {
     "@jsenv/assert": "2.2.6",
     "@jsenv/codecov-upload": "3.5.0",

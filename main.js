@@ -4,3 +4,7 @@
  * Ideally this file should be kept simple to help discovering codebase progressively.
  */
 
+export {
+  addRootCertificateFileToTrustStore,
+  removeRootCertificateFileFromTrustStore,
+} from "./src/trust_root_certificate_file.js"

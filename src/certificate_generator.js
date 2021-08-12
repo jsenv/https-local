@@ -21,7 +21,7 @@ export const createRootCertificate = async ({
   organizationalUnitName,
   validityInYears = 20,
   serial = "00",
-}) => {
+} = {}) => {
   const forge = require("node-forge")
   if (typeof serial === "undefined") {
     // a random serial number

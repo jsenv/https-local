@@ -32,9 +32,9 @@ jobs:
         # "setup-node@v1" documentation available at https://github.com/actions/setup-node
         uses: actions/setup-node@v1
         with:
-          # Explicit node version ("16.6.1" instead of "lts")
+          # Explicit node version ("16.6.x" instead of "lts")
           # to make build more predictable
-          node-version: "16.6.1"
+          node-version: "16.6.x"
       - name: Setup npm
         run: npm install
       - name: Report performance impact

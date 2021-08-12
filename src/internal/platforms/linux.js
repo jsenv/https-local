@@ -1,5 +1,8 @@
-// https://github.com/davewasmer/devcert/blob/master/src/platforms/linux.ts
+/*
+ * see https://github.com/davewasmer/devcert/blob/master/src/platforms/linux.ts
+ */
 
+import { existsSync } from "node:fs"
 import { createDetailedMessage } from "@jsenv/logger"
 
 import { exec } from "../exec.js"
@@ -15,6 +18,12 @@ export const addRootCertificateFileToTrustStore = async ({ logger, certificateFi
     const updateCertificateCommand = `sudo update-ca-certificates`
     logger.debug(`> ${updateCertificateCommand}`)
     await exec(updateCertificateCommand)
+
+    if (isFirefoxInstalled()) {
+      logger.warn(
+        `${certificateFilePath} root certificate must be added manually to firefox as documented in https://wiki.mozilla.org/PSM:Changing_Trust_Settings#Trusting_an_Additional_Root_Certificate`,
+      )
+    }
 
     return true
   } catch (e) {
@@ -50,4 +59,8 @@ export const removeRootCertificateFileFromTrustStore = async ({ logger, certific
 
     return false
   }
+}
+
+const isFirefoxInstalled = () => {
+  return existsSync("/usr/bin/firefox")
 }

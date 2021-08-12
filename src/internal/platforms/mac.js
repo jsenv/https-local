@@ -1,9 +1,8 @@
 /*
- * TODO: add a check to see if firefox is installed, if yes
- * log how to trus certs for firefox on mac
  * see https://github.com/davewasmer/devcert/blob/master/src/platforms/darwin.ts
  */
 
+import { existsSync } from "node:fs"
 import { createDetailedMessage } from "@jsenv/logger"
 
 import { exec } from "../exec.js"
@@ -15,6 +14,12 @@ export const addRootCertificateFileToTrustStore = async ({ logger, certificateFi
     const command = `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic ${certificateFilePath}`
     logger.debug(`> ${command}`)
     await exec(command)
+
+    if (isFirefoxInstalled()) {
+      logger.warn(
+        `${certificateFilePath} root certificate must be added manually to firefox as documented in https://wiki.mozilla.org/PSM:Changing_Trust_Settings#Trusting_an_Additional_Root_Certificate`,
+      )
+    }
 
     return true
   } catch (e) {
@@ -44,4 +49,8 @@ export const removeRootCertificateFileFromTrustStore = async ({ logger, certific
     )
     return false
   }
+}
+
+const isFirefoxInstalled = () => {
+  return existsSync("/Applications/Firefox.app")
 }

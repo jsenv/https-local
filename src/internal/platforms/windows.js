@@ -1,4 +1,6 @@
-// https://github.com/davewasmer/devcert/blob/master/src/platforms/win32.ts
+/*
+ * see https://github.com/davewasmer/devcert/blob/master/src/platforms/win32.ts
+ */
 
 import { createDetailedMessage } from "@jsenv/logger"
 

@@ -20,20 +20,19 @@ export const createRootCertificate = async ({
   organizationName,
   organizationalUnitName,
   validityInYears = 20,
-  serial = "00",
+  serialNumber = 0,
 } = {}) => {
-  const forge = require("node-forge")
-  if (typeof serial === "undefined") {
-    // a random serial number
-    serial = toPositiveHex(forge.util.bytesToHex(forge.random.getBytesSync(8)))
+  if (typeof serialNumber !== "number") {
+    throw new TypeError(`serial must be a number but received ${serialNumber}`)
   }
 
+  const forge = require("node-forge")
   const { pki } = forge
   const certificate = pki.createCertificate()
   const { privateKey, publicKey } = pki.rsa.generateKeyPair(2048)
 
   certificate.publicKey = publicKey
-  certificate.serialNumber = serial
+  certificate.serialNumber = serialNumber.toString(16)
   certificate.validity.notBefore = new Date(Date.now() - 1000)
   certificate.validity.notAfter = createDateInXYears(validityInYears)
 
@@ -73,15 +72,32 @@ export const createRootCertificate = async ({
 }
 
 export const createCertificate = async ({
-  rootCertificatePem,
-  rootCertificatePrivateKeyPem,
+  rootCertificate,
   certificateAttributes = {},
   altNames = [],
   validityInDays = 396,
   // https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.2
-  serial = "01",
+  serialNumber = 1,
 }) => {
-  const forge = require("node-forge")
+  if (typeof rootCertificate !== "object" || rootCertificate === null) {
+    throw new TypeError(`rootCertificate must be an object but received ${rootCertificate}`)
+  }
+  const rootCertificatePem = rootCertificate.certificatePem
+  if (typeof rootCertificatePem !== "string") {
+    throw new TypeError(
+      `rootCertificate.certificatePem must be a string but received ${rootCertificatePem}`,
+    )
+  }
+  const rootCertificatePrivateKeyPem = rootCertificate.privateKeyPem
+  if (typeof rootCertificatePrivateKeyPem !== "string") {
+    throw new TypeError(
+      `rootCertificate.privateKeyPem must be a string but received ${rootCertificatePem}`,
+    )
+  }
+  if (typeof serialNumber !== "number") {
+    throw new TypeError(`serial must be a number but received ${serialNumber}`)
+  }
+
   // certificate must not exceed 397 days
   // https://stackoverflow.com/questions/64597721/neterr-cert-validity-too-long-the-server-certificate-has-a-validity-period-t
   if (validityInDays > 396) {
@@ -91,23 +107,24 @@ export const createCertificate = async ({
     validityInDays = 396
   }
 
+  const forge = require("node-forge")
   const { pki } = forge
-  const rootCertificate = pki.certificateFromPem(rootCertificatePem)
+  const forgeRootCertificate = pki.certificateFromPem(rootCertificatePem)
   const certificate = pki.createCertificate()
   const { privateKey, publicKey } = pki.rsa.generateKeyPair(2048)
 
   certificate.publicKey = publicKey
-  certificate.serialNumber = serial
+  certificate.serialNumber = serialNumber.toString(16)
   certificate.validity.notBefore = new Date(Date.now() - 1000)
   certificate.validity.notAfter = createDateInXDays(validityInDays)
 
   const attributeDescription = {
-    ...attributeDescriptionFromAttributeArray(rootCertificate.subject.attributes),
+    ...attributeDescriptionFromAttributeArray(forgeRootCertificate.subject.attributes),
     ...certificateAttributes,
   }
   const attributeArray = attributeArrayFromAttributeDescription(attributeDescription)
   certificate.setSubject(attributeArray)
-  certificate.setIssuer(rootCertificate.subject.attributes)
+  certificate.setIssuer(forgeRootCertificate.subject.attributes)
   certificate.setExtensions(
     extensionArrayFromExtensionDescription({
       basicConstraints: {
@@ -148,14 +165,4 @@ const createDateInXDays = (days) => {
   const date = new Date()
   date.setDate(date.getDate() + days)
   return date
-}
-
-const toPositiveHex = (hexString) => {
-  let mostSiginficativeHexAsInt = parseInt(hexString[0], 8)
-  if (mostSiginficativeHexAsInt < 8) {
-    return hexString
-  }
-
-  mostSiginficativeHexAsInt -= 8
-  return mostSiginficativeHexAsInt.toString() + hexString.substring(1)
 }

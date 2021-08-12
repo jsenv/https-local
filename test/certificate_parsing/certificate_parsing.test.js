@@ -7,6 +7,7 @@ import {
 } from "@jsenv/https-certificate"
 
 const jsenvRootCertificate = await createRootCertificate({
+  serial: 0,
   commonName: "https://github.com/jsenv/server",
   countryName: "FR",
   stateOrProvinceName: "Alpes Maritimes",
@@ -19,7 +20,7 @@ const jsenvRootCertificate = await createRootCertificate({
   const actual = await parseCertificate(jsenvRootCertificate.certificatePem)
   const expected = {
     version: 2,
-    serialNumber: "00",
+    serialNumber: 0,
     attributes: {
       commonName: "https://github.com/jsenv/server",
       countryName: "FR",
@@ -58,14 +59,14 @@ const jsenvRootCertificate = await createRootCertificate({
 
 {
   const jsenvServerCertificate = await createCertificate({
-    rootCertificatePem: jsenvRootCertificate.certificatePem,
-    rootCertificatePrivateKeyPem: jsenvRootCertificate.privateKeyPem,
+    rootCertificate: jsenvRootCertificate,
     altNames: ["127.0.0.1", "localhost", "jsenv"],
+    serialNumber: 1,
   })
   const actual = await parseCertificate(jsenvServerCertificate.certificatePem)
   const expected = {
     version: 2,
-    serialNumber: "01",
+    serialNumber: 1,
     attributes: {
       commonName: "https://github.com/jsenv/server",
       countryName: "FR",

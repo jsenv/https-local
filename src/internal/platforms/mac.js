@@ -12,7 +12,7 @@ export const addRootCertificateFileToTrustStore = async ({ logger, certificateFi
 
   try {
     const command = `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic ${certificateFilePath}`
-    logger.debug(`> ${command}`)
+    logger.info(`> ${command}`)
     await exec(command)
 
     if (isFirefoxInstalled()) {
@@ -36,7 +36,7 @@ export const addRootCertificateFileToTrustStore = async ({ logger, certificateFi
 export const removeRootCertificateFileFromTrustStore = async ({ logger, certificateFilePath }) => {
   logger.debug("removing root certificate from macOS system keychain")
   const command = `sudo security remove-trusted-cert -d ${certificateFilePath}`
-  logger.debug(`> ${command}`)
+  logger.info(`> ${command}`)
 
   try {
     await exec(command)

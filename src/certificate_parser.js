@@ -19,7 +19,7 @@ export const parseCertificate = async (certificateString) => {
   const certificate = pki.certificateFromPem(certificateString)
 
   const { version } = certificate
-  const { serialNumber } = certificate
+  const serialNumber = parseInt(certificate.serialNumber, 16)
   const attributes = attributeDescriptionFromAttributeArray(certificate.subject.attributes)
   const extensions = extensionDescriptionFromExtensionArray(certificate.extensions)
   const notValidBeforeDate = certificate.validity.notBefore

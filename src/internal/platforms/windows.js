@@ -11,7 +11,7 @@ export const addRootCertificateFileToTrustStore = async ({ logger, certificateFi
 
   try {
     const command = `certutil -addstore -user root ${certificateFilePath}`
-    logger.debug(`> ${command}`)
+    logger.info(`> ${command}`)
     await exec(command)
 
     return true
@@ -33,7 +33,7 @@ export const removeRootCertificateFileFromTrustStore = async ({ logger, certific
       `Removing old certificates from trust stores. You may be prompted to grant permission for this. It's safe to delete old devcert certificates.`,
     )
     const command = `certutil -delstore -user -root devcert` // TODO: why devcert and not the file path?
-    logger.debug(`> ${command}`)
+    logger.info(`> ${command}`)
     await exec(command)
 
     return true

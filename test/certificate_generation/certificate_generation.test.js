@@ -3,6 +3,7 @@ import { assert } from "@jsenv/assert"
 import { createRootCertificate, createCertificate } from "@jsenv/https-certificate"
 
 const jsenvRootCertificate = await createRootCertificate({
+  serial: "00",
   commonName: "https://github.com/jsenv/server",
   countryName: "FR",
   stateOrProvinceName: "Alpes Maritimes",
@@ -23,8 +24,7 @@ const jsenvRootCertificate = await createRootCertificate({
 
 {
   const jsenvServerCertificate = await createCertificate({
-    rootCertificatePem: jsenvRootCertificate.certificatePem,
-    rootCertificatePrivateKeyPem: jsenvRootCertificate.privateKeyPem,
+    rootCertificate: jsenvRootCertificate,
     altNames: ["127.0.0.1", "localhost", "jsenv"],
   })
   const actual = jsenvServerCertificate

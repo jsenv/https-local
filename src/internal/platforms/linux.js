@@ -12,11 +12,11 @@ export const addRootCertificateFileToTrustStore = async ({ logger, certificateFi
 
   try {
     const copyCertificateCommand = `sudo cp ${certificateFilePath} /usr/local/share/ca-certificates/devcert.crt`
-    logger.debug(`> ${copyCertificateCommand}`)
+    logger.info(`> ${copyCertificateCommand}`)
     await exec(copyCertificateCommand)
 
     const updateCertificateCommand = `sudo update-ca-certificates`
-    logger.debug(`> ${updateCertificateCommand}`)
+    logger.info(`> ${updateCertificateCommand}`)
     await exec(updateCertificateCommand)
 
     if (isFirefoxInstalled()) {
@@ -42,11 +42,11 @@ export const removeRootCertificateFileFromTrustStore = async ({ logger, certific
 
   try {
     const removeCertificateCommand = `sudo rm /usr/local/share/ca-certificates/devcert.crt`
-    logger.debug(`> ${removeCertificateCommand}`)
+    logger.info(`> ${removeCertificateCommand}`)
     await exec(removeCertificateCommand)
 
     const updateCertificateCommand = `sudo update-ca-certificates`
-    logger.debug(`> ${updateCertificateCommand}`)
+    logger.info(`> ${updateCertificateCommand}`)
     await exec(updateCertificateCommand)
 
     return true

@@ -3,6 +3,13 @@
 
 import { createRequire } from "node:module"
 
+import {
+  attributeArrayFromAttributeDescription,
+  attributeDescriptionFromAttributeArray,
+  subjectAltNamesFromAltNames,
+  extensionArrayFromExtensionDescription,
+} from "./internal/certificate_data_converter.js"
+
 const require = createRequire(import.meta.url)
 
 export const createRootCertificate = async ({
@@ -42,7 +49,7 @@ export const createRootCertificate = async ({
   certificate.setSubject(attributeArray)
   certificate.setIssuer(attributeArray)
   certificate.setExtensions(
-    extensionToExtensionArray({
+    extensionArrayFromExtensionDescription({
       basicConstraints: {
         critical: true,
         cA: true,
@@ -102,7 +109,7 @@ export const createCertificate = async ({
   certificate.setSubject(attributeArray)
   certificate.setIssuer(rootCertificate.subject.attributes)
   certificate.setExtensions(
-    extensionToExtensionArray({
+    extensionArrayFromExtensionDescription({
       basicConstraints: {
         critical: true,
         cA: false,
@@ -143,43 +150,6 @@ const createDateInXDays = (days) => {
   return date
 }
 
-const subjectAltNamesFromAltNames = (altNames) => {
-  const isIp = require("is-ip")
-  const isUrl = (value) => {
-    try {
-      // eslint-disable-next-line no-new
-      new URL(value)
-      return true
-    } catch (e) {
-      return false
-    }
-  }
-
-  const altNamesArray = altNames.map((altName) => {
-    if (isIp(altName)) {
-      return {
-        type: 7,
-        ip: altName,
-      }
-    }
-    if (isUrl(altName)) {
-      return {
-        type: 6,
-        value: altName,
-      }
-    }
-    // 2 is DNS (Domain Name Server)
-    return {
-      type: 2,
-      value: altName,
-    }
-  })
-
-  return {
-    altNames: altNamesArray,
-  }
-}
-
 const toPositiveHex = (hexString) => {
   let mostSiginficativeHexAsInt = parseInt(hexString[0], 8)
   if (mostSiginficativeHexAsInt < 8) {
@@ -188,38 +158,4 @@ const toPositiveHex = (hexString) => {
 
   mostSiginficativeHexAsInt -= 8
   return mostSiginficativeHexAsInt.toString() + hexString.substring(1)
-}
-
-const extensionToExtensionArray = (extensions) => {
-  const extensionArray = []
-  Object.keys(extensions).forEach((key) => {
-    extensionArray.push({
-      name: key,
-      ...extensions[key],
-    })
-  })
-  return extensionArray
-}
-
-const attributeDescriptionFromAttributeArray = (attributeArray) => {
-  const attributeObject = {}
-  attributeArray.forEach((attribute) => {
-    attributeObject[attribute.name] = attribute.value
-  })
-  return attributeObject
-}
-
-const attributeArrayFromAttributeDescription = (attributeDescription) => {
-  const attributeArray = []
-  Object.keys(attributeDescription).forEach((key) => {
-    const value = attributeDescription[key]
-    if (typeof value === "undefined") {
-      return
-    }
-    attributeArray.push({
-      name: key,
-      value: attributeDescription[key],
-    })
-  })
-  return attributeArray
 }

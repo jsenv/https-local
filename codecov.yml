@@ -1,0 +1,19 @@
+# This file configures codecov, especially the comment in the pull request
+# see https://docs.codecov.io/docs/codecovyml-reference
+
+comment:
+  layout: "header"
+
+coverage:
+  # I like coverage but I think it should not be enforced
+  # so force coverage status to be always green
+  range: 0...100
+  status:
+    # same idea about coverage being nice to have:
+    # a commit/pr decreasing coverage is still successful no matter how much
+    # it decreases coverage
+    project: false
+    patch: false
+  parsers:
+    javascript:
+      enable_partials: true

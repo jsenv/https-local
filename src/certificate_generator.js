@@ -1,8 +1,7 @@
 // https://github.com/digitalbazaar/forge/blob/master/examples/create-cert.js
 // https://github.com/digitalbazaar/forge/issues/660#issuecomment-467145103
 
-import { createRequire } from "node:module"
-
+import { importNodeForge } from "./internal/forge.js"
 import {
   attributeArrayFromAttributeDescription,
   attributeDescriptionFromAttributeArray,
@@ -10,9 +9,7 @@ import {
   extensionArrayFromExtensionDescription,
 } from "./internal/certificate_data_converter.js"
 
-const require = createRequire(import.meta.url)
-
-export const createRootCertificate = async ({
+export const createCertificateAuthority = async ({
   commonName,
   countryName,
   stateOrProvinceName,
@@ -26,15 +23,15 @@ export const createRootCertificate = async ({
     throw new TypeError(`serial must be a number but received ${serialNumber}`)
   }
 
-  const forge = require("node-forge")
+  const forge = await importNodeForge()
   const { pki } = forge
-  const certificate = pki.createCertificate()
+  const forgeCertificate = pki.createCertificate()
   const { privateKey, publicKey } = pki.rsa.generateKeyPair(2048)
 
-  certificate.publicKey = publicKey
-  certificate.serialNumber = serialNumber.toString(16)
-  certificate.validity.notBefore = new Date(Date.now() - 1000)
-  certificate.validity.notAfter = createDateInXYears(validityInYears)
+  forgeCertificate.publicKey = publicKey
+  forgeCertificate.serialNumber = serialNumber.toString(16)
+  forgeCertificate.validity.notBefore = new Date(Date.now() - 1000)
+  forgeCertificate.validity.notAfter = createDateInXYears(validityInYears)
 
   const attributeDescription = {
     commonName,
@@ -45,9 +42,9 @@ export const createRootCertificate = async ({
     organizationalUnitName,
   }
   const attributeArray = attributeArrayFromAttributeDescription(attributeDescription)
-  certificate.setSubject(attributeArray)
-  certificate.setIssuer(attributeArray)
-  certificate.setExtensions(
+  forgeCertificate.setSubject(attributeArray)
+  forgeCertificate.setIssuer(attributeArray)
+  forgeCertificate.setExtensions(
     extensionArrayFromExtensionDescription({
       basicConstraints: {
         critical: true,
@@ -62,36 +59,37 @@ export const createRootCertificate = async ({
   )
 
   // self-sign certificate
-  certificate.sign(privateKey, forge.sha256.create())
+  forgeCertificate.sign(privateKey, forge.sha256.create())
 
   return {
-    publicKeyPem: pki.publicKeyToPem(publicKey),
-    privateKeyPem: pki.privateKeyToPem(privateKey),
-    certificatePem: pki.certificateToPem(certificate),
+    forgeCertificate,
+    publicKey,
+    privateKey,
   }
 }
 
-export const createCertificate = async ({
-  rootCertificate,
-  certificateAttributes = {},
+export const requestCertificateFromAuthority = async ({
+  certificateAuthority,
+  organizationName,
   altNames = [],
   validityInDays = 396,
-  // https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.2
   serialNumber = 1,
 }) => {
-  if (typeof rootCertificate !== "object" || rootCertificate === null) {
-    throw new TypeError(`rootCertificate must be an object but received ${rootCertificate}`)
-  }
-  const rootCertificatePem = rootCertificate.certificatePem
-  if (typeof rootCertificatePem !== "string") {
+  if (typeof certificateAuthority !== "object" || certificateAuthority === null) {
     throw new TypeError(
-      `rootCertificate.certificatePem must be a string but received ${rootCertificatePem}`,
+      `certificateAuthority must be an object but received ${certificateAuthority}`,
     )
   }
-  const rootCertificatePrivateKeyPem = rootCertificate.privateKeyPem
-  if (typeof rootCertificatePrivateKeyPem !== "string") {
+  const { forgeCertificate: authorityForgeCertificate } = certificateAuthority
+  if (typeof authorityForgeCertificate !== "object") {
     throw new TypeError(
-      `rootCertificate.privateKeyPem must be a string but received ${rootCertificatePem}`,
+      `certificateAuthority.forgeCertificate must be an object but received ${authorityForgeCertificate}`,
+    )
+  }
+  const { privateKey: authorityPrivateKey } = certificateAuthority
+  if (typeof authorityPrivateKey !== "string") {
+    throw new TypeError(
+      `certificateAuthority.privateKey must be a string but received ${authorityPrivateKey}`,
     )
   }
   if (typeof serialNumber !== "number") {
@@ -107,25 +105,24 @@ export const createCertificate = async ({
     validityInDays = 396
   }
 
-  const forge = require("node-forge")
+  const forge = await importNodeForge()
   const { pki } = forge
-  const forgeRootCertificate = pki.certificateFromPem(rootCertificatePem)
-  const certificate = pki.createCertificate()
+  const forgeCertificate = pki.createCertificate()
   const { privateKey, publicKey } = pki.rsa.generateKeyPair(2048)
 
-  certificate.publicKey = publicKey
-  certificate.serialNumber = serialNumber.toString(16)
-  certificate.validity.notBefore = new Date(Date.now() - 1000)
-  certificate.validity.notAfter = createDateInXDays(validityInDays)
+  forgeCertificate.publicKey = publicKey
+  forgeCertificate.serialNumber = serialNumber.toString(16)
+  forgeCertificate.validity.notBefore = new Date(Date.now() - 1000)
+  forgeCertificate.validity.notAfter = createDateInXDays(validityInDays)
 
   const attributeDescription = {
-    ...attributeDescriptionFromAttributeArray(forgeRootCertificate.subject.attributes),
-    ...certificateAttributes,
+    ...attributeDescriptionFromAttributeArray(authorityForgeCertificate.subject.attributes),
+    organizationName,
   }
   const attributeArray = attributeArrayFromAttributeDescription(attributeDescription)
-  certificate.setSubject(attributeArray)
-  certificate.setIssuer(forgeRootCertificate.subject.attributes)
-  certificate.setExtensions(
+  forgeCertificate.setSubject(attributeArray)
+  forgeCertificate.setIssuer(authorityForgeCertificate.subject.attributes)
+  forgeCertificate.setExtensions(
     extensionArrayFromExtensionDescription({
       basicConstraints: {
         critical: true,
@@ -140,18 +137,17 @@ export const createCertificate = async ({
         serverAuth: true,
       },
       authorityKeyIdentifier: {
-        keyIdentifier: forgeRootCertificate.generateSubjectKeyIdentifier().getBytes(),
+        keyIdentifier: authorityForgeCertificate.generateSubjectKeyIdentifier().getBytes(),
       },
       subjectAltName: subjectAltNamesFromAltNames(altNames),
     }),
   )
-  const rootCertificatePrivateKey = pki.privateKeyFromPem(rootCertificatePrivateKeyPem)
-  certificate.sign(rootCertificatePrivateKey, forge.sha256.create())
+  forgeCertificate.sign(authorityPrivateKey, forge.sha256.create())
 
   return {
-    publicKeyPem: pki.publicKeyToPem(publicKey),
-    privateKeyPem: pki.privateKeyToPem(privateKey),
-    certificatePem: pki.certificateToPem(certificate),
+    forgeCertificate,
+    publicKey,
+    privateKey,
   }
 }
 

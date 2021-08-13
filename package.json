@@ -1,8 +1,8 @@
 {
-  "name": "@jsenv/https-certificate",
+  "name": "@jsenv/https-localhost",
   "version": "0.0.1",
   "private": true,
-  "description": "Package description",
+  "description": "Https certificate for localhost server",
   "license": "MIT",
   "author": {
     "name": "dmail",

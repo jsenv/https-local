@@ -1,10 +1,10 @@
-# Https certificate
+# Https localhost
 
-Package description.
+Generate https certificate to be used by a server running on localhost.
 
-[![npm package](https://img.shields.io/npm/v/@jsenv/https-certificate.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/https-certificate)
-[![github main](https://github.com/jsenv/jsenv-https-certificate/workflows/main/badge.svg)](https://github.com/jsenv/jsenv-https-certificate/actions?workflow=main)
-[![codecov coverage](https://codecov.io/gh/jsenv/jsenv-https-certificate/branch/main/graph/badge.svg)](https://codecov.io/gh/jsenv/jsenv-https-certificate)
+[![npm package](https://img.shields.io/npm/v/@jsenv/https-localhost.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/https-localhost)
+[![github main](https://github.com/jsenv/jsenv-https-localhost/workflows/main/badge.svg)](https://github.com/jsenv/jsenv-https-localhost/actions?workflow=main)
+[![codecov coverage](https://codecov.io/gh/jsenv/jsenv-https-localhost/branch/main/graph/badge.svg)](https://codecov.io/gh/jsenv/jsenv-https-localhost)
 
 # Presentation
 
@@ -13,7 +13,7 @@ Package presentation
 # Installation
 
 ```console
-npm install --save-dev @jsenv/https-certificate
+npm install --save-dev @jsenv/https-localhost
 ```
 
 # Development

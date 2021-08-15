@@ -1,6 +1,7 @@
 import { createRequire } from "node:module"
 
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
+import { resetCertificateAuhtorityFiles } from "@jsenv/https-localhost/src/localhost_certificate.js"
 import { startServerForTest } from "../test_server.js"
 import { createLoggerForTest } from "../test_logger.js"
 
@@ -8,9 +9,11 @@ const require = createRequire(import.meta.url)
 
 const { chromium } = require("playwright")
 
-const loggerForTest = createLoggerForTest({ silent: false })
+await resetCertificateAuhtorityFiles()
+const loggerForTest = createLoggerForTest({ forwardToConsole: true })
 const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
   logger: loggerForTest,
+  serverCertificateFileUrl: new URL("./certificate/server.crt", import.meta.url),
   rootCertificateOrganizationName: "jsenv",
   rootCertificateOrganizationalUnitName: "https localhost",
 
@@ -29,9 +32,13 @@ const serverOrigin = await startServerForTest({
   serverPrivateKey,
 })
 
-const browser = await chromium.launch()
-const page = await browser.newPage()
-await page.goto(serverOrigin)
-// maintenant on veut démarrer un chrome/firefox/website
-// et voir ce qu'il dit/ au certificate
-browser.close()
+try {
+  const browser = await chromium.launch()
+  const page = await browser.newPage()
+  await page.goto(serverOrigin)
+  // maintenant on veut démarrer un chrome/firefox/website
+  // et voir ce qu'il dit / au certificate
+  browser.close()
+} finally {
+  await resetCertificateAuhtorityFiles()
+}

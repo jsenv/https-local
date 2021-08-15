@@ -7,7 +7,8 @@ import {
   urlToFileSystemPath,
   assertAndNormalizeFileUrl,
   urlToBasename,
-} from "@jsenv/util"
+  removeFileSystemNode,
+} from "@jsenv/filesystem"
 
 import { importNodeForge } from "./internal/forge.js"
 import {
@@ -36,28 +37,22 @@ export const requestCertificateForLocalhost = async ({
   // user less likely to use the params below
   serverCertificateOrganizationName = rootCertificateOrganizationName,
 
-  shouldTrustNewRootCertificate = ({ certificateFilePath }) => {
-    logger.info(`${certificateFilePath} root certificate needs to be trusted`)
+  shouldTrustNewRootCertificate = ({ rootCertificateFilePath }) => {
+    logger.info(`${rootCertificateFilePath} root certificate needs to be trusted`)
     // import { platformTrustStore } from "./platform_trust_store.js"
   },
-  shouldTrustUpdatedRootCertificate = ({ certificateFilePath }) => {
-    logger.info(`${certificateFilePath} root certificate has changed it needs to be re-trusted`)
+  shouldTrustUpdatedRootCertificate = ({ rootCertificateFilePath }) => {
+    logger.info(`${rootCertificateFilePath} root certificate has changed it needs to be re-trusted`)
     // user must untrust the existing certificate then add it back
   },
   onRootCertificateReused = () => {},
 } = {}) => {
-  const rootCertificateFileUrl = new URL(
-    "./jsenv_certificate_authority.crt",
-    JSENV_CERTIFICATE_AUTHORITY_DIRECTORY_URL,
-  )
-  const rootCertificateFilePath = urlToFileSystemPath(rootCertificateFileUrl)
-
   serverCertificateFileUrl = assertAndNormalizeFileUrl(serverCertificateFileUrl)
 
-  const certificateAuthorityJsonFileUrl = new URL(
-    "./jsenv_certificate_authority.json",
-    JSENV_CERTIFICATE_AUTHORITY_DIRECTORY_URL,
-  )
+  const { certificateAuthorityJsonFileUrl, rootCertificateFileUrl, rootPrivateKeyFileUrl } =
+    getCertificateAuthorityFileUrls()
+
+  const rootCertificateFilePath = urlToFileSystemPath(rootCertificateFileUrl)
 
   const { pki } = await importNodeForge()
 
@@ -72,6 +67,7 @@ export const requestCertificateForLocalhost = async ({
     pki,
     certificateAuthorityJsonFileUrl,
     rootCertificateFileUrl,
+    rootPrivateKeyFileUrl,
     rootCertificateOrganizationName,
     rootCertificateOrganizationalUnitName,
     rootCertificateSerialNumber,
@@ -99,9 +95,10 @@ export const requestCertificateForLocalhost = async ({
     await requestServerCertificate({
       logger,
       pki,
+      rootCertificateStatus,
+      certificateAuthorityJsonFileUrl,
       rootForgeCertificate,
       rootPrivateKey,
-      certificateAuthorityJsonFileUrl,
       serverCertificateFileUrl,
       serverCertificateAltNames,
       serverCertificateOrganizationName,
@@ -124,21 +121,40 @@ export const requestCertificateForLocalhost = async ({
   }
 }
 
+const getCertificateAuthorityFileUrls = () => {
+  const certificateAuthorityJsonFileUrl = new URL(
+    "./jsenv_certificate_authority.json",
+    JSENV_CERTIFICATE_AUTHORITY_DIRECTORY_URL,
+  )
+
+  const rootCertificateFileUrl = new URL(
+    "./jsenv_certificate_authority.crt",
+    JSENV_CERTIFICATE_AUTHORITY_DIRECTORY_URL,
+  )
+
+  const rootPrivateKeyFileUrl = resolveUrl(
+    "./jsenv_certificate_authority.key",
+    JSENV_CERTIFICATE_AUTHORITY_DIRECTORY_URL,
+  )
+
+  return {
+    certificateAuthorityJsonFileUrl,
+    rootCertificateFileUrl,
+    rootPrivateKeyFileUrl,
+  }
+}
+
 const requestRootCertificate = async ({
   logger,
   pki,
   certificateAuthorityJsonFileUrl,
   rootCertificateFileUrl,
+  rootPrivateKeyFileUrl,
   rootCertificateOrganizationName,
   rootCertificateOrganizationalUnitName,
   rootCertificateSerialNumber,
 }) => {
   const rootCertificateFilePath = urlToFileSystemPath(rootCertificateFileUrl)
-  const rootCertificateDirectoryUrl = new URL("./", rootCertificateFileUrl)
-  const rootPrivateKeyFileUrl = resolveUrl(
-    `${urlToBasename(rootCertificateFileUrl)}.key`,
-    rootCertificateDirectoryUrl,
-  )
 
   const generateRootCertificateAndFiles = async ({ rootCertificateStatus }) => {
     logger.info(`Generating root certificate files`)
@@ -243,6 +259,7 @@ const requestRootCertificate = async ({
 const requestServerCertificate = async ({
   logger,
   pki,
+  rootCertificateStatus,
   certificateAuthorityJsonFileUrl,
   rootForgeCertificate,
   rootPrivateKey,
@@ -297,6 +314,14 @@ const requestServerCertificate = async ({
 
   if (!fileExistsSync(serverCertificateFileUrl)) {
     logger.debug(`No server certificate file at ${serverCertificateFilePath}`)
+    return generateServerCertificateAndFiles({
+      serverCertificateStatus: "created",
+    })
+  }
+  if (rootCertificateStatus !== "reused") {
+    logger.debug(
+      `Ignoring server certificate at ${serverCertificateFilePath} because it was issued with an other root certificate`,
+    )
     return generateServerCertificateAndFiles({
       serverCertificateStatus: "created",
     })
@@ -456,6 +481,15 @@ const fileExistsSync = (fileUrl) => {
 }
 
 const JSENV_CERTIFICATE_AUTHORITY_DIRECTORY_URL = new URL(
-  "../certificate_authority",
+  "../certificate_authority/",
   import.meta.url,
 )
+
+export const resetCertificateAuhtorityFiles = async () => {
+  const { certificateAuthorityJsonFileUrl, rootCertificateFileUrl, rootPrivateKeyFileUrl } =
+    getCertificateAuthorityFileUrls()
+
+  await writeFile(certificateAuthorityJsonFileUrl, `{}`)
+  await removeFileSystemNode(rootCertificateFileUrl, { allowUseless: true })
+  await removeFileSystemNode(rootPrivateKeyFileUrl, { allowUseless: true })
+}

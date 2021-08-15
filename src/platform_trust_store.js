@@ -1,5 +1,5 @@
 import { createLogger } from "@jsenv/logger"
-import { assertAndNormalizeFileUrl, urlToFileSystemPath } from "@jsenv/util"
+import { assertAndNormalizeFileUrl, urlToFileSystemPath } from "@jsenv/filesystem"
 
 import { importPlatformMethods } from "./internal/platform.js"
 

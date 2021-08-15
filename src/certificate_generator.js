@@ -88,9 +88,9 @@ export const requestCertificateFromAuthority = async ({
     )
   }
   const { privateKey: authorityPrivateKey } = certificateAuthority
-  if (typeof authorityPrivateKey !== "string") {
+  if (typeof authorityPrivateKey !== "object" || authorityPrivateKey === null) {
     throw new TypeError(
-      `certificateAuthority.privateKey must be a string but received ${authorityPrivateKey}`,
+      `certificateAuthority.privateKey must be an object but received ${authorityPrivateKey}`,
     )
   }
   if (typeof serialNumber !== "number") {

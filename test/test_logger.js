@@ -4,7 +4,7 @@
  * and their content. This file provide a logger capable to do that.
  */
 
-export const createLoggerForTest = ({ silent = true } = {}) => {
+export const createLoggerForTest = ({ forwardToConsole = false } = {}) => {
   const debugs = []
   const infos = []
   const warns = []
@@ -13,25 +13,25 @@ export const createLoggerForTest = ({ silent = true } = {}) => {
   return {
     debug: (...args) => {
       debugs.push(args.join(""))
-      if (!silent) {
+      if (forwardToConsole) {
         console.debug(...args)
       }
     },
     info: (...args) => {
       infos.push(args.join(""))
-      if (!silent) {
+      if (forwardToConsole) {
         console.info(...args)
       }
     },
     warn: (...args) => {
       warns.push(args.join(""))
-      if (!silent) {
+      if (forwardToConsole) {
         console.warn(...args)
       }
     },
     error: (...args) => {
       errors.push(args.join(""))
-      if (!silent) {
+      if (forwardToConsole) {
         console.error(...args)
       }
     },

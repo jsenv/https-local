@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jsenv/self-cert"
+    "url": "https://github.com/jsenv/https-localhost"
   },
   "engines": {
     "node": ">=14.17.0"
@@ -27,7 +27,6 @@
     "./*": "./*"
   },
   "files": [
-    "/dist/",
     "/src/",
     "/main.js"
   ],

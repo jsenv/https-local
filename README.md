@@ -1,6 +1,6 @@
 # Https localhost
 
-Generate https certificate to be used by a server running on localhost.
+Generate https certificate to use for a server running on localhost.
 
 [![npm package](https://img.shields.io/npm/v/@jsenv/https-localhost.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/https-localhost)
 [![github main](https://github.com/jsenv/jsenv-https-localhost/workflows/main/badge.svg)](https://github.com/jsenv/jsenv-https-localhost/actions?workflow=main)

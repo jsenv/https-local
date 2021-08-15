@@ -19,7 +19,7 @@ await writeImportMapFile(
   ],
   {
     projectDirectoryUrl,
-    importMapFileRelativeUrl: "./importmap.dev.importmap",
+    importMapFileRelativeUrl: "./eslint.importmap",
     jsConfigFile: true,
   },
 )

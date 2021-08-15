@@ -10,7 +10,10 @@ import {
 } from "@jsenv/util"
 
 import { importNodeForge } from "./internal/forge.js"
-import { attributeDescriptionFromAttributeArray } from "./internal/certificate_data_converter.js"
+import {
+  attributeDescriptionFromAttributeArray,
+  normalizeForgeAltNames,
+} from "./internal/certificate_data_converter.js"
 import { formatExpired, formatAboutToExpire } from "./internal/validity_formatting.js"
 import {
   createCertificateAuthority,
@@ -28,7 +31,8 @@ export const requestCertificateForLocalhost = async ({
   rootCertificateOrganizationName = "jsenv",
   rootCertificateOrganizationalUnitName = "https-localhost",
   serverCertificateAltNames = [],
-  rootCertificateAutoTrust = false,
+  // rootCertificateAutoTrust = false,
+  // checkIfCertificateIsTrusted = true,
   // user less likely to use the params below
   serverCertificateOrganizationName = rootCertificateOrganizationName,
 
@@ -42,12 +46,14 @@ export const requestCertificateForLocalhost = async ({
   },
   onRootCertificateReused = () => {},
 } = {}) => {
-  serverCertificateFileUrl = assertAndNormalizeFileUrl(serverCertificateFileUrl)
   const rootCertificateFileUrl = new URL(
     "./jsenv_certificate_authority.crt",
     JSENV_CERTIFICATE_AUTHORITY_DIRECTORY_URL,
   )
   const rootCertificateFilePath = urlToFileSystemPath(rootCertificateFileUrl)
+
+  serverCertificateFileUrl = assertAndNormalizeFileUrl(serverCertificateFileUrl)
+
   const certificateAuthorityJsonFileUrl = new URL(
     "./jsenv_certificate_authority.json",
     JSENV_CERTIFICATE_AUTHORITY_DIRECTORY_URL,
@@ -55,142 +61,133 @@ export const requestCertificateForLocalhost = async ({
 
   const { pki } = await importNodeForge()
 
-  const normalizeReturnValue = ({ certificateAuthority, serverCertificate }) => {
-    return {
-      rootCertificate: pki.certificateToPem(certificateAuthority.forgeCertificate),
-      rootPrivateKey: pki.privateKeyToPem(certificateAuthority.privateKey),
-      serverCertificate: pki.certificateToPem(serverCertificate.forgeCertificate),
-      serverPrivateKey: pki.privateKeyToPem(serverCertificate.privateKey),
-    }
-  }
+  const {
+    rootCertificateStatus,
+    rootForgeCertificate,
+    rootPrivateKey,
+    rootCertificatePEM,
+    rootPrivateKeyPEM,
+  } = await requestRootCertificate({
+    logger,
+    pki,
+    certificateAuthorityJsonFileUrl,
+    rootCertificateFileUrl,
+    rootCertificateOrganizationName,
+    rootCertificateOrganizationalUnitName,
+    rootCertificateSerialNumber,
+  })
 
-  const rootPrivateKeyFileUrl = resolveUrl(
-    `${urlToBasename(rootCertificateFileUrl)}.key`,
-    certificatesDirectoryUrl,
-  )
-
-  const generateCertificateAuthorityAndFiles = async () => {
-    logger.info(`Generating root certificate files`)
-    const certificateAuthority = await createCertificateAuthority({
-      organizationName: rootCertificateOrganizationName,
-      organizationalUnitName: rootCertificateOrganizationalUnitName,
-      serialNumber: rootCertificateSerialNumber,
+  if (rootCertificateStatus === "created") {
+    await shouldTrustNewRootCertificate({
+      rootCertificateFilePath,
     })
-    await writeFile(
-      rootCertificateFileUrl,
-      pki.certificateToPem(certificateAuthority.forgeCertificate),
-    )
-    await writeFile(rootPrivateKeyFileUrl, pki.privateKeyToPem(certificateAuthority.privateKey))
-
-    await writeFile(
-      certificateAuthorityJsonFileUrl,
-      JSON.stringify({ serialNumber: rootCertificateSerialNumber }, null, "  "),
-    )
-
-    return certificateAuthority
+  } else if (rootCertificateStatus === "updated") {
+    await shouldTrustUpdatedRootCertificate({
+      rootCertificateFilePath,
+    })
+  } else if (rootCertificateStatus === "reused") {
+    // Is it possible to check if the root certificate is trusted at this stage?
+    // If yes we should and provide that info in onRootCertificateReused
+    // otherwise see if possible to check if server certificate is trusted
+    // and if so perform the check at that moment
+    await onRootCertificateReused({
+      rootCertificateFilePath,
+    })
   }
 
-  const createOrReuseServerCertificate = async ({ certificateAuthority }) => {
+  const { serverCertificateStatus, serverCertificatePEM, serverPrivateKeyPEM } =
+    await requestServerCertificate({
+      logger,
+      pki,
+      rootForgeCertificate,
+      rootPrivateKey,
+      certificateAuthorityJsonFileUrl,
+      serverCertificateFileUrl,
+      serverCertificateAltNames,
+      serverCertificateOrganizationName,
+    })
+
+  if (serverCertificateStatus === "created") {
     // when serverCertificateAltNames is used
     // we should also tell user what to do:
     // -> add some line into etc/hosts
     // here again take inspiration from
     // devcert but without running the command
     // let the user do it
+  }
 
-    const serverCertificateFileUrl = resolveUrl(serverCertificateFilename, certificatesDirectoryUrl)
-    const serverPrivateKeyFileUrl = resolveUrl(
-      `${urlToBasename(serverCertificateFileUrl)}.key`,
-      certificatesDirectoryUrl,
+  return {
+    serverCertificate: serverCertificatePEM,
+    serverPrivateKey: serverPrivateKeyPEM,
+    rootCertificate: rootCertificatePEM,
+    rootPrivateKey: rootPrivateKeyPEM,
+  }
+}
+
+const requestRootCertificate = async ({
+  logger,
+  pki,
+  certificateAuthorityJsonFileUrl,
+  rootCertificateFileUrl,
+  rootCertificateOrganizationName,
+  rootCertificateOrganizationalUnitName,
+  rootCertificateSerialNumber,
+}) => {
+  const rootCertificateFilePath = urlToFileSystemPath(rootCertificateFileUrl)
+  const rootCertificateDirectoryUrl = new URL("./", rootCertificateFileUrl)
+  const rootPrivateKeyFileUrl = resolveUrl(
+    `${urlToBasename(rootCertificateFileUrl)}.key`,
+    rootCertificateDirectoryUrl,
+  )
+
+  const generateRootCertificateAndFiles = async ({ rootCertificateStatus }) => {
+    logger.info(`Generating root certificate files`)
+    const { forgeCertificate, privateKey } = await createCertificateAuthority({
+      organizationName: rootCertificateOrganizationName,
+      organizationalUnitName: rootCertificateOrganizationalUnitName,
+      serialNumber: rootCertificateSerialNumber,
+    })
+    const rootCertificatePEM = pki.certificateToPem(forgeCertificate)
+    const rootPrivateKeyPEM = pki.privateKeyToPem(privateKey)
+    await writeFile(rootCertificateFileUrl, rootCertificatePEM)
+    await writeFile(rootPrivateKeyFileUrl, rootPrivateKeyPEM)
+
+    await writeFile(
+      certificateAuthorityJsonFileUrl,
+      JSON.stringify({ serialNumber: rootCertificateSerialNumber }, null, "  "),
     )
 
-    const generateServerCertificateAndFiles = async () => {
-      const rootCertificateJSONFileUrl = resolveUrl(
-        `${rootCertificateName}.json`,
-        CERTIFICATES_DIR_PATH,
-      )
-      const rootCertificateJSON = await readFile(rootCertificateJSONFileUrl, { as: "json" })
-      const lastSerialNumber = rootCertificateJSON.serialNumber
-      await writeFile(
-        rootCertificateJSONFileUrl,
-        JSON.stringify(
-          {
-            ...rootCertificateJSON,
-            serialNumber: lastSerialNumber + 1,
-          },
-          null,
-          "  ",
-        ),
-      )
-      const certificate = await createCertificate({
-        rootCertificate,
-        altNames,
-        serialNumber: lastSerialNumber + 1,
-        ...certificateParams,
-      })
-      await writeFile(certificatePrivateKeyFileUrl, certificate.privateKeyPem)
-      await writeFile(certificateFileUrl, certificate.certificatePem)
-      return certificate
-    }
-
-    if (!fileExistsSync(certificateFileUrl) || !fileExistsSync(certificatePrivateKeyFileUrl)) {
-      return createNewCertificate()
-    }
-
-    const certificatePem = await readFile(certificateFileUrl, { as: "string" })
-    const certificateExpirationState = checkCertificateExpirationState(certificatePem)
-    if (certificateExpirationState.expired) {
-      logger.info(`${certificateFileUrl} certificate is expired, a new one will be generated`)
-      return createNewCertificate()
-    }
-    if (certificateExpirationState.aboutToExpire) {
-      logger.info(
-        `${certificateFileUrl} certificate is about to expire, a new one will be generated`,
-      )
-      return createNewCertificate()
-    }
-    const certificatePrivateKeyPem = await readFile(certificatePrivateKeyFileUrl, {
-      as: "string",
-    })
     return {
-      certificatePem,
-      privateKeyPem: certificatePrivateKeyPem,
+      rootCertificateStatus,
+      rootForgeCertificate: forgeCertificate,
+      rootPrivateKey: privateKey,
+      rootCertificatePEM,
+      rootPrivateKeyPEM,
     }
   }
 
   if (!fileExistsSync(rootCertificateFileUrl)) {
     logger.debug(`No root certificate file at ${rootCertificateFilePath}`)
-    const certificateAuthority = await generateCertificateAuthorityAndFiles()
-    await shouldTrustNewRootCertificate({
-      rootCertificateFilePath,
-    })
-    const serverCertificate = await createOrReuseServerCertificate({ certificateAuthority })
-    return normalizeReturnValue({
-      certificateAuthority,
-      serverCertificate,
+    return generateRootCertificateAndFiles({
+      rootCertificateStatus: "created",
     })
   }
 
-  logger.debug(`Root certificate file found at ${certificateAuthorityJsonFileUrl}`)
-  const rootCertificatePem = await readFile(rootCertificateFileUrl, { as: "string" })
-  const rootForgeCertificate = pki.certificateFromPem(rootCertificatePem)
+  logger.debug(`Root certificate file found at ${rootCertificateFilePath}`)
+  const rootCertificatePEM = await readFile(rootCertificateFileUrl, { as: "string" })
+  const rootForgeCertificate = pki.certificateFromPem(rootCertificatePEM)
+
   const rootCertificateDifferences = getRootCertificateParamsDiff({
     rootForgeCertificate,
-    rootCertificateSerialNumber,
     rootCertificateOrganizationName,
     rootCertificateOrganizationalUnitName,
+    rootCertificateSerialNumber,
   })
   if (rootCertificateDifferences.length) {
     const paramNames = Object.keys(rootCertificateDifferences)
     logger.debug(`Root certificate params have changed: ${paramNames}`)
-    const certificateAuthority = await generateCertificateAuthorityAndFiles()
-    await shouldTrustUpdatedRootCertificate({
-      rootCertificateFilePath,
-    })
-    const serverCertificate = await createOrReuseServerCertificate({ certificateAuthority })
-    return normalizeReturnValue({
-      certificateAuthority,
-      serverCertificate,
+    return generateRootCertificateAndFiles({
+      rootCertificateStatus: "updated",
     })
   }
 
@@ -201,69 +198,178 @@ export const requestCertificateForLocalhost = async ({
     const msEllapsedSinceExpiration = -validityRemainingMs
     logger.info(
       formatExpired({
+        certificateName: "root certificate",
         msEllapsedSinceExpiration,
         msEllapsedSinceValid,
       }),
     )
-    const certificateAuthority = await generateCertificateAuthorityAndFiles()
-    await shouldTrustUpdatedRootCertificate({
-      rootCertificateFilePath,
-    })
-    const serverCertificate = await createOrReuseServerCertificate({ certificateAuthority })
-    return normalizeReturnValue({
-      certificateAuthority,
-      serverCertificate,
+    return generateRootCertificateAndFiles({
+      rootCertificateStatus: "updated",
     })
   }
-
   const validityDurationInMs = getCertificateValidityInMs(rootForgeCertificate)
   const validityRemainingMsRatio = validityDurationInMs / validityRemainingMs
   if (validityRemainingMsRatio < 0.05) {
     const msEllapsedSinceValid = getCertificateValidSinceInMs(rootForgeCertificate)
     logger.info(
       formatAboutToExpire({
+        certificateName: "root certificate",
         validityRemainingMs,
         msEllapsedSinceValid,
       }),
     )
-    const certificateAuthority = await generateCertificateAuthorityAndFiles()
-    await shouldTrustUpdatedRootCertificate({
-      rootCertificateFilePath,
-    })
-    const serverCertificate = await createOrReuseServerCertificate({ certificateAuthority })
-    return normalizeReturnValue({
-      certificateAuthority,
-      serverCertificate,
+    return generateRootCertificateAndFiles({
+      rootCertificateStatus: "updated",
     })
   }
   logger.debug(`Root certificate is valid`)
 
   logger.debug(`Read root certificate private key at ${rootPrivateKeyFileUrl}`)
-  const rootCertificatePrivateKeyPem = await readFile(rootPrivateKeyFileUrl, {
+  const rootPrivateKeyPEM = await readFile(rootPrivateKeyFileUrl, {
     as: "string",
   })
-  const privateKey = pki.privateKeyFromPem(rootCertificatePrivateKeyPem)
+  const rootPrivateKey = pki.privateKeyFromPem(rootPrivateKeyPEM)
   logger.debug(`Private key file found, reusing root certificate from filesystem`)
 
-  const certificateAuthority = {
-    forgeCertificate: rootForgeCertificate,
-    privateKey,
+  return {
+    rootCertificateStatus: "reused",
+    rootForgeCertificate,
+    rootPrivateKey,
+    rootCertificatePEM,
+    rootPrivateKeyPEM,
   }
-  await onRootCertificateReused({
-    rootCertificateFilePath,
+}
+
+const requestServerCertificate = async ({
+  logger,
+  pki,
+  certificateAuthorityJsonFileUrl,
+  rootForgeCertificate,
+  rootPrivateKey,
+  serverCertificateFileUrl,
+  serverOrganizationName,
+  serverCertificateAltNames,
+  serverCertificateOrganizationName,
+}) => {
+  const serverCertificateFilePath = urlToFileSystemPath(serverCertificateFileUrl)
+  const serverCertificateDirectoryUrl = new URL("./", serverCertificateFileUrl)
+  const serverPrivateKeyFileUrl = resolveUrl(
+    `${urlToBasename(serverCertificateFileUrl)}.key`,
+    serverCertificateDirectoryUrl,
+  )
+
+  const generateServerCertificateAndFiles = async ({ serverCertificateStatus }) => {
+    logger.info(`Generating server certificate files`)
+    const certificateAuthorityJSON = await readFile(certificateAuthorityJsonFileUrl, { as: "json" })
+    const lastSerialNumber = certificateAuthorityJSON.serialNumber
+    await writeFile(
+      certificateAuthorityJsonFileUrl,
+      JSON.stringify(
+        {
+          ...certificateAuthorityJsonFileUrl,
+          serialNumber: lastSerialNumber + 1,
+        },
+        null,
+        "  ",
+      ),
+    )
+    const serverCertificate = await requestCertificateFromAuthority({
+      logger,
+      certificateAuthority: {
+        forgeCertificate: rootForgeCertificate,
+        privateKey: rootPrivateKey,
+      },
+      altNames: serverCertificateAltNames,
+      organizationName: serverCertificateOrganizationName,
+      serialNumber: lastSerialNumber + 1,
+    })
+    const serverCertificatePEM = pki.certificateToPem(serverCertificate.forgeCertificate)
+    const serverPrivateKeyPEM = pki.privateKeyToPem(serverCertificate.privateKey)
+    await writeFile(serverCertificateFileUrl, serverCertificatePEM)
+    await writeFile(serverPrivateKeyFileUrl, serverPrivateKeyPEM)
+
+    return {
+      serverCertificateStatus,
+      serverCertificatePEM,
+      serverPrivateKeyPEM,
+    }
+  }
+
+  if (!fileExistsSync(serverCertificateFileUrl)) {
+    logger.debug(`No server certificate file at ${serverCertificateFilePath}`)
+    return generateServerCertificateAndFiles({
+      serverCertificateStatus: "created",
+    })
+  }
+  logger.debug(`Server certificate file found at ${serverCertificateFilePath}`)
+
+  const serverCertificatePEM = await readFile(serverCertificateFileUrl, { as: "string" })
+  const serverForgeCertificate = pki.certificateFromPem(serverCertificatePEM)
+
+  const serverCertificateDifferences = getServerCertificateParamsDiff({
+    serverForgeCertificate,
+    serverCertificateAltNames,
+    serverOrganizationName,
   })
-  const serverCertificate = await createOrReuseServerCertificate({ certificateAuthority })
-  return normalizeReturnValue({
-    certificateAuthority,
-    serverCertificate,
+  if (serverCertificateDifferences.length) {
+    const paramNames = Object.keys(serverCertificateDifferences)
+    logger.debug(`Server certificate params have changed: ${paramNames}`)
+    return generateServerCertificateAndFiles({
+      serverCertificateStatus: "updated",
+    })
+  }
+
+  logger.debug(`Checking server certificate validity`)
+  const validityRemainingMs = getCertificateRemainingMs(serverForgeCertificate)
+  if (validityRemainingMs < 0) {
+    const msEllapsedSinceValid = getCertificateValidSinceInMs(serverForgeCertificate)
+    const msEllapsedSinceExpiration = -validityRemainingMs
+    logger.info(
+      formatExpired({
+        certificateName: "server certificate",
+        msEllapsedSinceExpiration,
+        msEllapsedSinceValid,
+      }),
+    )
+    return generateServerCertificateAndFiles({
+      serverCertificateStatus: "updated",
+    })
+  }
+  const validityDurationInMs = getCertificateValidityInMs(serverForgeCertificate)
+  const validityRemainingMsRatio = validityDurationInMs / validityRemainingMs
+  if (validityRemainingMsRatio < 0.05) {
+    const msEllapsedSinceValid = getCertificateValidSinceInMs(serverForgeCertificate)
+    logger.info(
+      formatAboutToExpire({
+        certificateName: "server certificate",
+        validityRemainingMs,
+        msEllapsedSinceValid,
+      }),
+    )
+    return generateServerCertificateAndFiles({
+      serverCertificateStatus: "updated",
+    })
+  }
+  logger.debug(`Server certificate is valid`)
+
+  logger.debug(`Read server certificate private key at ${serverPrivateKeyFileUrl}`)
+  const serverPrivateKeyPEM = await readFile(serverPrivateKeyFileUrl, {
+    as: "string",
   })
+  logger.debug(`Private key file found, reusing server certificate from filesystem`)
+
+  return {
+    serverCertificateStatus: "reused",
+    serverCertificatePEM,
+    serverPrivateKeyPEM,
+  }
 }
 
 const getRootCertificateParamsDiff = ({
   rootForgeCertificate,
-  rootCertificateSerialNumber,
   rootCertificateOrganizationName,
   rootCertificateOrganizationalUnitName,
+  rootCertificateSerialNumber,
 }) => {
   const attributeDescription = attributeDescriptionFromAttributeArray(
     rootForgeCertificate.subject.attributes,
@@ -272,7 +378,7 @@ const getRootCertificateParamsDiff = ({
 
   const { organizationName } = attributeDescription
   if (organizationName !== rootCertificateOrganizationName) {
-    differences.organizationName = {
+    differences.rootCertificateOrganizationName = {
       valueFromCertificate: organizationName,
       valueFromParam: rootCertificateOrganizationName,
     }
@@ -280,7 +386,7 @@ const getRootCertificateParamsDiff = ({
 
   const { organizationalUnitName } = attributeDescription
   if (organizationalUnitName !== rootCertificateOrganizationalUnitName) {
-    differences.organizationalUnitName = {
+    differences.rootCertificateOrganizationalUnitName = {
       valueFromCertificate: organizationalUnitName,
       valueFromParam: rootCertificateOrganizationalUnitName,
     }
@@ -290,9 +396,38 @@ const getRootCertificateParamsDiff = ({
 
   const serialNumber = parseInt(rootForgeCertificate.serialNumber, 16)
   if (serialNumber !== rootCertificateSerialNumber) {
-    differences.serialNumber = {
+    differences.rootCertificateSerialNumber = {
       valueFromCertificate: serialNumber,
       valueFromParam: rootCertificateSerialNumber,
+    }
+  }
+
+  return differences
+}
+
+const getServerCertificateParamsDiff = ({
+  serverForgeCertificate,
+  serverCertificateAltNames,
+  serverOrganizationName,
+}) => {
+  const differences = {}
+  const attributeDescription = attributeDescriptionFromAttributeArray(
+    serverForgeCertificate.subject.attributes,
+  )
+
+  const altNames = normalizeForgeAltNames(attributeDescription.altNames)
+  if (altNames.sort().join("") !== serverCertificateAltNames.sort().join("")) {
+    differences.serverCertificateAltNames = {
+      valueFromCertificate: altNames,
+      valueFromParam: serverCertificateAltNames,
+    }
+  }
+
+  const { organizationName } = attributeDescription
+  if (organizationName !== serverOrganizationName) {
+    differences.serverOrganizationName = {
+      valueFromCertificate: organizationName,
+      valueFromParam: serverOrganizationName,
     }
   }
 

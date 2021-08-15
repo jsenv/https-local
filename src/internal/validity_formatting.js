@@ -1,11 +1,19 @@
-export const formatExpired = ({ msEllapsedSinceExpiration, msEllapsedSinceValid }) => {
-  return `root certificate has expired ${formatTimeDelta(
+export const formatExpired = ({
+  certificateName,
+  msEllapsedSinceExpiration,
+  msEllapsedSinceValid,
+}) => {
+  return `${certificateName} has expired ${formatTimeDelta(
     -msEllapsedSinceExpiration,
   )}, it was valid during ${formatDuration(msEllapsedSinceValid)}`
 }
 
-export const formatAboutToExpire = ({ validityRemainingMs, msEllapsedSinceValid }) => {
-  return `root certificate is about to expire ${formatTimeDelta(
+export const formatAboutToExpire = ({
+  certificateName,
+  validityRemainingMs,
+  msEllapsedSinceValid,
+}) => {
+  return `${certificateName} certificate is about to expire ${formatTimeDelta(
     validityRemainingMs,
   )}, it was valid during ${formatDuration(msEllapsedSinceValid)}`
 }

@@ -69,9 +69,10 @@ export const createCertificateAuthority = async ({
 }
 
 export const requestCertificateFromAuthority = async ({
+  logger,
   certificateAuthority,
-  organizationName,
   altNames = [],
+  organizationName,
   validityInDays = 396,
   serialNumber = 1,
 }) => {
@@ -99,7 +100,7 @@ export const requestCertificateFromAuthority = async ({
   // certificate must not exceed 397 days
   // https://stackoverflow.com/questions/64597721/neterr-cert-validity-too-long-the-server-certificate-has-a-validity-period-t
   if (validityInDays > 396) {
-    console.warn(
+    logger.warn(
       `A certificate validity of ${validityInDays} days is too much, using the max allowed value: 396 days`,
     )
     validityInDays = 396

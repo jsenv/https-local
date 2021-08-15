@@ -82,3 +82,9 @@ export const attributeArrayFromAttributeDescription = (attributeDescription) => 
   })
   return attributeArray
 }
+
+export const normalizeForgeAltNames = (forgeAltNames) => {
+  return forgeAltNames.map((forgeAltName) => {
+    return forgeAltName.ip || forgeAltName.value
+  })
+}

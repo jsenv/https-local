@@ -1,6 +1,11 @@
 import { createServer } from "node:http"
 
-export const startServerForTest = async ({ serverCertificate, serverPrivateKey }) => {
+export const startServerForTest = async ({
+  serverCertificate,
+  serverPrivateKey,
+  keepAlive = false,
+  port = 0,
+}) => {
   const server = createServer(
     {
       cert: serverCertificate,
@@ -16,14 +21,16 @@ export const startServerForTest = async ({ serverCertificate, serverPrivateKey }
       response.end()
     },
   )
-  server.unref()
+  if (!keepAlive) {
+    server.unref()
+  }
   const serverPort = await new Promise((resolve) => {
     server.on("listening", () => {
       // in case port is 0 (randomly assign an available port)
       // https://nodejs.org/api/net.html#net_server_listen_port_host_backlog_callback
       resolve(server.address().port)
     })
-    server.listen()
+    server.listen(port)
   })
   return `https://localhost:${serverPort}`
 }

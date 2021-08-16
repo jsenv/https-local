@@ -8,11 +8,11 @@ export const exec = (command, { cwd, onLog = () => {}, onErrorLog = () => {} } =
         cwd,
         stdio: "silent",
       },
-      (error) => {
+      (error, stdout) => {
         if (error) {
           reject(error)
         } else {
-          resolve()
+          resolve(stdout)
         }
       },
     )

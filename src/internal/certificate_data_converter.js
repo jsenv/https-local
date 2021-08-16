@@ -1,10 +1,6 @@
-import { createRequire } from "node:module"
-
-const require = createRequire(import.meta.url)
+import { isIp } from "node:net"
 
 export const subjectAltNamesFromAltNames = (altNames) => {
-  const isIp = require("is-ip")
-
   const isUrl = (value) => {
     try {
       // eslint-disable-next-line no-new

@@ -16,6 +16,7 @@ import {
   normalizeForgeAltNames,
 } from "./internal/certificate_data_converter.js"
 import { formatExpired, formatAboutToExpire } from "./internal/validity_formatting.js"
+import { platformTrustStore } from "./internal/platform_trust_store.js"
 import {
   createCertificateAuthority,
   requestCertificateFromAuthority,
@@ -37,9 +38,19 @@ export const requestCertificateForLocalhost = async ({
   // user less likely to use the params below
   serverCertificateOrganizationName = rootCertificateOrganizationName,
 
-  shouldTrustNewRootCertificate = ({ rootCertificateFilePath }) => {
+  shouldTrustNewRootCertificate = async ({ rootCertificateFilePath, rootCertificatePEM }) => {
     logger.info(`${rootCertificateFilePath} root certificate needs to be trusted`)
-    // import { platformTrustStore } from "./platform_trust_store.js"
+
+    const howToRegisterRootCertificate = await platformTrustStore.getHowToRegisterRootCertificate({
+      logger,
+      rootCertificateFilePath,
+      rootCertificatePEM,
+    })
+    // on voudrait presque aussi un browser + node etc whatever trust store pour chaque plateforme
+    // comme ce serais ingérable il faut pouvoir appliquer le comportement par défaut
+    // mais aussi le comportement custom
+    // et pouvoir avoir des truc automatique (genre eslint -fix) et des trucs manuel
+    // genre lire la doc et le faire soi meme
   },
   shouldTrustUpdatedRootCertificate = ({ rootCertificateFilePath }) => {
     logger.info(`${rootCertificateFilePath} root certificate has changed it needs to be re-trusted`)
@@ -76,10 +87,12 @@ export const requestCertificateForLocalhost = async ({
   if (rootCertificateStatus === "created") {
     await shouldTrustNewRootCertificate({
       rootCertificateFilePath,
+      rootCertificatePEM,
     })
   } else if (rootCertificateStatus === "updated") {
     await shouldTrustUpdatedRootCertificate({
       rootCertificateFilePath,
+      rootCertificatePEM,
     })
   } else if (rootCertificateStatus === "reused") {
     // Is it possible to check if the root certificate is trusted at this stage?

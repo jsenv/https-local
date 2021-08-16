@@ -3,64 +3,66 @@
  */
 
 import { existsSync } from "node:fs"
-import { createDetailedMessage } from "@jsenv/logger"
+import { readFile } from "@jsenv/filesystem"
 
 import { exec } from "../exec.js"
 
-export const addRootCertificateFileToTrustStore = async ({ logger, certificateFilePath }) => {
-  logger.debug("adding root certificate to Linux trust stores")
+export const describeHowToRegisterRootCertificate = async ({
+  logger,
+  rootCertificateFilePath,
+  rootCertificatePEM,
+}) => {
+  const isRegistered = await rootCertificateIsRegistered({ logger, rootCertificatePEM })
+  if (isRegistered) {
+    return null
+  }
 
-  try {
-    const copyCertificateCommand = `sudo cp ${certificateFilePath} /usr/local/share/ca-certificates/devcert.crt`
-    logger.info(`> ${copyCertificateCommand}`)
-    await exec(copyCertificateCommand)
-
-    const updateCertificateCommand = `sudo update-ca-certificates`
-    logger.info(`> ${updateCertificateCommand}`)
-    await exec(updateCertificateCommand)
-
-    if (isFirefoxInstalled()) {
-      logger.warn(
-        `${certificateFilePath} root certificate must be added manually to firefox as documented in https://wiki.mozilla.org/PSM:Changing_Trust_Settings#Trusting_an_Additional_Root_Certificate`,
-      )
-    }
-
-    return true
-  } catch (e) {
-    logger.error(
-      createDetailedMessage(`failed to add ${certificateFilePath} to Linux trust stores`, {
-        "error stack": e.stack,
-      }),
-    )
-
-    return false
+  const copyCertificateFileCommand = `sudo cp ${rootCertificateFilePath} /usr/local/share/ca-certificates/jsenv_certificate_authority.crt`
+  const updateCertificateAuthoritiesCommand = `sudo update-ca-certificates`
+  return {
+    description: "add root certificate to Linux trust store",
+    fixable: true,
+    fix: async () => {
+      await exec(copyCertificateFileCommand)
+      await exec(updateCertificateAuthoritiesCommand)
+    },
   }
 }
 
-export const removeRootCertificateFileFromTrustStore = async ({ logger, certificateFilePath }) => {
-  logger.debug("removing root certificate from Linux trust stores")
-
-  try {
-    const removeCertificateCommand = `sudo rm /usr/local/share/ca-certificates/devcert.crt`
-    logger.info(`> ${removeCertificateCommand}`)
-    await exec(removeCertificateCommand)
-
-    const updateCertificateCommand = `sudo update-ca-certificates`
-    logger.info(`> ${updateCertificateCommand}`)
-    await exec(updateCertificateCommand)
-
-    return true
-  } catch (e) {
-    logger.error(
-      createDetailedMessage(`failed to remove ${certificateFilePath} from linux trust stores`, {
-        "error stack": e.stack,
-      }),
-    )
-
+export const rootCertificateIsRegistered = async ({ logger, rootCertificatePEM }) => {
+  logger.debug(`Searching root certificate in linux trust store`)
+  if (!existsSync(`/usr/local/share/ca-certificates/jsenv_certificate_authority.crt`)) {
+    logger.debug(`Root certificate is not in linux store`)
     return false
+  }
+
+  logger.debug(
+    `Root certificate found at /usr/local/share/ca-certificates/jsenv_certificate_authority.crt`,
+  )
+  const rootCertificatePEMInLinuxStore = await readFile(
+    `/usr/local/share/ca-certificates/jsenv_certificate_authority.crt`,
+  )
+  if (rootCertificatePEMInLinuxStore === rootCertificatePEM) {
+    logger.debug(`Root certificate already in linux store`)
+    return true
+  }
+  logger.debug(`Root certificate in linux store is outdated`)
+  return false
+}
+
+export const removeRootCertificateFileFromTrustStore = async () => {
+  const removeCertificateFileCommand = `sudo rm /usr/local/share/ca-certificates/jsenv_certificate_authority.crt`
+  const updateCertificateAuthoritiesCommand = `sudo update-ca-certificates`
+  return {
+    description: "remove root certificate from Linux trust store",
+    fixable: true,
+    fix: async () => {
+      await exec(removeCertificateFileCommand)
+      await exec(updateCertificateAuthoritiesCommand)
+    },
   }
 }
 
-const isFirefoxInstalled = () => {
+export const isFirefoxInstalled = () => {
   return existsSync("/usr/bin/firefox")
 }

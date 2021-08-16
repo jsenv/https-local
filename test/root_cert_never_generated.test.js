@@ -6,16 +6,18 @@
 import { assert } from "@jsenv/assert"
 
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
-import { resetCertificateAuhtorityFiles } from "@jsenv/https-localhost/src/localhost_certificate.js"
 import {
+  resetCertificateAuhtorityFiles,
   createLoggerForTest,
   startServerForTest,
   launchChromium,
   launchFirefox,
+  launchWebkit,
   requestServerUsingBrowser,
 } from "./test_helpers.js"
 
 await resetCertificateAuhtorityFiles()
+// we should also reset server certificate files
 const loggerForTest = createLoggerForTest({ forwardToConsole: true })
 const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
   logger: loggerForTest,
@@ -39,13 +41,22 @@ const serverOrigin = await startServerForTest({
 })
 
 {
+  const actual = loggerForTest.getLogs({ info: true, warn: true, error: true })
+  const expected = {
+    infos: actual.infos, // todo
+    warns: [],
+    errors: [],
+  }
+  assert({ actual, expected })
+}
+
+{
   const browser = await launchChromium()
   try {
     await requestServerUsingBrowser({
       serverOrigin,
       browser,
     })
-
     throw new Error("should throw")
   } catch (e) {
     const actual = e.errorText
@@ -58,18 +69,33 @@ const serverOrigin = await startServerForTest({
 
 {
   const browser = await launchFirefox()
-  // certificate is not trusted without a manual action from us
-  // opening chrome results in ERR_CERT_INVALID
   try {
     await requestServerUsingBrowser({
       serverOrigin,
       browser,
     })
-
     throw new Error("should throw")
   } catch (e) {
     const actual = e.errorText
-    const expected = "net::ERR_CERT_INVALID"
+    const expected = "SEC_ERROR_UNKNOWN_ISSUER"
+    assert({ actual, expected })
+  } finally {
+    browser.close()
+  }
+}
+
+{
+  const browser = await launchWebkit()
+  try {
+    await requestServerUsingBrowser({
+      serverOrigin,
+      browser,
+    })
+    throw new Error("should throw")
+  } catch (e) {
+    const actual = e.errorText
+    const expected =
+      "The certificate for this server is invalid. You might be connecting to a server that is pretending to be “localhost” which could put your confidential information at risk."
     assert({ actual, expected })
   } finally {
     browser.close()

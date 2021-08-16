@@ -42,12 +42,12 @@ export const ensureRootCertificateRegistration = async ({
         )
       }
     } else {
-      logger.info(
-        createDetailedMessage(`root certificate must be added to macOS keychain`, {
-          suggestion: addTrustedCertificateCommand,
-          documentation: `https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac`,
-        }),
-      )
+      logger.info(`
+${createDetailedMessage(`root certificate must be added to macOS keychain`, {
+  suggestion: addTrustedCertificateCommand,
+  documentation: `https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac`,
+})}
+`)
     }
   }
 
@@ -55,11 +55,11 @@ export const ensureRootCertificateRegistration = async ({
     if (rootCertificateStatus === "reused") {
       logger.debug(`Root certificate reused, skip "how to trust for firefox" log`)
     } else {
-      logger.info(
-        createDetailedMessage(`Firefox detected, root certificate needs to be trusted in Firefox`, {
-          suggestion: "https://wiki.mozilla.org/PSM:Changing_Trust_Settings",
-        }),
-      )
+      logger.info(`
+${createDetailedMessage(`Firefox detected, root certificate needs to be trusted in Firefox`, {
+  suggestion: "https://wiki.mozilla.org/PSM:Changing_Trust_Settings",
+})}
+`)
     }
   } else {
     logger.debug(`Firefox not detected`)

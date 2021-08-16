@@ -7,9 +7,9 @@ import {
   urlToFileSystemPath,
   assertAndNormalizeFileUrl,
   urlToBasename,
-  removeFileSystemNode,
 } from "@jsenv/filesystem"
 
+import { getCertificateAuthorityFileUrls } from "./internal/certificate_authority_file_urls.js"
 import { importNodeForge } from "./internal/forge.js"
 import {
   attributeDescriptionFromAttributeArray,
@@ -79,6 +79,7 @@ export const requestCertificateForLocalhost = async ({
     })
 
   await verificationsOnCertificates({
+    logger,
     rootCertificateStatus,
     rootCertificateFilePath,
     rootCertificate: rootCertificatePEM,
@@ -94,29 +95,6 @@ export const requestCertificateForLocalhost = async ({
     serverPrivateKey: serverPrivateKeyPEM,
     rootCertificate: rootCertificatePEM,
     rootPrivateKey: rootPrivateKeyPEM,
-  }
-}
-
-const getCertificateAuthorityFileUrls = () => {
-  const certificateAuthorityJsonFileUrl = new URL(
-    "./jsenv_certificate_authority.json",
-    JSENV_CERTIFICATE_AUTHORITY_DIRECTORY_URL,
-  )
-
-  const rootCertificateFileUrl = new URL(
-    "./jsenv_certificate_authority.crt",
-    JSENV_CERTIFICATE_AUTHORITY_DIRECTORY_URL,
-  )
-
-  const rootPrivateKeyFileUrl = resolveUrl(
-    "./jsenv_certificate_authority.key",
-    JSENV_CERTIFICATE_AUTHORITY_DIRECTORY_URL,
-  )
-
-  return {
-    certificateAuthorityJsonFileUrl,
-    rootCertificateFileUrl,
-    rootPrivateKeyFileUrl,
   }
 }
 
@@ -455,20 +433,4 @@ const getCertificateValidityInMs = (forgeCertificate) => {
 
 const fileExistsSync = (fileUrl) => {
   return existsSync(urlToFileSystemPath(fileUrl))
-}
-
-// NOPE: what if the package is installed multiple times?
-// we need a central place to write it
-const JSENV_CERTIFICATE_AUTHORITY_DIRECTORY_URL = new URL(
-  "../certificate_authority/",
-  import.meta.url,
-)
-
-export const resetCertificateAuhtorityFiles = async () => {
-  const { certificateAuthorityJsonFileUrl, rootCertificateFileUrl, rootPrivateKeyFileUrl } =
-    getCertificateAuthorityFileUrls()
-
-  await writeFile(certificateAuthorityJsonFileUrl, `{}`)
-  await removeFileSystemNode(rootCertificateFileUrl, { allowUseless: true })
-  await removeFileSystemNode(rootPrivateKeyFileUrl, { allowUseless: true })
 }

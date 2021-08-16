@@ -1,4 +1,4 @@
-import { isIp } from "node:net"
+import { isIP } from "node:net"
 
 export const subjectAltNamesFromAltNames = (altNames) => {
   const isUrl = (value) => {
@@ -12,7 +12,7 @@ export const subjectAltNamesFromAltNames = (altNames) => {
   }
 
   const altNamesArray = altNames.map((altName) => {
-    if (isIp(altName)) {
+    if (isIP(altName)) {
       return {
         type: 7,
         ip: altName,

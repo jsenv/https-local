@@ -1,7 +1,20 @@
 import { createServer } from "node:https"
 import { createRequire } from "node:module"
+import { removeFileSystemNode } from "@jsenv/filesystem"
+
+import { getCertificateAuthorityFileUrls } from "@jsenv/https-localhost/src/internal/certificate_authority_file_urls.js"
 
 const require = createRequire(import.meta.url)
+
+export const resetCertificateAuhtorityFiles = async () => {
+  const { certificateAuthorityJsonFileUrl, rootCertificateFileUrl, rootPrivateKeyFileUrl } =
+    getCertificateAuthorityFileUrls()
+
+  // maybe we could/should just use ensureEmptyDirectory on the certificate autorithy directory
+  await removeFileSystemNode(certificateAuthorityJsonFileUrl, { allowUseless: true })
+  await removeFileSystemNode(rootCertificateFileUrl, { allowUseless: true })
+  await removeFileSystemNode(rootPrivateKeyFileUrl, { allowUseless: true })
+}
 
 /*
  * Logs are an important part of this package
@@ -103,6 +116,11 @@ export const launchFirefox = () => {
   return firefox.launch()
 }
 
+export const launchWebkit = () => {
+  const { webkit } = require("playwright")
+  return webkit.launch()
+}
+
 export const requestServerUsingBrowser = async ({ serverOrigin, browser }) => {
   const page = await browser.newPage()
 
@@ -112,9 +130,23 @@ export const requestServerUsingBrowser = async ({ serverOrigin, browser }) => {
     })
 
     page.on("load", () => {
-      resolve()
+      setTimeout(resolve, 200) // this time is required for firefox to trigger "requestfailed"
     })
 
-    page.goto(serverOrigin)
+    page.goto(serverOrigin).catch((e) => {
+      // chrome
+      if (e.message.includes("ERR_CERT_INVALID")) {
+        return
+      }
+      // firefox
+      if (e.message.includes("SEC_ERROR_UNKNOWN_ISSUER")) {
+        return
+      }
+      // webkit
+      if (e.message.includes("The certificate for this server is invalid.")) {
+        return
+      }
+      throw e
+    })
   })
 }

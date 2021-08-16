@@ -1,6 +1,6 @@
 import { importPlatformMethods } from "./internal/platform.js"
 
-export const jsenvPerformCertificateChecks = async ({
+export const jsenvVerificationsOnCertificates = async ({
   logger,
   rootCertificateStatus,
   rootCertificateFilePath,

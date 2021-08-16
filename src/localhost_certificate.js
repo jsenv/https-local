@@ -20,7 +20,7 @@ import {
   createCertificateAuthority,
   requestCertificateFromAuthority,
 } from "./certificate_generator.js"
-import { jsenvPerformCertificateChecks } from "./jsenvPerformCertificateChecks.js"
+import { jsenvVerificationsOnCertificates } from "./jsenvVerificationsOnCertificates.js"
 
 export const requestCertificateForLocalhost = async ({
   logLevel,
@@ -37,7 +37,7 @@ export const requestCertificateForLocalhost = async ({
   serverCertificateOrganizationName = rootCertificateOrganizationName,
 
   tryToTrustRootCertificate = false,
-  performCertificateChecks = jsenvPerformCertificateChecks,
+  verificationsOnCertificates = jsenvVerificationsOnCertificates,
 } = {}) => {
   serverCertificateFileUrl = assertAndNormalizeFileUrl(serverCertificateFileUrl)
 
@@ -78,7 +78,7 @@ export const requestCertificateForLocalhost = async ({
       serverCertificateOrganizationName,
     })
 
-  await performCertificateChecks({
+  await verificationsOnCertificates({
     rootCertificateStatus,
     rootCertificateFilePath,
     rootCertificate: rootCertificatePEM,

@@ -9,7 +9,8 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
     const matches = /^\s*?(.+?)\s+(.+?)\s*$/.exec(lineWithoutComments)
     if (matches && matches.length === 3) {
       const [, ip, host] = matches
-      lines.push({ type: "rule", ip, host })
+      const hostnames = host.split(" ")
+      lines.push({ type: "rule", ip, hostnames })
     } else {
       // Found a comment, blank line, or something else
       lines.push({ type: "other", value: line })
@@ -20,9 +21,9 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
     const ipHostnames = {}
     lines.forEach((line) => {
       if (line.type === "rule") {
-        const { ip, host } = line
+        const { ip, hostnames } = line
         const existingHostnames = ipHostnames[ip]
-        ipHostnames[ip] = existingHostnames ? [...existingHostnames, host] : [host]
+        ipHostnames[ip] = existingHostnames ? [...existingHostnames, ...hostnames] : hostnames
       }
     })
     return ipHostnames
@@ -32,7 +33,7 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
     const hosts = []
     lines.forEach((line) => {
       if (line.type === "rule" && line.ip === ip) {
-        hosts.push(line.host)
+        hosts.push(...line.hostnames)
       }
     })
     return hosts
@@ -40,11 +41,11 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
 
   const addIpHostname = (ip, host) => {
     const existingIpRule = lines.find((line) => line.ip === ip)
-    if (existingIpRule && existingIpRule.host === host) {
+    if (existingIpRule && existingIpRule.hostnames.includes(host)) {
       return false
     }
 
-    const rule = { type: "rule", ip, host }
+    const rule = { type: "rule", ip, hostnames: [host] }
     const lastLineIndex = lines.length - 1
     const lastLine = lines[lastLineIndex]
     // last line is just empty characters, put the rule above it
@@ -57,13 +58,38 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
   }
 
   const removeIpHostname = (ip, host) => {
-    const ruleIndex = lines.findIndex((line) => {
-      return line.type === "rule" && line.ip === ip && line.host === host
+    let lineIndexFound
+    let hostnamesFound
+    let hostIndexFound
+    const found = lines.find((line, lineIndex) => {
+      if (line.type !== "rule") {
+        return false
+      }
+      if (line.ip !== ip) {
+        return false
+      }
+      const { hostnames } = line
+      const hostIndex = hostnames.indexOf(host)
+      if (hostIndex === -1) {
+        return false
+      }
+
+      lineIndexFound = lineIndex
+      hostnamesFound = hostnames
+      hostIndexFound = hostIndex
+      return true
     })
-    if (ruleIndex === -1) {
+
+    if (!found) {
       return false
     }
-    lines.splice(ruleIndex, 1)
+
+    if (hostnamesFound.length === 1) {
+      lines.splice(lineIndexFound, 1)
+      return true
+    }
+
+    hostnamesFound.splice(hostIndexFound, 1)
     return true
   }
 
@@ -77,10 +103,10 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
 
     lines.forEach((line, index) => {
       if (line.type === "rule") {
-        const { ip, host } = line
+        const { ip, hostnames } = line
         const ipLength = ip.length
         const lengthDelta = longestIp - ipLength
-        hostsFileContent += `${ip}${" ".repeat(lengthDelta)} ${host}`
+        hostsFileContent += `${ip}${" ".repeat(lengthDelta)} ${hostnames.join(" ")}`
       } else {
         hostsFileContent += line.value
       }

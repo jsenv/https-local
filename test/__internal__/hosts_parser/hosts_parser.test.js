@@ -10,7 +10,7 @@ const hostsA = parseHosts(hostsAContent)
 {
   const actual = hostsA.getAllIpHostnames()
   const expected = {
-    "127.0.0.1": ["localhost", "tool.example.com", "jsenv"],
+    "127.0.0.1": ["localhost", "loopback", "tool.example.com", "jsenv"],
     "255.255.255.255": ["broadcasthost"],
     "::1": ["localhost"],
   }
@@ -26,6 +26,6 @@ const hostsA = parseHosts(hostsAContent)
 
 {
   const actual = hostsA.getIpHostnames("127.0.0.1")
-  const expected = ["localhost", "tool.example.com", "jsenv"]
+  const expected = ["localhost", "loopback", "tool.example.com", "jsenv"]
   assert({ actual, expected })
 }

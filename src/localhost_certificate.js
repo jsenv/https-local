@@ -20,7 +20,7 @@ import {
   createCertificateAuthority,
   requestCertificateFromAuthority,
 } from "./certificate_generator.js"
-import { jsenvOnServerCertificateReady } from "./jsenvOnServerCertificateReady.js"
+import { jsenvPerformCertificateChecks } from "./jsenvPerformCertificateChecks.js"
 
 export const requestCertificateForLocalhost = async ({
   logLevel,
@@ -35,7 +35,9 @@ export const requestCertificateForLocalhost = async ({
   // checkIfCertificateIsTrusted = true,
   // user less likely to use the params below
   serverCertificateOrganizationName = rootCertificateOrganizationName,
-  onServerCertificateReady = jsenvOnServerCertificateReady,
+
+  tryToTrustRootCertificate = false,
+  performCertificateChecks = jsenvPerformCertificateChecks,
 } = {}) => {
   serverCertificateFileUrl = assertAndNormalizeFileUrl(serverCertificateFileUrl)
 
@@ -76,10 +78,12 @@ export const requestCertificateForLocalhost = async ({
       serverCertificateOrganizationName,
     })
 
-  await onServerCertificateReady({
+  await performCertificateChecks({
     rootCertificateStatus,
     rootCertificateFilePath,
     rootCertificate: rootCertificatePEM,
+    tryToTrustRootCertificate,
+
     serverCertificateStatus,
     serverCertificate: serverCertificatePEM,
     serverCertificateAltNames,
@@ -453,6 +457,8 @@ const fileExistsSync = (fileUrl) => {
   return existsSync(urlToFileSystemPath(fileUrl))
 }
 
+// NOPE: what if the package is installed multiple times?
+// we need a central place to write it
 const JSENV_CERTIFICATE_AUTHORITY_DIRECTORY_URL = new URL(
   "../certificate_authority/",
   import.meta.url,

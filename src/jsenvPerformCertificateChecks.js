@@ -1,10 +1,11 @@
 import { importPlatformMethods } from "./internal/platform.js"
 
-export const jsenvOnServerCertificateReady = async ({
+export const jsenvPerformCertificateChecks = async ({
   logger,
   rootCertificateStatus,
   rootCertificateFilePath,
   rootCertificate,
+  tryToTrustRootCertificate,
 
   serverCertificateAltNames,
 }) => {
@@ -16,6 +17,7 @@ export const jsenvOnServerCertificateReady = async ({
     rootCertificateFilePath,
     rootCertificateStatus,
     rootCertificate,
+    tryToTrustRootCertificate,
   })
   await ensureHostnamesRegistration({
     logger,

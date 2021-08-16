@@ -1,3 +1,8 @@
+/*
+ * - ensure logs (info, not debug ones)
+ * - certificate must not be trusted
+ */
+
 import { assert } from "@jsenv/assert"
 
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
@@ -6,8 +11,9 @@ import {
   createLoggerForTest,
   startServerForTest,
   launchChromium,
+  launchFirefox,
   requestServerUsingBrowser,
-} from "../test_helpers.js"
+} from "./test_helpers.js"
 
 await resetCertificateAuhtorityFiles()
 const loggerForTest = createLoggerForTest({ forwardToConsole: true })
@@ -31,21 +37,41 @@ const serverOrigin = await startServerForTest({
   serverCertificate,
   serverPrivateKey,
 })
-const browser = await launchChromium()
 
-// certificate is not trusted without a manual action from us
-// opening chrome results in ERR_CERT_INVALID
-try {
-  await requestServerUsingBrowser({
-    serverOrigin,
-    browser,
-  })
+{
+  const browser = await launchChromium()
+  try {
+    await requestServerUsingBrowser({
+      serverOrigin,
+      browser,
+    })
 
-  throw new Error("should throw")
-} catch (e) {
-  const actual = e.errorText
-  const expected = "net::ERR_CERT_INVALID"
-  assert({ actual, expected })
+    throw new Error("should throw")
+  } catch (e) {
+    const actual = e.errorText
+    const expected = "net::ERR_CERT_INVALID"
+    assert({ actual, expected })
+  } finally {
+    browser.close()
+  }
 }
 
-browser.close()
+{
+  const browser = await launchFirefox()
+  // certificate is not trusted without a manual action from us
+  // opening chrome results in ERR_CERT_INVALID
+  try {
+    await requestServerUsingBrowser({
+      serverOrigin,
+      browser,
+    })
+
+    throw new Error("should throw")
+  } catch (e) {
+    const actual = e.errorText
+    const expected = "net::ERR_CERT_INVALID"
+    assert({ actual, expected })
+  } finally {
+    browser.close()
+  }
+}

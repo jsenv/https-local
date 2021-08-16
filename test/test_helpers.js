@@ -98,6 +98,11 @@ export const launchChromium = () => {
   return chromium.launch()
 }
 
+export const launchFirefox = () => {
+  const { firefox } = require("playwright")
+  return firefox.launch()
+}
+
 export const requestServerUsingBrowser = async ({ serverOrigin, browser }) => {
   const page = await browser.newPage()
 

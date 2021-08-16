@@ -16,48 +16,54 @@ export const ensureRootCertificateRegistration = async ({
   rootCertificateFilePath,
   rootCertificateStatus,
   rootCertificate,
+  tryToTrustRootCertificate,
 }) => {
-  const registered = await rootCertificateIsRegistered({
-    logger,
-    rootCertificate,
-  })
+  logger.debug(`Searching root certificate in macOS keychain`)
+  const findAllCertificatesCommand = `security find-certificate -a -p`
+  logger.debug(`> ${findAllCertificatesCommand}`)
+  const stringWithAllCertificatesAsPem = await exec(findAllCertificatesCommand)
+  const rootCertificateInKeychain = stringWithAllCertificatesAsPem.includes(rootCertificate)
 
-  if (!registered) {
-    logger.debug("adding root certificate to macOS keychain")
+  if (rootCertificateInKeychain) {
+    logger.debug(`root certificate found in macOS keychain`)
+  } else {
     const addTrustedCertificateCommand = `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic ${rootCertificateFilePath}`
-    logger.info(`> ${addTrustedCertificateCommand}`)
-    try {
-      await exec(addTrustedCertificateCommand)
-    } catch (e) {
-      logger.error(
-        createDetailedMessage(`failed to add ${rootCertificateFilePath} to macOS keychain`, {
-          "error stack": e.stack,
+    if (tryToTrustRootCertificate) {
+      logger.debug(`root certificate is not in macOS keychain`)
+      logger.info(`adding root certificate to macOS keychain`)
+      logger.info(`> ${addTrustedCertificateCommand}`)
+      try {
+        await exec(addTrustedCertificateCommand)
+      } catch (e) {
+        logger.error(
+          createDetailedMessage(`failed to add ${rootCertificateFilePath} to macOS keychain`, {
+            "error stack": e.stack,
+          }),
+        )
+      }
+    } else {
+      logger.info(
+        createDetailedMessage(`root certificate must be added to macOS keychain`, {
+          suggestion: addTrustedCertificateCommand,
+          documentation: `https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac`,
         }),
       )
     }
   }
 
   if (isFirefoxInstalled()) {
-    // add information about firefox? but maybe not every time it would be annoying
-    // just when needed
-    if (rootCertificateStatus === "created" || rootCertificateStatus === "updated") {
-      // here put a log to firefox doc on how to trust cert
+    if (rootCertificateStatus === "reused") {
+      logger.debug(`Root certificate reused, skip "how to trust for firefox" log`)
+    } else {
+      logger.info(
+        createDetailedMessage(`Firefox detected, root certificate needs to be trusted in Firefox`, {
+          suggestion: "https://wiki.mozilla.org/PSM:Changing_Trust_Settings",
+        }),
+      )
     }
-  }
-}
-
-const rootCertificateIsRegistered = async ({ logger, rootCertificate }) => {
-  logger.debug(`Searching root certificate in macOS keychain`)
-  const findAllCertificatesCommand = `security find-certificate -a -p`
-  logger.debug(`> ${findAllCertificatesCommand}`)
-  const stringWithAllCertificatesAsPem = await exec(findAllCertificatesCommand)
-  const rootCertificateInKeychain = stringWithAllCertificatesAsPem.includes(rootCertificate)
-  if (rootCertificateInKeychain) {
-    logger.debug(`root certificate found in macOS keychain`)
   } else {
-    logger.debug(`root certificate is not in macOS keychain`)
+    logger.debug(`Firefox not detected`)
   }
-  return rootCertificateInKeychain
 }
 
 const isFirefoxInstalled = () => {

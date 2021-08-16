@@ -40,8 +40,10 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
   }
 
   const addIpHostname = (ip, host) => {
-    const existingIpRule = lines.find((line) => line.ip === ip)
-    if (existingIpRule && existingIpRule.hostnames.includes(host)) {
+    const alreadyThere = lines.some(
+      (line) => line.type === "rule" && line.ip === ip && line.hostnames.includes(host),
+    )
+    if (alreadyThere) {
       return false
     }
 

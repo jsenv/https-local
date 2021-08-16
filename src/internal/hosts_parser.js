@@ -95,7 +95,7 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
     return true
   }
 
-  const stringify = () => {
+  const asFileContent = () => {
     let hostsFileContent = ""
     const ips = lines.filter((line) => line.type === "rule").map((line) => line.ip)
     const longestIp = ips.reduce((previous, ip) => {
@@ -125,6 +125,6 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
     getIpHostnames,
     addIpHostname,
     removeIpHostname,
-    stringify,
+    asFileContent,
   }
 }

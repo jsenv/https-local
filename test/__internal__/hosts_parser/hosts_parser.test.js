@@ -24,7 +24,7 @@ const hostsA = parseHosts(hostsAContent)
 
 // without touching anything output is the same
 {
-  const actual = hostsA.stringify()
+  const actual = hostsA.asFileContent()
   const expected = hostsAContent
   assert({ actual, expected })
 }
@@ -32,7 +32,7 @@ const hostsA = parseHosts(hostsAContent)
 // after removing loopback
 {
   hostsA.removeIpHostname("127.0.0.1", "loopback")
-  const actual = hostsA.stringify()
+  const actual = hostsA.asFileContent()
   const expected = await readFile(
     new URL("./hosts_files/hosts_after_removing_loopback", import.meta.url),
   )
@@ -42,7 +42,7 @@ const hostsA = parseHosts(hostsAContent)
 // after adding example
 {
   hostsA.addIpHostname("127.0.0.1", "example")
-  const actual = hostsA.stringify()
+  const actual = hostsA.asFileContent()
   const expected = await readFile(
     new URL("./hosts_files/hosts_after_adding_example", import.meta.url),
   )

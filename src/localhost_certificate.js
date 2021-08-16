@@ -16,13 +16,11 @@ import {
   normalizeForgeAltNames,
 } from "./internal/certificate_data_converter.js"
 import { formatExpired, formatAboutToExpire } from "./internal/validity_formatting.js"
-import { platformTrustStore } from "./internal/platform_trust_store.js"
 import {
   createCertificateAuthority,
   requestCertificateFromAuthority,
 } from "./certificate_generator.js"
-
-// serial management https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.2
+import { jsenvOnServerCertificateReady } from "./jsenvOnServerCertificateReady.js"
 
 export const requestCertificateForLocalhost = async ({
   logLevel,
@@ -37,26 +35,7 @@ export const requestCertificateForLocalhost = async ({
   // checkIfCertificateIsTrusted = true,
   // user less likely to use the params below
   serverCertificateOrganizationName = rootCertificateOrganizationName,
-
-  shouldTrustNewRootCertificate = async ({ rootCertificateFilePath, rootCertificatePEM }) => {
-    logger.info(`${rootCertificateFilePath} root certificate needs to be trusted`)
-
-    const howToRegisterRootCertificate = await platformTrustStore.getHowToRegisterRootCertificate({
-      logger,
-      rootCertificateFilePath,
-      rootCertificatePEM,
-    })
-    // on voudrait presque aussi un browser + node etc whatever trust store pour chaque plateforme
-    // comme ce serais ingérable il faut pouvoir appliquer le comportement par défaut
-    // mais aussi le comportement custom
-    // et pouvoir avoir des truc automatique (genre eslint -fix) et des trucs manuel
-    // genre lire la doc et le faire soi meme
-  },
-  shouldTrustUpdatedRootCertificate = ({ rootCertificateFilePath }) => {
-    logger.info(`${rootCertificateFilePath} root certificate has changed it needs to be re-trusted`)
-    // user must untrust the existing certificate then add it back
-  },
-  onRootCertificateReused = () => {},
+  onServerCertificateReady = jsenvOnServerCertificateReady,
 } = {}) => {
   serverCertificateFileUrl = assertAndNormalizeFileUrl(serverCertificateFileUrl)
 
@@ -84,26 +63,6 @@ export const requestCertificateForLocalhost = async ({
     rootCertificateSerialNumber,
   })
 
-  if (rootCertificateStatus === "created") {
-    await shouldTrustNewRootCertificate({
-      rootCertificateFilePath,
-      rootCertificatePEM,
-    })
-  } else if (rootCertificateStatus === "updated") {
-    await shouldTrustUpdatedRootCertificate({
-      rootCertificateFilePath,
-      rootCertificatePEM,
-    })
-  } else if (rootCertificateStatus === "reused") {
-    // Is it possible to check if the root certificate is trusted at this stage?
-    // If yes we should and provide that info in onRootCertificateReused
-    // otherwise see if possible to check if server certificate is trusted
-    // and if so perform the check at that moment
-    await onRootCertificateReused({
-      rootCertificateFilePath,
-    })
-  }
-
   const { serverCertificateStatus, serverCertificatePEM, serverPrivateKeyPEM } =
     await requestServerCertificate({
       logger,
@@ -117,14 +76,14 @@ export const requestCertificateForLocalhost = async ({
       serverCertificateOrganizationName,
     })
 
-  if (serverCertificateStatus === "created") {
-    // when serverCertificateAltNames is used
-    // we should also tell user what to do:
-    // -> add some line into etc/hosts
-    // here again take inspiration from
-    // devcert but without running the command
-    // let the user do it
-  }
+  await onServerCertificateReady({
+    rootCertificateStatus,
+    rootCertificateFilePath,
+    rootCertificate: rootCertificatePEM,
+    serverCertificateStatus,
+    serverCertificate: serverCertificatePEM,
+    serverCertificateAltNames,
+  })
 
   return {
     serverCertificate: serverCertificatePEM,
@@ -297,6 +256,7 @@ const requestServerCertificate = async ({
       JSON.stringify(
         {
           ...certificateAuthorityJsonFileUrl,
+          // serial management https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.2
           serialNumber: lastSerialNumber + 1,
         },
         null,

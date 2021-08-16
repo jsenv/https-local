@@ -8,12 +8,11 @@ const hostsA = parseHosts(hostsAContent)
 
 // rules parsing
 {
-  const actual = hostsA.getRules()
+  const actual = hostsA.getAllIpHostnames()
   const expected = {
-    "localhost": ["127.0.0.1", "::1"],
-    "broadcasthost": "255.255.255.255",
-    "tool.example.com": "127.0.0.1",
-    "jsenv": "127.0.0.1",
+    "127.0.0.1": ["localhost", "tool.example.com", "jsenv"],
+    "255.255.255.255": ["broadcasthost"],
+    "::1": ["localhost"],
   }
   assert({ actual, expected })
 }
@@ -22,5 +21,11 @@ const hostsA = parseHosts(hostsAContent)
 {
   const actual = hostsA.stringify()
   const expected = hostsAContent
+  assert({ actual, expected })
+}
+
+{
+  const actual = hostsA.getIpHostnames("127.0.0.1")
+  const expected = ["localhost", "tool.example.com", "jsenv"]
   assert({ actual, expected })
 }

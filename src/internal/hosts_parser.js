@@ -16,17 +16,32 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
     }
   })
 
-  const hasRule = ({ ip, host }) => {
-    return lines.some((line) => {
-      return line.type === "rule" && line.ip === ip && line.host === host
+  const getAllIpHostnames = () => {
+    const ipHostnames = {}
+    lines.forEach((line) => {
+      if (line.type === "rule") {
+        const { ip, host } = line
+        const existingHostnames = ipHostnames[ip]
+        ipHostnames[ip] = existingHostnames ? [...existingHostnames, host] : [host]
+      }
     })
+    return ipHostnames
   }
 
-  const addRule = ({ ip, host }) => {
+  const getIpHostnames = (ip) => {
+    const hosts = []
+    lines.forEach((line) => {
+      if (line.type === "rule" && line.ip === ip) {
+        hosts.push(line.host)
+      }
+    })
+    return hosts
+  }
+
+  const addIpHostname = (ip, host) => {
     const existingIpRule = lines.find((line) => line.ip === ip)
-    if (existingIpRule) {
-      existingIpRule.host = host
-      return
+    if (existingIpRule && existingIpRule.host === host) {
+      return false
     }
 
     const rule = { type: "rule", ip, host }
@@ -35,12 +50,13 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
     // last line is just empty characters, put the rule above it
     if (lastLine.type === "other" && /\s*/.test(lastLine.value)) {
       lines.splice(lastLineIndex, 0, rule)
-      return
+    } else {
+      lines.push(rule)
     }
-    lines.push(rule)
+    return true
   }
 
-  const removeRule = ({ ip, host }) => {
+  const removeIpHostname = (ip, host) => {
     const ruleIndex = lines.findIndex((line) => {
       return line.type === "rule" && line.ip === ip && line.host === host
     })
@@ -76,29 +92,11 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
     return hostsFileContent
   }
 
-  const getRules = () => {
-    const rules = {}
-    lines.forEach((line) => {
-      if (line.type === "rule") {
-        const { ip, host } = line
-        const existingIp = rules[host]
-        if (typeof existingIp === "undefined") {
-          rules[host] = ip
-        } else if (typeof existingIp === "string") {
-          rules[host] = [existingIp, ip]
-        } else if (Array.isArray(existingIp)) {
-          rules[host] = [...existingIp, ip]
-        }
-      }
-    })
-    return rules
-  }
-
   return {
-    getRules,
-    hasRule,
-    addRule,
-    removeRule,
+    getAllIpHostnames,
+    getIpHostnames,
+    addIpHostname,
+    removeIpHostname,
     stringify,
   }
 }

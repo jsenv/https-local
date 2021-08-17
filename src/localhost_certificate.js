@@ -53,6 +53,8 @@ export const requestCertificateForLocalhost = async ({
   serverCertificateValidityDurationInMs = createValidityDurationOfXDays(396),
 
   verificationsOnCertificates = jsenvVerificationsOnCertificates,
+  // almost only for unit test
+  aboutToExpireRatio = 0.05,
 } = {}) => {
   serverCertificateFileUrl = assertAndNormalizeFileUrl(serverCertificateFileUrl)
 
@@ -83,6 +85,7 @@ export const requestCertificateForLocalhost = async ({
     rootCertificateLocalityName,
     rootCertificateValidityDurationInMs,
     rootCertificateSerialNumber,
+    aboutToExpireRatio,
   })
 
   const { serverCertificateStatus, serverCertificatePEM, serverPrivateKeyPEM } =
@@ -97,6 +100,7 @@ export const requestCertificateForLocalhost = async ({
       serverCertificateAltNames,
       serverCertificateOrganizationName,
       serverCertificateValidityDurationInMs,
+      aboutToExpireRatio,
     })
 
   await verificationsOnCertificates({
@@ -138,6 +142,7 @@ const requestRootCertificate = async ({
   rootCertificateLocalityName,
   rootCertificateValidityDurationInMs,
   rootCertificateSerialNumber,
+  aboutToExpireRatio,
 }) => {
   const rootCertificateFilePath = urlToFileSystemPath(rootCertificateFileUrl)
 
@@ -222,7 +227,7 @@ const requestRootCertificate = async ({
   }
   const validityDurationInMs = getCertificateValidityInMs(rootForgeCertificate)
   const validityRemainingMsRatio = validityDurationInMs / validityRemainingMs
-  if (validityRemainingMsRatio < 0.05) {
+  if (validityRemainingMsRatio < aboutToExpireRatio) {
     const msEllapsedSinceValid = getCertificateValidSinceInMs(rootForgeCertificate)
     logger.info(
       formatAboutToExpire({
@@ -264,6 +269,7 @@ const requestServerCertificate = async ({
   serverCertificateAltNames,
   serverCertificateOrganizationName,
   serverCertificateValidityDurationInMs,
+  aboutToExpireRatio,
 }) => {
   const serverCertificateFilePath = urlToFileSystemPath(serverCertificateFileUrl)
   const serverCertificateDirectoryUrl = new URL("./", serverCertificateFileUrl)
@@ -362,8 +368,8 @@ const requestServerCertificate = async ({
     })
   }
   const validityDurationInMs = getCertificateValidityInMs(serverForgeCertificate)
-  const validityRemainingMsRatio = validityDurationInMs / validityRemainingMs
-  if (validityRemainingMsRatio < 0.05) {
+  const validityRemainingMsRatio = validityRemainingMs / validityDurationInMs
+  if (validityRemainingMsRatio < aboutToExpireRatio) {
     const msEllapsedSinceValid = getCertificateValidSinceInMs(serverForgeCertificate)
     logger.info(
       formatAboutToExpire({

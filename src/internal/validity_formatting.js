@@ -13,7 +13,7 @@ export const formatAboutToExpire = ({
   validityRemainingMs,
   msEllapsedSinceValid,
 }) => {
-  return `${certificateName} certificate is about to expire ${formatTimeDelta(
+  return `${certificateName} will expire ${formatTimeDelta(
     validityRemainingMs,
   )}, it was valid during ${formatDuration(msEllapsedSinceValid)}`
 }
@@ -21,7 +21,7 @@ export const formatAboutToExpire = ({
 const formatTimeDelta = (deltaInMs) => {
   const unit = pickUnit(Math.abs(deltaInMs))
   const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" })
-  const msRounded = Math.floor(deltaInMs / unit.min)
+  const msRounded = unit.min ? Math.floor(deltaInMs / unit.min) : deltaInMs
   return rtf.format(msRounded, unit.name)
 }
 
@@ -47,12 +47,15 @@ const pickUnit = (ms) => {
   const msPerMonth = msPerDay * 30
   const msPerYear = msPerDay * 365
 
-  if (ms < msPerMinute) {
+  if (ms < msPerSecond) {
     return {
       name: "second",
       // min 0 to allow display of 0.01 second for example
       min: 0,
     }
+  }
+  if (ms < msPerMinute) {
+    return { name: "second", min: msPerSecond }
   }
   if (ms < msPerHour) {
     return { name: "minute", min: msPerMinute }

@@ -7,24 +7,28 @@ await resetAllCertificateFiles()
 await requestCertificateForLocalhost({
   ...TEST_PARAMS,
   logLevel: "warn",
-  serverCertificateValidityDurationInMs: 10000, // 10 seconds
+  serverCertificateValidityDurationInMs: 5000, // 1 seconds
+})
+await new Promise((resolve) => {
+  setTimeout(resolve, 1500)
 })
 const loggerForSecondCall = createLoggerForTest({
   // forwardToConsole: true,
-})
-await new Promise((resolve) => {
-  setTimeout(resolve, 9600)
 })
 await requestCertificateForLocalhost({
   ...TEST_PARAMS,
   logger: loggerForSecondCall,
   certificateTrustVerification: false,
+  aboutToExpireRatio: 0.95,
 })
 
 {
   const actual = loggerForSecondCall.getLogs({ info: true, warn: true, error: true })
   const expected = {
-    infos: [],
+    infos: [
+      `server certificate will expire in 2 seconds, it was valid during 2 seconds`,
+      `Generating server certificate files`,
+    ],
     warns: [],
     errors: [],
   }

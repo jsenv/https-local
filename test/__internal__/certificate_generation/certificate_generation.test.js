@@ -14,7 +14,8 @@ const jsenvCertificateAuthority = await createCertificateAuthority({
   localityName: "Valbonne",
   organizationName: "jsenv",
   organizationalUnitName: "jsenv server",
-  serialNumber: 1,
+  validityDurationInMs: 10,
+  serialNumber: 0,
 })
 
 {
@@ -31,6 +32,8 @@ const jsenvCertificateAuthority = await createCertificateAuthority({
   const jsenvServerCertificate = await requestCertificateFromAuthority({
     certificateAuthority: jsenvCertificateAuthority,
     altNames: ["127.0.0.1", "localhost", "jsenv"],
+    validityDurationInMs: 100,
+    serialNumber: 1,
   })
   const actual = jsenvServerCertificate
   const expected = {

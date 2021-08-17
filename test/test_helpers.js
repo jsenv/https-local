@@ -6,7 +6,16 @@ import { getCertificateAuthorityFileUrls } from "@jsenv/https-localhost/src/inte
 
 const require = createRequire(import.meta.url)
 
-export const resetCertificateAuhtorityFiles = async () => {
+export const TEST_PARAMS = {
+  serverCertificateFileUrl: new URL("./certificate/server.crt", import.meta.url),
+}
+
+export const resetAllCertificateFiles = async () => {
+  await resetCertificateAuthorityFiles()
+  await resetServerCertificateFiles()
+}
+
+export const resetCertificateAuthorityFiles = async () => {
   const { certificateAuthorityJsonFileUrl, rootCertificateFileUrl, rootPrivateKeyFileUrl } =
     getCertificateAuthorityFileUrls()
 
@@ -14,6 +23,13 @@ export const resetCertificateAuhtorityFiles = async () => {
   await removeFileSystemNode(certificateAuthorityJsonFileUrl, { allowUseless: true })
   await removeFileSystemNode(rootCertificateFileUrl, { allowUseless: true })
   await removeFileSystemNode(rootPrivateKeyFileUrl, { allowUseless: true })
+}
+
+export const resetServerCertificateFiles = async () => {
+  const { serverCertificateFileUrl } = TEST_PARAMS
+  const serverPrivateKeyFileUrl = new URL("./certificate/server.key", import.meta.url)
+  await removeFileSystemNode(serverCertificateFileUrl, { allowUseless: true })
+  await removeFileSystemNode(serverPrivateKeyFileUrl, { allowUseless: true })
 }
 
 /*

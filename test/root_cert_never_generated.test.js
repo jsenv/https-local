@@ -7,7 +7,8 @@ import { assert } from "@jsenv/assert"
 
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
 import {
-  resetCertificateAuhtorityFiles,
+  TEST_PARAMS,
+  resetAllCertificateFiles,
   createLoggerForTest,
   startServerForTest,
   launchChromium,
@@ -16,24 +17,11 @@ import {
   requestServerUsingBrowser,
 } from "./test_helpers.js"
 
-await resetCertificateAuhtorityFiles()
-// we should also reset server certificate files
+await resetAllCertificateFiles()
 const loggerForTest = createLoggerForTest({ forwardToConsole: true })
 const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
+  ...TEST_PARAMS,
   logger: loggerForTest,
-  serverCertificateFileUrl: new URL("./certificate/server.crt", import.meta.url),
-  rootCertificateOrganizationName: "jsenv",
-  rootCertificateOrganizationalUnitName: "https localhost",
-
-  // TODO
-  // commonName: "https://github.com/jsenv/https-certificate",
-  // countryName: "FR",
-  // stateOrProvinceName: "Alpes Maritimes",
-  // localityName: "Valbonne",
-  // validityInYears: 1,
-
-  // TODO
-  // serverCertificateValidityInDays: 1,
 })
 const serverOrigin = await startServerForTest({
   serverCertificate,

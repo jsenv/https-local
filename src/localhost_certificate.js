@@ -9,6 +9,10 @@ import {
   urlToBasename,
 } from "@jsenv/filesystem"
 
+import {
+  createValidityDurationOfXYears,
+  createValidityDurationOfXDays,
+} from "./validity_duration.js"
 import { getCertificateAuthorityFileUrls } from "./internal/certificate_authority_file_urls.js"
 import { importNodeForge } from "./internal/forge.js"
 import {
@@ -27,16 +31,22 @@ export const requestCertificateForLocalhost = async ({
   logger = createLogger({ logLevel }), // to be able to catch logs during unit tests
 
   serverCertificateFileUrl,
-  rootCertificateSerialNumber = 0,
+  serverCertificateAltNames = [],
+  tryToTrustRootCertificate = false,
+
+  // less likely to use the params
   rootCertificateOrganizationName = "jsenv",
   rootCertificateOrganizationalUnitName = "https-localhost",
-  serverCertificateAltNames = [],
-  // rootCertificateAutoTrust = false,
-  // checkIfCertificateIsTrusted = true,
-  // user less likely to use the params below
+  rootCertificateCommonName = "https://github.com/jsenv/https-localhost",
+  rootCertificateCountryName = "FR",
+  rootCertificateStateOrProvinceName = "Alpes Maritimes",
+  rootCertificateLocalityName = "Valbonne",
+  // even less likely to use params
+  rootCertificateValidityDurationInMs = createValidityDurationOfXYears(20),
+  rootCertificateSerialNumber = 0,
   serverCertificateOrganizationName = rootCertificateOrganizationName,
+  serverCertificateValidityDurationInMs = createValidityDurationOfXDays(396),
 
-  tryToTrustRootCertificate = false,
   verificationsOnCertificates = jsenvVerificationsOnCertificates,
 } = {}) => {
   serverCertificateFileUrl = assertAndNormalizeFileUrl(serverCertificateFileUrl)
@@ -62,6 +72,11 @@ export const requestCertificateForLocalhost = async ({
     rootPrivateKeyFileUrl,
     rootCertificateOrganizationName,
     rootCertificateOrganizationalUnitName,
+    rootCertificateCommonName,
+    rootCertificateCountryName,
+    rootCertificateStateOrProvinceName,
+    rootCertificateLocalityName,
+    rootCertificateValidityDurationInMs,
     rootCertificateSerialNumber,
   })
 
@@ -76,6 +91,7 @@ export const requestCertificateForLocalhost = async ({
       serverCertificateFileUrl,
       serverCertificateAltNames,
       serverCertificateOrganizationName,
+      serverCertificateValidityDurationInMs,
     })
 
   await verificationsOnCertificates({
@@ -106,6 +122,11 @@ const requestRootCertificate = async ({
   rootPrivateKeyFileUrl,
   rootCertificateOrganizationName,
   rootCertificateOrganizationalUnitName,
+  rootCertificateCommonName,
+  rootCertificateCountryName,
+  rootCertificateStateOrProvinceName,
+  rootCertificateLocalityName,
+  rootCertificateValidityDurationInMs,
   rootCertificateSerialNumber,
 }) => {
   const rootCertificateFilePath = urlToFileSystemPath(rootCertificateFileUrl)
@@ -113,8 +134,15 @@ const requestRootCertificate = async ({
   const generateRootCertificateAndFiles = async ({ rootCertificateStatus }) => {
     logger.info(`Generating root certificate files`)
     const { forgeCertificate, privateKey } = await createCertificateAuthority({
+      logger,
+      // TODO: avoid renaming, keep the long version
       organizationName: rootCertificateOrganizationName,
       organizationalUnitName: rootCertificateOrganizationalUnitName,
+      commonName: rootCertificateCommonName,
+      countryName: rootCertificateCountryName,
+      stateOrProvinceName: rootCertificateStateOrProvinceName,
+      localityName: rootCertificateLocalityName,
+      validityInYears: rootCertificateValidityDurationInMs,
       serialNumber: rootCertificateSerialNumber,
     })
     const rootCertificatePEM = pki.certificateToPem(forgeCertificate)
@@ -151,6 +179,11 @@ const requestRootCertificate = async ({
     rootForgeCertificate,
     rootCertificateOrganizationName,
     rootCertificateOrganizationalUnitName,
+    rootCertificateCommonName,
+    rootCertificateCountryName,
+    rootCertificateStateOrProvinceName,
+    rootCertificateLocalityName,
+    rootCertificateValidityDurationInMs,
     rootCertificateSerialNumber,
   })
   if (rootCertificateDifferences.length) {
@@ -218,9 +251,9 @@ const requestServerCertificate = async ({
   rootForgeCertificate,
   rootPrivateKey,
   serverCertificateFileUrl,
-  serverOrganizationName,
   serverCertificateAltNames,
   serverCertificateOrganizationName,
+  serverCertificateValidityDurationInMs,
 }) => {
   const serverCertificateFilePath = urlToFileSystemPath(serverCertificateFileUrl)
   const serverCertificateDirectoryUrl = new URL("./", serverCertificateFileUrl)
@@ -251,8 +284,10 @@ const requestServerCertificate = async ({
         forgeCertificate: rootForgeCertificate,
         privateKey: rootPrivateKey,
       },
+      // TODO: avoid renaming, keep the long version
       altNames: serverCertificateAltNames,
       organizationName: serverCertificateOrganizationName,
+      validityDurationInMs: serverCertificateValidityDurationInMs,
       serialNumber: lastSerialNumber + 1,
     })
     const serverCertificatePEM = pki.certificateToPem(serverCertificate.forgeCertificate)
@@ -289,7 +324,8 @@ const requestServerCertificate = async ({
   const serverCertificateDifferences = getServerCertificateParamsDiff({
     serverForgeCertificate,
     serverCertificateAltNames,
-    serverOrganizationName,
+    serverCertificateOrganizationName,
+    serverCertificateValidityDurationInMs,
   })
   if (serverCertificateDifferences.length) {
     const paramNames = Object.keys(serverCertificateDifferences)
@@ -349,6 +385,11 @@ const getRootCertificateParamsDiff = ({
   rootForgeCertificate,
   rootCertificateOrganizationName,
   rootCertificateOrganizationalUnitName,
+  rootCertificateCommonName,
+  rootCertificateCountryName,
+  rootCertificateStateOrProvinceName,
+  rootCertificateLocalityName,
+  rootCertificateValidityDurationInMs,
   rootCertificateSerialNumber,
 }) => {
   const attributeDescription = attributeDescriptionFromAttributeArray(
@@ -372,7 +413,47 @@ const getRootCertificateParamsDiff = ({
     }
   }
 
-  // TODO: validity and other params
+  const { commonName } = attributeDescription
+  if (commonName !== rootCertificateCommonName) {
+    differences.rootCertificateCommonName = {
+      valueFromCertificate: commonName,
+      valueFromParam: rootCertificateCommonName,
+    }
+  }
+
+  const { countryName } = attributeDescription
+  if (countryName !== rootCertificateCountryName) {
+    differences.rootCertificateCountryName = {
+      valueFromCertificate: countryName,
+      valueFromParam: rootCertificateCountryName,
+    }
+  }
+
+  const { localityName } = attributeDescription
+  if (localityName !== rootCertificateLocalityName) {
+    differences.rootCertificateLocalityName = {
+      valueFromCertificate: localityName,
+      valueFromParam: rootCertificateLocalityName,
+    }
+  }
+
+  const { stateOrProvinceName } = attributeDescription
+  if (stateOrProvinceName !== rootCertificateStateOrProvinceName) {
+    differences.rootCertificateStateOrProvinceName = {
+      valueFromCertificate: stateOrProvinceName,
+      valueFromParam: rootCertificateStateOrProvinceName,
+    }
+  }
+
+  const { notBefore, notAfter } = rootForgeCertificate.validity
+  const forgeCertificateValidityDurationInMs = notAfter - notBefore
+  // it's certainly too precise, we should approximate to a second? more?
+  if (forgeCertificateValidityDurationInMs !== rootCertificateValidityDurationInMs) {
+    differences.rootCertificateValidityInYears = {
+      valueFromCertificate: forgeCertificateValidityDurationInMs,
+      valueFromParam: rootCertificateValidityDurationInMs,
+    }
+  }
 
   const serialNumber = parseInt(rootForgeCertificate.serialNumber, 16)
   if (serialNumber !== rootCertificateSerialNumber) {
@@ -388,7 +469,8 @@ const getRootCertificateParamsDiff = ({
 const getServerCertificateParamsDiff = ({
   serverForgeCertificate,
   serverCertificateAltNames,
-  serverOrganizationName,
+  serverCertificateOrganizationName,
+  serverCertificateValidityDurationInMs,
 }) => {
   const differences = {}
   const attributeDescription = attributeDescriptionFromAttributeArray(
@@ -404,10 +486,20 @@ const getServerCertificateParamsDiff = ({
   }
 
   const { organizationName } = attributeDescription
-  if (organizationName !== serverOrganizationName) {
-    differences.serverOrganizationName = {
+  if (organizationName !== serverCertificateOrganizationName) {
+    differences.serverCertificateOrganizationName = {
       valueFromCertificate: organizationName,
-      valueFromParam: serverOrganizationName,
+      valueFromParam: serverCertificateOrganizationName,
+    }
+  }
+
+  const { notBefore, notAfter } = serverForgeCertificate.validity
+  const forgeCertificateValidityDurationInMs = notAfter - notBefore
+  // it's certainly too precise, we should approximate to a second? more?
+  if (forgeCertificateValidityDurationInMs !== serverCertificateValidityDurationInMs) {
+    differences.serverCertificateValidityDurationInMs = {
+      valueFromCertificate: forgeCertificateValidityDurationInMs,
+      valueFromParam: serverCertificateValidityDurationInMs,
     }
   }
 

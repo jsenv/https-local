@@ -5,3 +5,8 @@
  */
 
 export { requestCertificateForLocalhost } from "./src/localhost_certificate.js"
+
+export {
+  createValidityDurationOfXYears,
+  createValidityDurationOfXDays,
+} from "./src/validity_duration.js"

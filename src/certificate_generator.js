@@ -1,6 +1,9 @@
 // https://github.com/digitalbazaar/forge/blob/master/examples/create-cert.js
 // https://github.com/digitalbazaar/forge/issues/660#issuecomment-467145103
 
+import { createDetailedMessage } from "@jsenv/logger"
+
+import { verifyRootCertificateValidityDuration } from "./validity_duration.js"
 import { importNodeForge } from "./internal/forge.js"
 import {
   attributeArrayFromAttributeDescription,
@@ -10,17 +13,37 @@ import {
 } from "./internal/certificate_data_converter.js"
 
 export const createCertificateAuthority = async ({
+  logger,
   commonName,
   countryName,
   stateOrProvinceName,
   localityName,
   organizationName,
   organizationalUnitName,
-  validityInYears = 20,
-  serialNumber = 0,
+  validityDurationInMs,
+  serialNumber,
 } = {}) => {
   if (typeof serialNumber !== "number") {
     throw new TypeError(`serial must be a number but received ${serialNumber}`)
+  }
+
+  if (typeof validityDurationInMs !== "number") {
+    throw new TypeError(
+      `validityDurationInMs must be a number but received ${validityDurationInMs}`,
+    )
+  }
+  if (validityDurationInMs < 1) {
+    throw new TypeError(`validityDurationInMs must be > 0 but received ${validityDurationInMs}`)
+  }
+  const rootCertificateValidityDuration =
+    verifyRootCertificateValidityDuration(validityDurationInMs)
+  if (!rootCertificateValidityDuration.ok) {
+    validityDurationInMs = rootCertificateValidityDuration.maxAllowedValue
+    logger.warn(
+      createDetailedMessage(rootCertificateValidityDuration.message, {
+        details: rootCertificateValidityDuration.details,
+      }),
+    )
   }
 
   const forge = await importNodeForge()
@@ -30,8 +53,8 @@ export const createCertificateAuthority = async ({
 
   forgeCertificate.publicKey = publicKey
   forgeCertificate.serialNumber = serialNumber.toString(16)
-  forgeCertificate.validity.notBefore = new Date(Date.now() - 1000)
-  forgeCertificate.validity.notAfter = createDateInXYears(validityInYears)
+  forgeCertificate.validity.notBefore = new Date()
+  forgeCertificate.validity.notAfter = new Date(Date.now() + validityDurationInMs)
 
   const attributeDescription = {
     commonName,
@@ -73,8 +96,8 @@ export const requestCertificateFromAuthority = async ({
   certificateAuthority,
   altNames = [],
   organizationName,
-  validityInDays = 396,
-  serialNumber = 1,
+  validityDurationInMs,
+  serialNumber,
 }) => {
   if (typeof certificateAuthority !== "object" || certificateAuthority === null) {
     throw new TypeError(
@@ -97,13 +120,23 @@ export const requestCertificateFromAuthority = async ({
     throw new TypeError(`serial must be a number but received ${serialNumber}`)
   }
 
-  // certificate must not exceed 397 days
-  // https://stackoverflow.com/questions/64597721/neterr-cert-validity-too-long-the-server-certificate-has-a-validity-period-t
-  if (validityInDays > 396) {
-    logger.warn(
-      `A certificate validity of ${validityInDays} days is too much, using the max allowed value: 396 days`,
+  if (typeof validityDurationInMs !== "number") {
+    throw new TypeError(
+      `validityDurationInMs must be a number but received ${validityDurationInMs}`,
     )
-    validityInDays = 396
+  }
+  if (validityDurationInMs < 1) {
+    throw new TypeError(`validityDurationInMs must be > 0 but received ${validityDurationInMs}`)
+  }
+  const serverCertificateValidityDuration =
+    verifyRootCertificateValidityDuration(validityDurationInMs)
+  if (!serverCertificateValidityDuration.ok) {
+    validityDurationInMs = serverCertificateValidityDuration.maxAllowedValue
+    logger.warn(
+      createDetailedMessage(serverCertificateValidityDuration.message, {
+        details: serverCertificateValidityDuration.details,
+      }),
+    )
   }
 
   const forge = await importNodeForge()
@@ -113,8 +146,8 @@ export const requestCertificateFromAuthority = async ({
 
   forgeCertificate.publicKey = publicKey
   forgeCertificate.serialNumber = serialNumber.toString(16)
-  forgeCertificate.validity.notBefore = new Date(Date.now() - 1000)
-  forgeCertificate.validity.notAfter = createDateInXDays(validityInDays)
+  forgeCertificate.validity.notBefore = new Date()
+  forgeCertificate.validity.notAfter = new Date(Date.now() + validityDurationInMs)
 
   const attributeDescription = {
     ...attributeDescriptionFromAttributeArray(authorityForgeCertificate.subject.attributes),
@@ -150,16 +183,4 @@ export const requestCertificateFromAuthority = async ({
     publicKey,
     privateKey,
   }
-}
-
-const createDateInXYears = (years) => {
-  const date = new Date()
-  date.setFullYear(date.getFullYear() + years)
-  return date
-}
-
-const createDateInXDays = (days) => {
-  const date = new Date()
-  date.setDate(date.getDate() + days)
-  return date
 }

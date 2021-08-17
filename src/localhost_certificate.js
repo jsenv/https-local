@@ -142,7 +142,7 @@ const requestRootCertificate = async ({
       countryName: rootCertificateCountryName,
       stateOrProvinceName: rootCertificateStateOrProvinceName,
       localityName: rootCertificateLocalityName,
-      validityInYears: rootCertificateValidityDurationInMs,
+      validityDurationInMs: rootCertificateValidityDurationInMs,
       serialNumber: rootCertificateSerialNumber,
     })
     const rootCertificatePEM = pki.certificateToPem(forgeCertificate)

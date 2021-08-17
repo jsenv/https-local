@@ -4,8 +4,10 @@
  */
 
 import { assert } from "@jsenv/assert"
+import { urlToFileSystemPath } from "@jsenv/filesystem"
 
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
+import { getCertificateAuthorityFileUrls } from "@jsenv/https-localhost/src/internal/certificate_authority_file_urls.js"
 import {
   TEST_PARAMS,
   resetAllCertificateFiles,
@@ -18,7 +20,9 @@ import {
 } from "./test_helpers.js"
 
 await resetAllCertificateFiles()
-const loggerForTest = createLoggerForTest({ forwardToConsole: true })
+const loggerForTest = createLoggerForTest({
+  // forwardToConsole: true,
+})
 const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
   ...TEST_PARAMS,
   logger: loggerForTest,
@@ -29,9 +33,29 @@ const serverOrigin = await startServerForTest({
 })
 
 {
+  const rootCertificateFilePath = urlToFileSystemPath(
+    getCertificateAuthorityFileUrls().rootCertificateFileUrl,
+  )
   const actual = loggerForTest.getLogs({ info: true, warn: true, error: true })
   const expected = {
-    infos: actual.infos, // todo
+    infos: [
+      `Generating root certificate files`,
+      `Generating server certificate files`,
+      // this message depends on the platform and firefox presence
+      // for now keep like this but this will become dynamic
+      `
+root certificate must be added to macOS keychain
+--- suggestion ---
+sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic ${rootCertificateFilePath}
+--- documentation ---
+https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac
+`,
+      `
+Firefox detected, root certificate needs to be trusted in Firefox
+--- suggestion ---
+https://wiki.mozilla.org/PSM:Changing_Trust_Settings
+`,
+    ],
     warns: [],
     errors: [],
   }

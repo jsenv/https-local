@@ -1,11 +1,11 @@
 export const formatExpired = ({
   certificateName,
   msEllapsedSinceExpiration,
-  msEllapsedSinceValid,
+  certificateValidityDurationInMs,
 }) => {
   return `${certificateName} has expired ${formatTimeDelta(
     -msEllapsedSinceExpiration,
-  )}, it was valid during ${formatDuration(msEllapsedSinceValid)}`
+  )}, it was valid during ${formatDuration(certificateValidityDurationInMs)}`
 }
 
 export const formatAboutToExpire = ({
@@ -27,7 +27,7 @@ const formatTimeDelta = (deltaInMs) => {
 
 const formatDuration = (ms) => {
   const unit = pickUnit(ms)
-  const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" })
+  const rtf = new Intl.RelativeTimeFormat("en", { numeric: "always" })
   const msRounded = unit.min ? Math.floor(ms / unit.min) : ms
   const parts = rtf.formatToParts(msRounded, unit.name)
   if (parts.length > 1 && parts[0].type === "literal") {

@@ -7,7 +7,7 @@ await resetAllCertificateFiles()
 await requestCertificateForLocalhost({
   ...TEST_PARAMS,
   logLevel: "warn",
-  serverCertificateValidityDurationInMs: 5000, // 1 seconds
+  serverCertificateValidityDurationInMs: 5000,
 })
 await new Promise((resolve) => {
   setTimeout(resolve, 1500)
@@ -19,6 +19,7 @@ await requestCertificateForLocalhost({
   ...TEST_PARAMS,
   logger: loggerForSecondCall,
   certificateTrustVerification: false,
+  serverCertificateValidityDurationInMs: 5000,
   aboutToExpireRatio: 0.95,
 })
 

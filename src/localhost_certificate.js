@@ -212,21 +212,19 @@ const requestRootCertificate = async ({
   logger.debug(`Checking root certificate validity`)
   const validityRemainingMs = getCertificateRemainingMs(rootForgeCertificate)
   if (validityRemainingMs < 0) {
-    const msEllapsedSinceValid = getCertificateValidSinceInMs(rootForgeCertificate)
     const msEllapsedSinceExpiration = -validityRemainingMs
     logger.info(
       formatExpired({
         certificateName: "root certificate",
         msEllapsedSinceExpiration,
-        msEllapsedSinceValid,
+        certificateValidityDurationInMs: rootCertificateValidityDurationInMs,
       }),
     )
     return generateRootCertificateAndFiles({
       rootCertificateStatus: "updated",
     })
   }
-  const validityDurationInMs = getCertificateValidityInMs(rootForgeCertificate)
-  const validityRemainingMsRatio = validityDurationInMs / validityRemainingMs
+  const validityRemainingMsRatio = validityRemainingMs / rootCertificateValidityDurationInMs
   if (validityRemainingMsRatio < aboutToExpireRatio) {
     const msEllapsedSinceValid = getCertificateValidSinceInMs(rootForgeCertificate)
     logger.info(
@@ -354,21 +352,20 @@ const requestServerCertificate = async ({
   logger.debug(`Checking server certificate validity`)
   const validityRemainingMs = getCertificateRemainingMs(serverForgeCertificate)
   if (validityRemainingMs < 0) {
-    const msEllapsedSinceValid = getCertificateValidSinceInMs(serverForgeCertificate)
     const msEllapsedSinceExpiration = -validityRemainingMs
     logger.info(
       formatExpired({
         certificateName: "server certificate",
         msEllapsedSinceExpiration,
-        msEllapsedSinceValid,
+        certificateValidityDurationInMs: serverCertificateValidityDurationInMs,
       }),
     )
     return generateServerCertificateAndFiles({
       serverCertificateStatus: "updated",
     })
   }
-  const validityDurationInMs = getCertificateValidityInMs(serverForgeCertificate)
-  const validityRemainingMsRatio = validityRemainingMs / validityDurationInMs
+
+  const validityRemainingMsRatio = validityRemainingMs / serverCertificateValidityDurationInMs
   if (validityRemainingMsRatio < aboutToExpireRatio) {
     const msEllapsedSinceValid = getCertificateValidSinceInMs(serverForgeCertificate)
     logger.info(
@@ -532,11 +529,6 @@ const getCertificateRemainingMs = (forgeCertificate) => {
 const getCertificateValidSinceInMs = (forgeCertificate) => {
   const { notBefore } = forgeCertificate.validity
   return Date.now() - notBefore
-}
-
-const getCertificateValidityInMs = (forgeCertificate) => {
-  const { notBefore, notAfter } = forgeCertificate.validity
-  return notAfter - notBefore
 }
 
 const fileExistsSync = (fileUrl) => {

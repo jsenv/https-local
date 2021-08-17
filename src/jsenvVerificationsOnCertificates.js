@@ -5,22 +5,35 @@ export const jsenvVerificationsOnCertificates = async ({
   rootCertificateStatus,
   rootCertificateFilePath,
   rootCertificate,
+
+  certificateTrustVerification,
   tryToTrustRootCertificate,
+
+  certificateHostnamesVerification,
+  tryToRegisterHostnames,
 
   serverCertificateAltNames,
 }) => {
   const { ensureRootCertificateRegistration, ensureHostnamesRegistration } =
     await importPlatformMethods()
 
-  await ensureRootCertificateRegistration({
-    logger,
-    rootCertificateFilePath,
-    rootCertificateStatus,
-    rootCertificate,
-    tryToTrustRootCertificate,
-  })
-  await ensureHostnamesRegistration({
-    logger,
-    serverCertificateAltNames,
-  })
+  if (certificateTrustVerification) {
+    await ensureRootCertificateRegistration({
+      logger,
+      rootCertificateFilePath,
+      rootCertificateStatus,
+      rootCertificate,
+
+      tryToTrustRootCertificate,
+    })
+  }
+
+  if (certificateHostnamesVerification) {
+    await ensureHostnamesRegistration({
+      logger,
+      serverCertificateAltNames,
+
+      tryToRegisterHostnames,
+    })
+  }
 }

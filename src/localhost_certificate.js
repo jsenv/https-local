@@ -32,7 +32,12 @@ export const requestCertificateForLocalhost = async ({
 
   serverCertificateFileUrl,
   serverCertificateAltNames = [],
+
+  certificateTrustVerification = true,
   tryToTrustRootCertificate = false,
+
+  certificateHostnamesVerification = true,
+  tryToRegisterHostnames = false,
 
   // less likely to use the params
   rootCertificateOrganizationName = "jsenv",
@@ -99,7 +104,12 @@ export const requestCertificateForLocalhost = async ({
     rootCertificateStatus,
     rootCertificateFilePath,
     rootCertificate: rootCertificatePEM,
+
+    certificateTrustVerification,
     tryToTrustRootCertificate,
+
+    certificateHostnamesVerification,
+    tryToRegisterHostnames,
 
     serverCertificateStatus,
     serverCertificate: serverCertificatePEM,

@@ -16,6 +16,7 @@ export const ensureRootCertificateRegistration = async ({
   rootCertificateFilePath,
   rootCertificateStatus,
   rootCertificate,
+
   tryToTrustRootCertificate,
 }) => {
   logger.debug(`Searching root certificate in macOS keychain`)
@@ -70,7 +71,11 @@ const isFirefoxInstalled = () => {
   return existsSync("/Applications/Firefox.app")
 }
 
-export const ensureHostnamesRegistration = async ({ logger, serverCertificateAltNames }) => {
+export const ensureHostnamesRegistration = async ({
+  logger,
+  serverCertificateAltNames,
+  tryToRegisterHostnames,
+}) => {
   if (serverCertificateAltNames.length === 0) {
     logger.debug(`serverCertificateAltNames is empty -> skip ensureHostnamesRegistration`)
     return
@@ -86,7 +91,7 @@ export const ensureHostnamesRegistration = async ({ logger, serverCertificateAlt
   })
   const missingHostnameCount = missingHostnames.length
   if (missingHostnameCount === 0) {
-    logger.debug(``)
+    logger.debug(`all hostnames mappings found in hosts file`)
     return
   }
 
@@ -95,12 +100,22 @@ export const ensureHostnamesRegistration = async ({ logger, serverCertificateAlt
     hostnames.addIpHostname("127.0.0.1", missingHostname)
   })
   const newHostsFileContent = hostnames.asFileContent()
-  // https://en.wikipedia.org/wiki/Tee_(command)
-  const updateHostFileCommand = `sudo tee /etc/hosts`
-  logger.info(`> ${updateHostFileCommand}
+
+  if (tryToRegisterHostnames) {
+    // https://en.wikipedia.org/wiki/Tee_(command)
+    const updateHostFileCommand = `sudo tee /etc/hosts`
+    logger.info(`> ${updateHostFileCommand}
 
 ${newHostsFileContent}
 
 `)
-  await exec(updateHostFileCommand, { input: newHostsFileContent })
+    await exec(updateHostFileCommand, { input: newHostsFileContent })
+  } else {
+    logger.info(`
+${createDetailedMessage(`server alternative names must be added to hosts file`, {
+  "hosts": newHostsFileContent,
+  "hosts file path": "/etc/hosts",
+})}
+`)
+  }
 }

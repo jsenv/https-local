@@ -32,6 +32,7 @@ const secondCallResult = await requestCertificateForLocalhost({
   const actual = loggerForSecondCall.getLogs({ info: true, warn: true, error: true })
   const expected = {
     infos: [
+      // it's good to ensure trust is checked even on reuse
       `
 root certificate must be added to macOS keychain
 --- suggestion ---

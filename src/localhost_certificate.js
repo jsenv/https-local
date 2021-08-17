@@ -477,7 +477,7 @@ const getServerCertificateParamsDiff = ({
     serverForgeCertificate.subject.attributes,
   )
 
-  const altNames = normalizeForgeAltNames(attributeDescription.altNames)
+  const altNames = normalizeForgeAltNames(attributeDescription.altNames || [])
   if (altNames.sort().join("") !== serverCertificateAltNames.sort().join("")) {
     differences.serverCertificateAltNames = {
       valueFromCertificate: altNames,
@@ -509,7 +509,7 @@ const getServerCertificateParamsDiff = ({
 const getCertificateRemainingMs = (forgeCertificate) => {
   const { notAfter } = forgeCertificate.validity
   const nowDate = Date.now()
-  const remainingMs = nowDate - notAfter
+  const remainingMs = notAfter - nowDate
   return remainingMs
 }
 

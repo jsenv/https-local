@@ -11,14 +11,8 @@ executeTestPlan({
   ...jsenvConfig,
   testPlan: {
     "test/**/*.test.mjs": {
-      "node": {
+      node: {
         launch: launchNode,
-      },
-      "node-prod": {
-        launch: launchNode,
-        launchParams: {
-          commandLineOptions: ["--conditions=production"],
-        },
       },
     },
   },

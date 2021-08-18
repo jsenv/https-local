@@ -3,7 +3,7 @@ import { urlToFileSystemPath } from "@jsenv/filesystem"
 
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
 import { getCertificateAuthorityFileUrls } from "@jsenv/https-localhost/src/internal/certificate_authority_file_urls.js"
-import { TEST_PARAMS, resetAllCertificateFiles, createLoggerForTest } from "./test_helpers.js"
+import { TEST_PARAMS, resetAllCertificateFiles, createLoggerForTest } from "./test_helpers.mjs"
 
 await resetAllCertificateFiles()
 const firstCallResult = await requestCertificateForLocalhost({

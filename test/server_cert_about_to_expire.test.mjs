@@ -1,13 +1,13 @@
 import { assert } from "@jsenv/assert"
 
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
-import { TEST_PARAMS, resetAllCertificateFiles, createLoggerForTest } from "./test_helpers.js"
+import { TEST_PARAMS, resetAllCertificateFiles, createLoggerForTest } from "./test_helpers.mjs"
 
 await resetAllCertificateFiles()
 await requestCertificateForLocalhost({
   ...TEST_PARAMS,
   logLevel: "warn",
-  serverCertificateValidityDurationInMs: 1000,
+  serverCertificateValidityDurationInMs: 6000,
 })
 await new Promise((resolve) => {
   setTimeout(resolve, 2500)
@@ -19,7 +19,8 @@ await requestCertificateForLocalhost({
   ...TEST_PARAMS,
   logger: loggerForSecondCall,
   certificateTrustVerification: false,
-  serverCertificateValidityDurationInMs: 1000,
+  serverCertificateValidityDurationInMs: 5000,
+  aboutToExpireRatio: 0.95,
 })
 
 {
@@ -27,7 +28,7 @@ await requestCertificateForLocalhost({
   const expected = {
     infos: [
       assert.matchesRegExp(
-        /server certificate has expired \d seconds ago, it was valid during 1 second/,
+        /server certificate will expire in \d seconds, it was valid during \d seconds/,
       ),
       `generating server certificate files`,
     ],

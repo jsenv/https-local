@@ -17,7 +17,7 @@ import {
   launchFirefox,
   launchWebkit,
   requestServerUsingBrowser,
-} from "./test_helpers.js"
+} from "./test_helpers.mjs"
 
 await resetAllCertificateFiles()
 const loggerForTest = createLoggerForTest({

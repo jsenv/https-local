@@ -1,7 +1,7 @@
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
-import { resetCertificateAuhtorityFiles, startServerForTest } from "./test_helpers.js"
+import { resetAllCertificateFiles, startServerForTest } from "./test_helpers.mjs"
 
-await resetCertificateAuhtorityFiles()
+await resetAllCertificateFiles()
 const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
   logLevel: "debug",
   serverCertificateFileUrl: new URL("./certificate/server.crt", import.meta.url),

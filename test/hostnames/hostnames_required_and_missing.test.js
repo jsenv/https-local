@@ -2,7 +2,7 @@ import { assert } from "@jsenv/assert"
 import { urlToFileSystemPath, writeFile } from "@jsenv/filesystem"
 
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
-import { TEST_PARAMS, resetAllCertificateFiles, createLoggerForTest } from "../test_helpers.js"
+import { TEST_PARAMS, resetAllCertificateFiles, createLoggerForTest } from "../test_helpers.mjs"
 
 await resetAllCertificateFiles()
 

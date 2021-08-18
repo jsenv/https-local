@@ -4,7 +4,7 @@ import {
   createCertificateAuthority,
   requestCertificateFromAuthority,
 } from "@jsenv/https-localhost/src/certificate_generator.js"
-import { createLoggerForTest } from "@jsenv/https-localhost/test/test_helpers.js"
+import { createLoggerForTest } from "@jsenv/https-localhost/test/test_helpers.mjs"
 
 const jsenvCertificateAuthority = await createCertificateAuthority({
   logger: createLoggerForTest(),

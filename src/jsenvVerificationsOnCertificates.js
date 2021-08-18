@@ -11,6 +11,7 @@ export const jsenvVerificationsOnCertificates = async ({
 
   certificateHostnamesVerification,
   tryToRegisterHostnames,
+  hostsFilePath,
 
   serverCertificateAltNames,
 }) => {
@@ -34,6 +35,7 @@ export const jsenvVerificationsOnCertificates = async ({
       serverCertificateAltNames,
 
       tryToRegisterHostnames,
+      hostsFilePath,
     })
   }
 }

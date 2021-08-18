@@ -27,8 +27,10 @@ await requestCertificateForLocalhost({
   const actual = loggerForSecondCall.getLogs({ info: true, warn: true, error: true })
   const expected = {
     infos: [
-      `server certificate will expire in 2 seconds, it was valid during 2 seconds`,
-      `Generating server certificate files`,
+      assert.matchesRegExp(
+        /server certificate will expire in \d seconds, it was valid during \d seconds/,
+      ),
+      `generating server certificate files`,
     ],
     warns: [],
     errors: [],

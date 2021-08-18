@@ -70,20 +70,20 @@ ${createDetailedMessage(`Firefox detected, root certificate needs to be trusted 
 const isFirefoxInstalled = () => {
   return existsSync("/Applications/Firefox.app")
 }
-
 export const ensureHostnamesRegistration = async ({
   logger,
   serverCertificateAltNames,
   tryToRegisterHostnames,
+  hostsFilePath = "/etc/hosts",
 }) => {
   if (serverCertificateAltNames.length === 0) {
     logger.debug(`serverCertificateAltNames is empty -> skip ensureHostnamesRegistration`)
     return
   }
 
-  logger.debug(`Reading /etc/hosts file`)
-  const hostsFileContent = await readFile("/etc/hosts", { as: "string" })
-  logger.debug(`Parsing /etc/hosts file content`)
+  logger.debug(`reading hosts file at ${hostsFilePath}`)
+  const hostsFileContent = await readFile(hostsFilePath, { as: "string" })
+  logger.debug(`parsing hosts file content`)
   const hostnames = parseHosts(hostsFileContent)
   const selfIpHostnames = hostnames.getIpHostnames("127.0.0.1")
   const missingHostnames = serverCertificateAltNames.filter((serverCertificateAltName) => {
@@ -95,26 +95,30 @@ export const ensureHostnamesRegistration = async ({
     return
   }
 
-  logger.info(`${missingHostnameCount} hostnames needs to be remapped to 127.0.0.1`)
   missingHostnames.forEach((missingHostname) => {
     hostnames.addIpHostname("127.0.0.1", missingHostname)
   })
   const newHostsFileContent = hostnames.asFileContent()
 
   if (tryToRegisterHostnames) {
-    // https://en.wikipedia.org/wiki/Tee_(command)
-    const updateHostFileCommand = `sudo tee /etc/hosts`
-    logger.info(`> ${updateHostFileCommand}
-
-${newHostsFileContent}
-
+    logger.info(`
+${createDetailedMessage(`writing hostnames in your hosts file`, {
+  "hostnames to add": missingHostnames,
+  "hosts file content": newHostsFileContent,
+  "hosts file path": hostsFilePath,
+})}
 `)
+
+    // https://en.wikipedia.org/wiki/Tee_(command)
+    const updateHostFileCommand = `sudo tee ${hostsFilePath}`
+    logger.info(`> ${updateHostFileCommand}`)
     await exec(updateHostFileCommand, { input: newHostsFileContent })
   } else {
     logger.info(`
-${createDetailedMessage(`server alternative names must be added to hosts file`, {
-  "hosts": newHostsFileContent,
-  "hosts file path": "/etc/hosts",
+${createDetailedMessage(`some hostnames needs to be added to your hosts file`, {
+  "hostnames to add": missingHostnames,
+  "suggested hosts file content": newHostsFileContent,
+  "hosts file path": hostsFilePath,
 })}
 `)
   }

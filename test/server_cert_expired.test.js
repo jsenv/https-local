@@ -27,9 +27,9 @@ await requestCertificateForLocalhost({
   const expected = {
     infos: [
       assert.matchesRegExp(
-        /server certificate has expired \d seconds ago, it was valid during \d second/,
+        /server certificate has expired \d seconds ago, it was valid during 1 second/,
       ),
-      `Generating server certificate files`,
+      `generating server certificate files`,
     ],
     warns: [],
     errors: [],

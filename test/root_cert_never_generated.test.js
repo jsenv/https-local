@@ -39,8 +39,8 @@ const serverOrigin = await startServerForTest({
   const actual = loggerForTest.getLogs({ info: true, warn: true, error: true })
   const expected = {
     infos: [
-      `Generating root certificate files`,
-      `Generating server certificate files`,
+      `generating root certificate files`,
+      `generating server certificate files`,
       // this message depends on the platform and firefox presence
       // for now keep like this but this will become dynamic
       `

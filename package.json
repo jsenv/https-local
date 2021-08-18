@@ -51,7 +51,7 @@
     "node-forge": "0.10.0"
   },
   "devDependencies": {
-    "@jsenv/assert": "2.2.9",
+    "@jsenv/assert": "2.3.0",
     "@jsenv/codecov-upload": "3.5.0",
     "@jsenv/core": "19.6.2",
     "@jsenv/eslint-config": "15.0.2",

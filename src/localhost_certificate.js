@@ -55,6 +55,7 @@ export const requestCertificateForLocalhost = async ({
   verificationsOnCertificates = jsenvVerificationsOnCertificates,
   // almost only for unit test
   aboutToExpireRatio = 0.05,
+  hostsFilePath,
 } = {}) => {
   serverCertificateFileUrl = assertAndNormalizeFileUrl(serverCertificateFileUrl)
 
@@ -114,6 +115,7 @@ export const requestCertificateForLocalhost = async ({
 
     certificateHostnamesVerification,
     tryToRegisterHostnames,
+    hostsFilePath,
 
     serverCertificateStatus,
     serverCertificate: serverCertificatePEM,
@@ -147,7 +149,7 @@ const requestRootCertificate = async ({
   const rootCertificateFilePath = urlToFileSystemPath(rootCertificateFileUrl)
 
   const generateRootCertificateAndFiles = async ({ rootCertificateStatus }) => {
-    logger.info(`Generating root certificate files`)
+    logger.info(`generating root certificate files`)
     const { forgeCertificate, privateKey } = await createCertificateAuthority({
       logger,
       // TODO: avoid renaming, keep the long version
@@ -277,7 +279,7 @@ const requestServerCertificate = async ({
   )
 
   const generateServerCertificateAndFiles = async ({ serverCertificateStatus }) => {
-    logger.info(`Generating server certificate files`)
+    logger.info(`generating server certificate files`)
     const certificateAuthorityJSON = await readFile(certificateAuthorityJsonFileUrl, { as: "json" })
     const lastSerialNumber = certificateAuthorityJSON.serialNumber
     await writeFile(

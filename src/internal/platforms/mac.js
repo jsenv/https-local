@@ -28,11 +28,13 @@ export const ensureRootCertificateRegistration = async ({
   if (rootCertificateInKeychain) {
     logger.debug(`root certificate found in macOS keychain`)
   } else {
-    const addTrustedCertificateCommand = `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic ${rootCertificateFilePath}`
+    const addTrustedCertificateCommand = `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic "${rootCertificateFilePath}"`
     if (tryToTrustRootCertificate) {
       logger.debug(`root certificate is not in macOS keychain`)
-      logger.info(`adding root certificate to macOS keychain`)
-      logger.info(`> ${addTrustedCertificateCommand}`)
+      logger.info(`
+adding root certificate to macOS keychain
+> ${addTrustedCertificateCommand}
+`)
       try {
         await exec(addTrustedCertificateCommand)
       } catch (e) {

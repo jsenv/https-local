@@ -30,6 +30,14 @@ import {
 } from "./internal/certificate_generator.js"
 import { jsenvVerificationsOnCertificates } from "./internal/jsenvVerificationsOnCertificates.js"
 
+// const jsenvCertificateParams = {
+//   rootCertificateOrganizationName: "jsenv",
+//   rootCertificateOrganizationalUnitName: "https-localhost",
+//   rootCertificateCountryName: "FR",
+//   rootCertificateStateOrProvinceName: "Alpes Maritimes",
+//   rootCertificateLocalityName: "Valbonne",
+// }
+
 export const requestCertificateForLocalhost = async ({
   logLevel,
   logger = createLogger({ logLevel }), // to be able to catch logs during unit tests
@@ -44,16 +52,17 @@ export const requestCertificateForLocalhost = async ({
   tryToRegisterHostnames = false,
 
   // less likely to use the params
-  rootCertificateOrganizationName = "jsenv",
-  rootCertificateOrganizationalUnitName = "https-localhost",
-  rootCertificateCommonName = "https://github.com/jsenv/https-localhost",
-  rootCertificateCountryName = "FR",
-  rootCertificateStateOrProvinceName = "Alpes Maritimes",
-  rootCertificateLocalityName = "Valbonne",
+  rootCertificateCommonName = "Jsenv localhost root certificate",
+  rootCertificateOrganizationName,
+  rootCertificateOrganizationalUnitName,
+  rootCertificateCountryName,
+  rootCertificateStateOrProvinceName,
+  rootCertificateLocalityName,
   // even less likely to use params
   rootCertificateValidityDurationInMs = createValidityDurationOfXYears(20),
   rootCertificateSerialNumber = 0,
-  serverCertificateOrganizationName = rootCertificateOrganizationName,
+  serverCertificateCommonName = "Jsenv localhost server certificate", // rootCertificateCommonName
+  serverCertificateOrganizationName, // = rootCertificateOrganizationName,
   serverCertificateValidityDurationInMs = createValidityDurationOfXDays(396),
 
   verificationsOnCertificates = jsenvVerificationsOnCertificates,
@@ -82,9 +91,9 @@ export const requestCertificateForLocalhost = async ({
     certificateAuthorityJsonFileUrl,
     rootCertificateFileUrl,
     rootPrivateKeyFileUrl,
+    rootCertificateCommonName,
     rootCertificateOrganizationName,
     rootCertificateOrganizationalUnitName,
-    rootCertificateCommonName,
     rootCertificateCountryName,
     rootCertificateStateOrProvinceName,
     rootCertificateLocalityName,
@@ -104,6 +113,7 @@ export const requestCertificateForLocalhost = async ({
       serverCertificateFileUrl,
       serverCertificateAltNames,
       serverCertificateOrganizationName,
+      serverCertificateCommonName,
       serverCertificateValidityDurationInMs,
       aboutToExpireRatio,
     })
@@ -140,9 +150,9 @@ const requestRootCertificate = async ({
   certificateAuthorityJsonFileUrl,
   rootCertificateFileUrl,
   rootPrivateKeyFileUrl,
+  rootCertificateCommonName,
   rootCertificateOrganizationName,
   rootCertificateOrganizationalUnitName,
-  rootCertificateCommonName,
   rootCertificateCountryName,
   rootCertificateStateOrProvinceName,
   rootCertificateLocalityName,
@@ -157,9 +167,9 @@ const requestRootCertificate = async ({
     const { forgeCertificate, privateKey } = await createCertificateAuthority({
       logger,
       // TODO: avoid renaming, keep the long version
+      commonName: rootCertificateCommonName,
       organizationName: rootCertificateOrganizationName,
       organizationalUnitName: rootCertificateOrganizationalUnitName,
-      commonName: rootCertificateCommonName,
       countryName: rootCertificateCountryName,
       stateOrProvinceName: rootCertificateStateOrProvinceName,
       localityName: rootCertificateLocalityName,
@@ -198,9 +208,9 @@ const requestRootCertificate = async ({
 
   const rootCertificateDifferences = getRootCertificateParamsDiff({
     rootForgeCertificate,
+    rootCertificateCommonName,
     rootCertificateOrganizationName,
     rootCertificateOrganizationalUnitName,
-    rootCertificateCommonName,
     rootCertificateCountryName,
     rootCertificateStateOrProvinceName,
     rootCertificateLocalityName,
@@ -276,6 +286,7 @@ const requestServerCertificate = async ({
   rootPrivateKey,
   serverCertificateFileUrl,
   serverCertificateAltNames,
+  serverCertificateCommonName,
   serverCertificateOrganizationName,
   serverCertificateValidityDurationInMs,
   aboutToExpireRatio,
@@ -310,7 +321,8 @@ const requestServerCertificate = async ({
         privateKey: rootPrivateKey,
       },
       // TODO: avoid renaming, keep the long version
-      altNames: serverCertificateAltNames,
+      altNames: ["localhost", "*.localhost", ...serverCertificateAltNames],
+      commonName: serverCertificateCommonName,
       organizationName: serverCertificateOrganizationName,
       validityDurationInMs: serverCertificateValidityDurationInMs,
       serialNumber: lastSerialNumber + 1,
@@ -349,6 +361,7 @@ const requestServerCertificate = async ({
   const serverCertificateDifferences = getServerCertificateParamsDiff({
     serverForgeCertificate,
     serverCertificateAltNames,
+    serverCertificateCommonName,
     serverCertificateOrganizationName,
     serverCertificateValidityDurationInMs,
   })
@@ -412,9 +425,9 @@ const requestServerCertificate = async ({
 
 const getRootCertificateParamsDiff = ({
   rootForgeCertificate,
+  rootCertificateCommonName,
   rootCertificateOrganizationName,
   rootCertificateOrganizationalUnitName,
-  rootCertificateCommonName,
   rootCertificateCountryName,
   rootCertificateStateOrProvinceName,
   rootCertificateLocalityName,
@@ -425,6 +438,14 @@ const getRootCertificateParamsDiff = ({
     rootForgeCertificate.subject.attributes,
   )
   const differences = {}
+
+  const { commonName } = attributeDescription
+  if (commonName !== rootCertificateCommonName) {
+    differences.rootCertificateCommonName = {
+      valueFromCertificate: commonName,
+      valueFromParam: rootCertificateCommonName,
+    }
+  }
 
   const { organizationName } = attributeDescription
   if (organizationName !== rootCertificateOrganizationName) {
@@ -439,14 +460,6 @@ const getRootCertificateParamsDiff = ({
     differences.rootCertificateOrganizationalUnitName = {
       valueFromCertificate: organizationalUnitName,
       valueFromParam: rootCertificateOrganizationalUnitName,
-    }
-  }
-
-  const { commonName } = attributeDescription
-  if (commonName !== rootCertificateCommonName) {
-    differences.rootCertificateCommonName = {
-      valueFromCertificate: commonName,
-      valueFromParam: rootCertificateCommonName,
     }
   }
 
@@ -498,6 +511,7 @@ const getRootCertificateParamsDiff = ({
 const getServerCertificateParamsDiff = ({
   serverForgeCertificate,
   serverCertificateAltNames,
+  serverCertificateCommonName,
   serverCertificateOrganizationName,
   serverCertificateValidityDurationInMs,
 }) => {
@@ -511,6 +525,14 @@ const getServerCertificateParamsDiff = ({
     differences.serverCertificateAltNames = {
       valueFromCertificate: altNames,
       valueFromParam: serverCertificateAltNames,
+    }
+  }
+
+  const { commonName } = attributeDescription
+  if (commonName !== serverCertificateCommonName) {
+    differences.serverCertificateCommonName = {
+      valueFromCertificate: commonName,
+      valueFromParam: serverCertificateCommonName,
     }
   }
 

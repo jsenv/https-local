@@ -56,17 +56,26 @@ export const createCertificateAuthority = async ({
   forgeCertificate.validity.notBefore = new Date()
   forgeCertificate.validity.notAfter = new Date(Date.now() + validityDurationInMs)
 
-  const attributeDescription = {
-    commonName,
-    countryName,
-    stateOrProvinceName,
-    localityName,
-    organizationName,
-    organizationalUnitName,
-  }
-  const attributeArray = attributeArrayFromAttributeDescription(attributeDescription)
-  forgeCertificate.setSubject(attributeArray)
-  forgeCertificate.setIssuer(attributeArray)
+  forgeCertificate.setSubject(
+    attributeArrayFromAttributeDescription({
+      commonName,
+      countryName,
+      stateOrProvinceName,
+      localityName,
+      organizationName,
+      organizationalUnitName,
+    }),
+  )
+  forgeCertificate.setIssuer(
+    attributeArrayFromAttributeDescription({
+      commonName,
+      countryName,
+      stateOrProvinceName,
+      localityName,
+      organizationName,
+      organizationalUnitName,
+    }),
+  )
   forgeCertificate.setExtensions(
     extensionArrayFromExtensionDescription({
       basicConstraints: {
@@ -75,9 +84,15 @@ export const createCertificateAuthority = async ({
       },
       keyUsage: {
         critical: true,
+        digitalSignature: true,
         keyCertSign: true,
         cRLSign: true,
       },
+      // extKeyUsage: {
+      //   serverAuth: true,
+      //   clientAuth: true,
+      // },
+      // subjectKeyIdentifier: {},
     }),
   )
 
@@ -95,6 +110,7 @@ export const requestCertificateFromAuthority = async ({
   logger,
   certificateAuthority,
   altNames = [],
+  commonName,
   organizationName,
   validityDurationInMs,
   serialNumber,
@@ -151,6 +167,7 @@ export const requestCertificateFromAuthority = async ({
 
   const attributeDescription = {
     ...attributeDescriptionFromAttributeArray(authorityForgeCertificate.subject.attributes),
+    commonName,
     organizationName,
   }
   const attributeArray = attributeArrayFromAttributeDescription(attributeDescription)
@@ -168,12 +185,17 @@ export const requestCertificateFromAuthority = async ({
         keyEncipherment: true,
       },
       extKeyUsage: {
+        critical: false,
         serverAuth: true,
       },
       authorityKeyIdentifier: {
+        critical: false,
         keyIdentifier: authorityForgeCertificate.generateSubjectKeyIdentifier().getBytes(),
       },
-      subjectAltName: subjectAltNamesFromAltNames(altNames),
+      subjectAltName: {
+        critical: false,
+        altNames: subjectAltNamesFromAltNames(altNames),
+      },
     }),
   )
   forgeCertificate.sign(authorityPrivateKey, forge.sha256.create())

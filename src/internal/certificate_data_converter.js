@@ -1,16 +1,6 @@
 import { isIP } from "node:net"
 
 export const subjectAltNamesFromAltNames = (altNames) => {
-  const isUrl = (value) => {
-    try {
-      // eslint-disable-next-line no-new
-      new URL(value)
-      return true
-    } catch (e) {
-      return false
-    }
-  }
-
   const altNamesArray = altNames.map((altName) => {
     if (isIP(altName)) {
       return {
@@ -31,18 +21,29 @@ export const subjectAltNamesFromAltNames = (altNames) => {
     }
   })
 
-  return {
-    altNames: altNamesArray,
+  return altNamesArray
+}
+
+const isUrl = (value) => {
+  try {
+    // eslint-disable-next-line no-new
+    new URL(value)
+    return true
+  } catch (e) {
+    return false
   }
 }
 
 export const extensionArrayFromExtensionDescription = (extensionDescription) => {
   const extensionArray = []
   Object.keys(extensionDescription).forEach((key) => {
-    extensionArray.push({
-      name: key,
-      ...extensionDescription[key],
-    })
+    const value = extensionDescription[key]
+    if (value) {
+      extensionArray.push({
+        name: key,
+        ...value,
+      })
+    }
   })
   return extensionArray
 }
@@ -73,7 +74,7 @@ export const attributeArrayFromAttributeDescription = (attributeDescription) => 
     }
     attributeArray.push({
       name: key,
-      value: attributeDescription[key],
+      value,
     })
   })
   return attributeArray

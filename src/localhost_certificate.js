@@ -73,7 +73,6 @@ export const requestCertificateForLocalhost = async ({
   serverCertificateFileUrl = assertAndNormalizeFileUrl(serverCertificateFileUrl)
   const { certificateAuthorityJsonFileUrl, rootCertificateFileUrl, rootPrivateKeyFileUrl } =
     getCertificateAuthorityFileUrls()
-  const rootCertificateFilePath = urlToFileSystemPath(rootCertificateFileUrl)
 
   logger.debug(`certificate requested for localhost`)
 
@@ -121,7 +120,7 @@ export const requestCertificateForLocalhost = async ({
   await verificationsOnCertificates({
     logger,
     rootCertificateStatus,
-    rootCertificateFilePath,
+    rootCertificateFileUrl,
     rootCertificate: rootCertificatePEM,
 
     certificateTrustVerification,
@@ -132,6 +131,7 @@ export const requestCertificateForLocalhost = async ({
     hostsFilePath,
 
     serverCertificateStatus,
+    serverCertificateFileUrl,
     serverCertificate: serverCertificatePEM,
     serverCertificateAltNames,
   })

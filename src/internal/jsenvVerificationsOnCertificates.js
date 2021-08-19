@@ -3,7 +3,7 @@ import { importPlatformMethods } from "./platform.js"
 export const jsenvVerificationsOnCertificates = async ({
   logger,
   rootCertificateStatus,
-  rootCertificateFilePath,
+  rootCertificateFileUrl,
   rootCertificate,
 
   certificateTrustVerification,
@@ -13,6 +13,7 @@ export const jsenvVerificationsOnCertificates = async ({
   tryToRegisterHostnames,
   hostsFilePath,
 
+  serverCertificateFileUrl,
   serverCertificateAltNames,
 }) => {
   const { ensureRootCertificateRegistration, ensureHostnamesRegistration } =
@@ -21,11 +22,13 @@ export const jsenvVerificationsOnCertificates = async ({
   if (certificateTrustVerification) {
     await ensureRootCertificateRegistration({
       logger,
-      rootCertificateFilePath,
+      rootCertificateFileUrl,
       rootCertificateStatus,
       rootCertificate,
 
       tryToTrustRootCertificate,
+
+      serverCertificateFileUrl,
     })
   }
 

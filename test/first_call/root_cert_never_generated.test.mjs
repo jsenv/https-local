@@ -17,16 +17,22 @@ import {
   launchFirefox,
   launchWebkit,
   requestServerUsingBrowser,
-} from "./test_helpers.mjs"
+} from "@jsenv/https-localhost/test/test_helpers.mjs"
 
-await resetAllCertificateFiles()
+const serverCertificateFileUrl = new URL("./certificate/server.crt", import.meta.url)
 const loggerForTest = createLoggerForTest({
   // forwardToConsole: true,
 })
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
+const firstCallParams = {
   ...TEST_PARAMS,
   logger: loggerForTest,
-})
+  serverCertificateFileUrl,
+}
+
+await resetAllCertificateFiles()
+const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost(
+  firstCallParams,
+)
 const serverOrigin = await startServerForTest({
   serverCertificate,
   serverPrivateKey,

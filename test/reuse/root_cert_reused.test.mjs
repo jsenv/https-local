@@ -3,20 +3,29 @@ import { urlToFileSystemPath } from "@jsenv/filesystem"
 
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
 import { getCertificateAuthorityFileUrls } from "@jsenv/https-localhost/src/internal/certificate_authority_file_urls.js"
-import { TEST_PARAMS, resetAllCertificateFiles, createLoggerForTest } from "./test_helpers.mjs"
+import {
+  TEST_PARAMS,
+  resetAllCertificateFiles,
+  createLoggerForTest,
+} from "@jsenv/https-localhost/test/test_helpers.mjs"
 
-await resetAllCertificateFiles()
-const firstCallResult = await requestCertificateForLocalhost({
+const serverCertificateFileUrl = new URL("./certificate/server.crt", import.meta.url)
+const firstCallParams = {
   ...TEST_PARAMS,
   logLevel: "warn",
-})
+  serverCertificateFileUrl,
+}
 const loggerForSecondCall = createLoggerForTest({
   // forwardToConsole: true,
 })
-const secondCallResult = await requestCertificateForLocalhost({
-  ...TEST_PARAMS,
+const secondCallParams = {
+  ...firstCallParams,
   logger: loggerForSecondCall,
-})
+}
+
+await resetAllCertificateFiles()
+const firstCallResult = await requestCertificateForLocalhost(firstCallParams)
+const secondCallResult = await requestCertificateForLocalhost(secondCallParams)
 
 {
   // server certificate and root certificate are the same

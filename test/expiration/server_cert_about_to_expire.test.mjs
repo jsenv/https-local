@@ -1,27 +1,35 @@
 import { assert } from "@jsenv/assert"
 
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
-import { TEST_PARAMS, resetAllCertificateFiles, createLoggerForTest } from "./test_helpers.mjs"
+import {
+  TEST_PARAMS,
+  resetAllCertificateFiles,
+  createLoggerForTest,
+} from "@jsenv/https-localhost/test/test_helpers.mjs"
 
-await resetAllCertificateFiles()
-await requestCertificateForLocalhost({
+const serverCertificateFileUrl = new URL("./certificate/server.crt", import.meta.url)
+const firstCallParams = {
   ...TEST_PARAMS,
   logLevel: "warn",
+  serverCertificateFileUrl,
   serverCertificateValidityDurationInMs: 6000,
-})
-await new Promise((resolve) => {
-  setTimeout(resolve, 2500)
-})
+}
 const loggerForSecondCall = createLoggerForTest({
   // forwardToConsole: true,
 })
-await requestCertificateForLocalhost({
-  ...TEST_PARAMS,
+const secondCallParams = {
+  ...firstCallParams,
   logger: loggerForSecondCall,
   certificateTrustVerification: false,
-  serverCertificateValidityDurationInMs: 5000,
   aboutToExpireRatio: 0.95,
+}
+
+await resetAllCertificateFiles()
+await requestCertificateForLocalhost(firstCallParams)
+await new Promise((resolve) => {
+  setTimeout(resolve, 2500)
 })
+await requestCertificateForLocalhost(secondCallParams)
 
 {
   const actual = loggerForSecondCall.getLogs({ info: true, warn: true, error: true })

@@ -19,7 +19,11 @@ import {
   attributeDescriptionFromAttributeArray,
   normalizeForgeAltNames,
 } from "./internal/certificate_data_converter.js"
-import { formatExpired, formatAboutToExpire } from "./internal/validity_formatting.js"
+import {
+  formatExpired,
+  formatAboutToExpire,
+  formatStillValid,
+} from "./internal/validity_formatting.js"
 import {
   createCertificateAuthority,
   requestCertificateFromAuthority,
@@ -240,7 +244,12 @@ const requestRootCertificate = async ({
       rootCertificateStatus: "updated",
     })
   }
-  logger.debug(`root certificate is valid`)
+  logger.debug(
+    formatStillValid({
+      certificateName: "root certificate",
+      validityRemainingMs,
+    }),
+  )
 
   logger.debug(`read root certificate private key at ${rootPrivateKeyFileUrl}`)
   const rootPrivateKeyPEM = await readFile(rootPrivateKeyFileUrl, {
@@ -381,7 +390,12 @@ const requestServerCertificate = async ({
       serverCertificateStatus: "updated",
     })
   }
-  logger.debug(`server certificate is valid`)
+  logger.debug(
+    formatStillValid({
+      certificateName: "server certificate",
+      validityRemainingMs,
+    }),
+  )
 
   logger.debug(`read server certificate private key at ${serverPrivateKeyFileUrl}`)
   const serverPrivateKeyPEM = await readFile(serverPrivateKeyFileUrl, {

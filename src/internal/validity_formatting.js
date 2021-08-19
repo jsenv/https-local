@@ -1,11 +1,5 @@
-export const formatExpired = ({
-  certificateName,
-  msEllapsedSinceExpiration,
-  certificateValidityDurationInMs,
-}) => {
-  return `${certificateName} has expired ${formatTimeDelta(
-    -msEllapsedSinceExpiration,
-  )}, it was valid during ${formatDuration(certificateValidityDurationInMs)}`
+export const formatStillValid = ({ certificateName, validityRemainingMs }) => {
+  return `${certificateName} still valid for ${formatDuration(validityRemainingMs)}`
 }
 
 export const formatAboutToExpire = ({
@@ -16,6 +10,16 @@ export const formatAboutToExpire = ({
   return `${certificateName} will expire ${formatTimeDelta(
     validityRemainingMs,
   )}, it was valid during ${formatDuration(msEllapsedSinceValid)}`
+}
+
+export const formatExpired = ({
+  certificateName,
+  msEllapsedSinceExpiration,
+  certificateValidityDurationInMs,
+}) => {
+  return `${certificateName} has expired ${formatTimeDelta(
+    -msEllapsedSinceExpiration,
+  )}, it was valid during ${formatDuration(certificateValidityDurationInMs)}`
 }
 
 const formatTimeDelta = (deltaInMs) => {

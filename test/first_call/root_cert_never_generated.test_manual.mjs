@@ -1,5 +1,8 @@
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
-import { resetAllCertificateFiles, startServerForTest } from "./test_helpers.mjs"
+import {
+  resetAllCertificateFiles,
+  startServerForTest,
+} from "@jsenv/https-localhost/test/test_helpers.mjs"
 
 await resetAllCertificateFiles()
 const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({

@@ -3,14 +3,14 @@
 
 import { createDetailedMessage } from "@jsenv/logger"
 
-import { verifyRootCertificateValidityDuration } from "./validity_duration.js"
-import { importNodeForge } from "./internal/forge.js"
+import { verifyRootCertificateValidityDuration } from "../validity_duration.js"
+import { importNodeForge } from "./forge.js"
 import {
   attributeArrayFromAttributeDescription,
   attributeDescriptionFromAttributeArray,
   subjectAltNamesFromAltNames,
   extensionArrayFromExtensionDescription,
-} from "./internal/certificate_data_converter.js"
+} from "./certificate_data_converter.js"
 
 export const createCertificateAuthority = async ({
   logger,

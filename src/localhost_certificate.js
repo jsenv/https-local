@@ -27,8 +27,8 @@ import {
 import {
   createCertificateAuthority,
   requestCertificateFromAuthority,
-} from "./certificate_generator.js"
-import { jsenvVerificationsOnCertificates } from "./jsenvVerificationsOnCertificates.js"
+} from "./internal/certificate_generator.js"
+import { jsenvVerificationsOnCertificates } from "./internal/jsenvVerificationsOnCertificates.js"
 
 export const requestCertificateForLocalhost = async ({
   logLevel,

@@ -1,4 +1,4 @@
-import { importPlatformMethods } from "./internal/platform.js"
+import { importPlatformMethods } from "./platform.js"
 
 export const jsenvVerificationsOnCertificates = async ({
   logger,

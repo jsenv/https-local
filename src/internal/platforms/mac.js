@@ -70,6 +70,7 @@ ${createDetailedMessage(`Firefox detected, root certificate needs to be trusted 
 const isFirefoxInstalled = () => {
   return existsSync("/Applications/Firefox.app")
 }
+
 export const ensureHostnamesRegistration = async ({
   logger,
   serverCertificateAltNames,

@@ -4,6 +4,6 @@ const require = createRequire(import.meta.url)
 
 const devcert = require("devcert")
 
-const result = await devcert.certificateFor(["localhost"], { getCaPath: true })
+const result = await devcert.certificateFor(["localhost", "toto"], { getCaPath: true })
 
 console.log(result)

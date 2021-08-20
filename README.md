@@ -21,36 +21,6 @@ const { serverCertificate, serverPrivateKey } = await requestCertificateForLocal
 })
 ```
 
-# Node server example
-
-```js
-import { createServer } from "node:https"
-import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
-
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateFileUrl: new URL("./certificates/server.crt", import.meta.url),
-})
-
-const server = createServer(
-  {
-    cert: serverCertificate,
-    key: serverPrivateKey,
-  },
-  (request, response) => {
-    const body = "Hello world"
-    response.writeHead(200, {
-      "content-type": "text/plain",
-      "content-length": Buffer.byteLength(body),
-    })
-    response.write(body)
-    response.end()
-  },
-)
-server.listen(8080)
-
-console.log(`Server listening at https://localhost:8080`)
-```
-
 # Trusting certificate
 
 Every time _requestCertificateForLocalhost_ is executed it checks if the root certificate is trusted. When not, a log explains how to trust it on your OS.
@@ -124,6 +94,38 @@ const { serverCertificate, serverPrivateKey } = await requestCertificateForLocal
 
 All host passed in _serverCertificateAltNames_ must be mapped to 127.0.0.1 in your hosts file.
 This is done for you when _tryToRegisterHostnames_ is enabled.
+
+# Usage with node server
+
+```js
+import { createServer } from "node:https"
+import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
+
+const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
+  serverCertificateFileUrl: new URL("./certificates/server.crt", import.meta.url),
+  tryToTrustRootCertificate: true,
+  tryToRegisterHostnames: true,
+})
+
+const server = createServer(
+  {
+    cert: serverCertificate,
+    key: serverPrivateKey,
+  },
+  (request, response) => {
+    const body = "Hello world"
+    response.writeHead(200, {
+      "content-type": "text/plain",
+      "content-length": Buffer.byteLength(body),
+    })
+    response.write(body)
+    response.end()
+  },
+)
+server.listen(8080)
+
+console.log(`Server listening at https://localhost:8080`)
+```
 
 # Installation
 

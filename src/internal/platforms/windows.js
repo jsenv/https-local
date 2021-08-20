@@ -12,7 +12,6 @@ export { ensureHostnamesRegistration } from "./shared.js"
 export const ensureRootCertificateRegistration = async ({
   logger,
   rootCertificateFileUrl,
-  rootCertificateSymlinkUrl,
   rootCertificatePEM,
 
   tryToTrustRootCertificate,
@@ -46,7 +45,7 @@ Adding root certificate to windows trust store
     } else {
       logger.info(`
 ${createDetailedMessage(`Root certificate must be added to windows trust store`, {
-  "root certificate file": urlToFileSystemPath(rootCertificateSymlinkUrl),
+  "root certificate file": urlToFileSystemPath(rootCertificateFileUrl),
   "suggested command": `> ${certUtilCommand}`,
 })}
 `)
@@ -54,20 +53,25 @@ ${createDetailedMessage(`Root certificate must be added to windows trust store`,
   }
 }
 
-const detectRootCertificateInWindowsTrustStore = async ({ logger, rootCertificatePEM }) => {
+const detectRootCertificateInWindowsTrustStore = async ({ logger }) => {
   // https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil#-viewstore
-  const viewAllCertificatesCommand = `certutil -viewstore -user root`
+  const certutilStoreCommand = `certutil -store -user root`
   logger.debug(`
 Searching root certificate in windows trust store
-> ${viewAllCertificatesCommand}
+> ${certutilStoreCommand}
 `)
-  const stringWithAllCertificatesAsPem = await exec(viewAllCertificatesCommand)
-  const rootCertificateInStore = stringWithAllCertificatesAsPem.includes(rootCertificatePEM)
+  const certutilStoreCommandOutput = await exec(certutilStoreCommand)
+
+  // it's not super accurate and do not take into account if the cert is different
+  // but it's the best I could do with certutil command on windows
+  const rootCertificateInStore = certutilStoreCommandOutput.includes(
+    "Jsenv localhost root certificate",
+  )
   if (!rootCertificateInStore) {
-    logger.debug(`Root certificate found in windows trust store`)
+    logger.debug(`Root certificate is not in windows trust store`)
     return false
   }
 
-  logger.debug(`Root certificate is not in windows trust store`)
+  logger.debug(`Root certificate found in windows trust store`)
   return true
 }

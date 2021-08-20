@@ -7,7 +7,6 @@ import { assert } from "@jsenv/assert"
 import { urlToFileSystemPath } from "@jsenv/filesystem"
 
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
-import { getCertificateAuthorityFileUrls } from "@jsenv/https-localhost/src/internal/certificate_authority_file_urls.js"
 import {
   TEST_PARAMS,
   resetAllCertificateFiles,
@@ -34,23 +33,19 @@ const firstCallParams = {
 }
 
 await resetAllCertificateFiles()
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost(
-  firstCallParams,
-)
+const { serverCertificate, serverPrivateKey, rootCertificateFilePath } =
+  await requestCertificateForLocalhost(firstCallParams)
 const serverOrigin = await startServerForTest({
   serverCertificate,
   serverPrivateKey,
 })
 
 {
-  const rootCertificateFilePath = urlToFileSystemPath(
-    getCertificateAuthorityFileUrls().rootCertificateFileUrl,
-  )
   const mustBeTrustedMessage = {
     win32: `
 Root certificate must be added to windows trust store
 --- root certificate file ---
-${urlToFileSystemPath(rootCertificateSymlinkUrl)}
+${rootCertificateFilePath}
 --- suggested command ---
 > certutil -addstore -user root "${rootCertificateFilePath}"
 `,
@@ -79,7 +74,7 @@ ${urlToFileSystemPath(rootCertificateSymlinkUrl)}
       `Generating server certificate files`,
       mustBeTrustedMessage,
       `
-Firefox detected, root certificate needs to be trusted in Firefox
+Root certificate needs to be trusted in Firefox
 --- root certificate file ---
 ${urlToFileSystemPath(rootCertificateSymlinkUrl)}
 --- suggested documentation ---

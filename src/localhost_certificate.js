@@ -42,6 +42,8 @@ import { jsenvVerificationsOnCertificates } from "./internal/jsenvVerificationsO
 //   rootCertificateLocalityName: "Valbonne",
 // }
 
+const isWindows = process.platform === "win32"
+
 export const requestCertificateForLocalhost = async ({
   logLevel,
   logger = createLogger({ logLevel }), // to be able to catch logs during unit tests
@@ -83,6 +85,8 @@ export const requestCertificateForLocalhost = async ({
     serverCertificateFileUrl,
   })
 
+  serverCertificateAltNames = ["localhost", "*.localhost", ...serverCertificateAltNames]
+
   logger.debug(`Certificate requested for localhost`)
 
   const { pki } = await importNodeForge()
@@ -116,20 +120,24 @@ export const requestCertificateForLocalhost = async ({
    * To make them easier to find, we write symbolic links near the server
    * certificate file pointing to the root certificate files
    */
-  logger.debug(`Writing root certificate symbol link files`)
-  await writeSymbolicLink({
-    from: rootCertificateSymlinkUrl,
-    to: rootCertificateFileUrl,
-    allowUseless: true,
-    allowOverwrite: true,
-  })
-  await writeSymbolicLink({
-    from: rootPrivateKeySymlinkUrl,
-    to: rootPrivateKeyFileUrl,
-    allowUseless: true,
-    allowOverwrite: true,
-  })
-  logger.debug(`Root certificate symbolic links written`)
+  if (!isWindows) {
+    logger.debug(`Writing root certificate symbol link files`)
+    await writeSymbolicLink({
+      from: rootCertificateSymlinkUrl,
+      to: rootCertificateFileUrl,
+      type: "file",
+      allowUseless: true,
+      allowOverwrite: true,
+    })
+    await writeSymbolicLink({
+      from: rootPrivateKeySymlinkUrl,
+      to: rootPrivateKeyFileUrl,
+      type: "file",
+      allowUseless: true,
+      allowOverwrite: true,
+    })
+    logger.debug(`Root certificate symbolic links written`)
+  }
 
   const { serverCertificateStatus, serverCertificatePEM, serverPrivateKeyPEM } =
     await requestServerCertificate({
@@ -353,7 +361,7 @@ const requestServerCertificate = async ({
         privateKey: rootPrivateKey,
       },
       // TODO: avoid renaming, keep the long version
-      altNames: ["localhost", "*.localhost", ...serverCertificateAltNames],
+      altNames: serverCertificateAltNames,
       commonName: serverCertificateCommonName,
       organizationName: serverCertificateOrganizationName,
       validityDurationInMs: serverCertificateValidityDurationInMs,

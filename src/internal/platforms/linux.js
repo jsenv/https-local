@@ -51,9 +51,23 @@ Adding root certificate to linux trust store
       logger.info(`
 ${createDetailedMessage(`Root certificate must be added to linux trust store`, {
   "root certificate file": urlToFileSystemPath(rootCertificateSymlinkUrl),
-  "suggested documentation": `https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac`,
   "suggested command": `> ${copyRootCertificateCommand}
 > ${updateCertificateAuthoritiesCommand}`,
+})}
+`)
+    }
+  }
+
+  const chromeDetected = detectChrome({ logger })
+  if (chromeDetected) {
+    if (rootCertificateStatus === "reused") {
+      logger.debug(`Root certificate reused, skip "how to trust for chrome" log`)
+    } else {
+      logger.info(`
+${createDetailedMessage(`Root certificate needs to be trusted in Chrome`, {
+  "root certificate file": urlToFileSystemPath(rootCertificateSymlinkUrl),
+  "suggested documentation":
+    "https://docs.vmware.com/en/VMware-Adapter-for-SAP-Landscape-Management/2.0.1/Installation-and-Administration-Guide-for-VLA-Administrators/GUID-D60F08AD-6E54-4959-A272-458D08B8B038.html",
 })}
 `)
     }
@@ -97,9 +111,20 @@ const detectRootCertificateInLinuxTrustStore = async ({ logger, rootCertificateP
   return true
 }
 
+const detectChrome = ({ logger }) => {
+  const chromeBinFileExists = existsSync("/usr/bin/google-chrome")
+  if (!chromeBinFileExists) {
+    logger.debug(`Chrome not detected`)
+    return false
+  }
+
+  logger.debug("Chrome detected")
+  return true
+}
+
 const detectFirefox = ({ logger }) => {
-  const firefoxBinFleExists = existsSync("/usr/bin/firefox")
-  if (!firefoxBinFleExists) {
+  const firefoxBinFileExists = existsSync("/usr/bin/firefox")
+  if (!firefoxBinFileExists) {
     logger.debug(`Firefox not detected`)
     return false
   }

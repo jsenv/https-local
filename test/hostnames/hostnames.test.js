@@ -20,7 +20,7 @@ const params = {
 }
 
 // required and missing
-{
+if (process.platform !== "win32") {
   const loggerForTest = createLoggerForTest({
     // forwardToConsole: true,
   })
@@ -53,7 +53,7 @@ ${hostsFilePath}
 }
 
 // required and exists
-{
+if (process.platform !== "win32") {
   const loggerForTest = createLoggerForTest({
     // forwardToConsole: true,
   })

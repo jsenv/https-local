@@ -4,11 +4,13 @@ import { readFile } from "@jsenv/filesystem"
 import { parseHosts } from "../hosts_parser.js"
 import { exec } from "../exec.js"
 
+const isWindows = process.platform === "win32"
+
 export const ensureHostnamesRegistration = async ({
   logger,
   serverCertificateAltNames,
   tryToRegisterHostnames,
-  hostsFilePath = "/etc/hosts",
+  hostsFilePath = isWindows ? "C:\\Windows\\System32\\Drivers\\etc\\hosts" : "/etc/hosts",
 }) => {
   if (serverCertificateAltNames.length === 0) {
     logger.debug(`serverCertificateAltNames is empty -> skip ensureHostnamesRegistration`)
@@ -33,6 +35,13 @@ export const ensureHostnamesRegistration = async ({
     hostnames.addIpHostname("127.0.0.1", missingHostname)
   })
   const newHostsFileContent = hostnames.asFileContent()
+
+  if (isWindows && tryToRegisterHostnames) {
+    // we could but it requires a sudo prompt + running echo command to write the file
+    // see https://github.com/davewasmer/devcert/blob/fecd645e89b977fbe941ca520c4ce27d1fd8bea6/src/platforms/win32.ts#L61
+    logger.debug(`Cannot try to register hostname on windows`)
+    tryToRegisterHostnames = false
+  }
 
   if (tryToRegisterHostnames) {
     // https://en.wikipedia.org/wiki/Tee_(command)

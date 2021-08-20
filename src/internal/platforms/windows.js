@@ -3,47 +3,71 @@
  */
 
 import { createDetailedMessage } from "@jsenv/logger"
+import { urlToFileSystemPath } from "@jsenv/filesystem"
 
 import { exec } from "../exec.js"
 
-export const addRootCertificateFileToTrustStore = async ({ logger, certificateFilePath }) => {
-  logger.debug("adding root certificate to Windows OS trust store")
+export { ensureHostnamesRegistration } from "./shared.js"
 
-  try {
-    const command = `certutil -addstore -user root ${certificateFilePath}`
-    logger.info(`> ${command}`)
-    await exec(command)
+export const ensureRootCertificateRegistration = async ({
+  logger,
+  rootCertificateFileUrl,
+  rootCertificateSymlinkUrl,
+  rootCertificatePEM,
 
-    return true
-  } catch (e) {
-    logger.error(
-      createDetailedMessage(`failed to add ${certificateFilePath} Windows OS trust store`, {
-        "error stack": e.stack,
-      }),
-    )
-    return false
+  tryToTrustRootCertificate,
+}) => {
+  const isInWindowsTrustStore = await detectRootCertificateInWindowsTrustStore({
+    logger,
+    rootCertificatePEM,
+  })
+
+  if (!isInWindowsTrustStore) {
+    // https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil
+    const certUtilCommand = `certutil -addstore -user root "${urlToFileSystemPath(
+      rootCertificateFileUrl,
+    )}"`
+
+    if (tryToTrustRootCertificate) {
+      logger.info(`
+Adding root certificate to windows trust store
+> ${certUtilCommand}
+`)
+      try {
+        await exec(certUtilCommand)
+      } catch (e) {
+        logger.error(
+          createDetailedMessage(`Failed to add root certificate to windows trust store`, {
+            "error stack": e.stack,
+            "root certificate file url": rootCertificateFileUrl,
+          }),
+        )
+      }
+    } else {
+      logger.info(`
+${createDetailedMessage(`Root certificate must be added to windows trust store`, {
+  "root certificate file": urlToFileSystemPath(rootCertificateSymlinkUrl),
+  "suggested command": `> ${certUtilCommand}`,
+})}
+`)
+    }
   }
 }
 
-export const removeRootCertificateFileFromTrustStore = async ({ logger, certificateFilePath }) => {
-  logger.debug("removing root certificate from windows OS trust store")
-
-  try {
-    logger.warn(
-      `Removing old certificates from trust stores. You may be prompted to grant permission for this. It's safe to delete old devcert certificates.`,
-    )
-    const command = `certutil -delstore -user -root devcert` // TODO: why devcert and not the file path?
-    logger.info(`> ${command}`)
-    await exec(command)
-
-    return true
-  } catch (e) {
-    logger.error(
-      createDetailedMessage(`failed to remove ${certificateFilePath} from windows OS trust store`, {
-        "error stack": e.stack,
-      }),
-    )
-
+const detectRootCertificateInWindowsTrustStore = async ({ logger, rootCertificatePEM }) => {
+  // https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil#-viewstore
+  const viewAllCertificatesCommand = `certutil -viewstore -user root`
+  logger.debug(`
+Searching root certificate in windows trust store
+> ${viewAllCertificatesCommand}
+`)
+  const stringWithAllCertificatesAsPem = await exec(viewAllCertificatesCommand)
+  const rootCertificateInStore = stringWithAllCertificatesAsPem.includes(rootCertificatePEM)
+  if (!rootCertificateInStore) {
+    logger.debug(`Root certificate found in windows trust store`)
     return false
   }
+
+  logger.debug(`Root certificate is not in windows trust store`)
+  return true
 }

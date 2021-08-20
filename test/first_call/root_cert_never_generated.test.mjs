@@ -46,14 +46,15 @@ const serverOrigin = await startServerForTest({
   const rootCertificateFilePath = urlToFileSystemPath(
     getCertificateAuthorityFileUrls().rootCertificateFileUrl,
   )
-  const actual = loggerForTest.getLogs({ info: true, warn: true, error: true })
-  const expected = {
-    infos: [
-      `Generating root certificate files`,
-      `Generating server certificate files`,
-      // this message depends on the platform and firefox presence
-      // for now keep like this but this will become dynamic
-      `
+  const mustBeTrustedMessage = {
+    win32: `
+Root certificate must be added to windows trust store
+--- root certificate file ---
+${urlToFileSystemPath(rootCertificateSymlinkUrl)}
+--- suggested command ---
+> certutil -addstore -user root "${rootCertificateFilePath}"
+`,
+    darwin: `
 Root certificate must be added to macOS keychain
 --- root certificate file ---
 ${urlToFileSystemPath(rootCertificateSymlinkUrl)}
@@ -62,6 +63,21 @@ https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-k
 --- suggested command ---
 sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic "${rootCertificateFilePath}"
 `,
+    linux: `
+Root certificate must be added to linux trust store
+--- root certificate file ---
+${urlToFileSystemPath(rootCertificateSymlinkUrl)}
+--- suggested command ---
+> sudo cp "${rootCertificateFilePath}" /usr/local/share/ca-certificates/jsenv_certificate_authority.crt
+> sudo update-ca-certificates
+`,
+  }[process.platform]
+  const actual = loggerForTest.getLogs({ info: true, warn: true, error: true })
+  const expected = {
+    infos: [
+      `Generating root certificate files`,
+      `Generating server certificate files`,
+      mustBeTrustedMessage,
       `
 Firefox detected, root certificate needs to be trusted in Firefox
 --- root certificate file ---

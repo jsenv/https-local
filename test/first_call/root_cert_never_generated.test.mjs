@@ -153,10 +153,12 @@ https://wiki.mozilla.org/PSM:Changing_Trust_Settings
     throw new Error("should throw")
   } catch (e) {
     const actual = e.errorText
-    const expected =
-      process.platform === "linux"
-        ? "Unacceptable TLS certificate"
-        : "The certificate for this server is invalid. You might be connecting to a server that is pretending to be “localhost” which could put your confidential information at risk."
+    const expected = {
+      win32: "SSL peer certificate or SSH remote key was not OK",
+      linux: "Unacceptable TLS certificate",
+      darwin:
+        "The certificate for this server is invalid. You might be connecting to a server that is pretending to be “localhost” which could put your confidential information at risk.",
+    }[process.platform]
     assert({ actual, expected })
   } finally {
     browser.close()

@@ -112,25 +112,24 @@ export const ensureHostnamesRegistration = async ({
   const newHostsFileContent = hostnames.asFileContent()
 
   if (tryToRegisterHostnames) {
-    logger.info(`
-${createDetailedMessage(`Writing hostnames in your hosts file`, {
-  "hostnames to add": missingHostnames,
-  "hosts file content": newHostsFileContent,
-  "hosts file": hostsFilePath,
-})}
-`)
-
     // https://en.wikipedia.org/wiki/Tee_(command)
     const updateHostFileCommand = `sudo tee ${hostsFilePath}`
-    logger.info(`> ${updateHostFileCommand}`)
+    logger.info(`
+Adding ${missingHostnameCount} mapping(s) in your hosts file
+> ${updateHostFileCommand}
+`)
+    logger.debug(`Writing hosts info`, {
+      "hostnames to add": missingHostnames,
+      "hosts file content": newHostsFileContent,
+      "hosts file": hostsFilePath,
+    })
     await exec(updateHostFileCommand, { input: newHostsFileContent })
   } else {
     logger.info(`
-${createDetailedMessage(`Some hostnames needs to be added to your hosts file`, {
+${createDetailedMessage(`${missingHostnameCount} mapping(s) must be added in your hosts file`, {
   "hostnames to add": missingHostnames,
-  "suggested hosts file content": newHostsFileContent,
   "hosts file": hostsFilePath,
-})}
-`)
+  "suggested hosts file content": newHostsFileContent,
+})}`)
   }
 }

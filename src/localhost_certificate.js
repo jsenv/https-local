@@ -87,7 +87,9 @@ export const requestCertificateForLocalhost = async ({
 
   serverCertificateAltNames = ["localhost", "*.localhost", ...serverCertificateAltNames]
 
-  logger.debug(`Certificate requested for localhost`)
+  logger.debug(
+    `Certificate requested for localhost, certificateTrustVerification: ${certificateTrustVerification}, certificateHostnamesVerification: ${certificateHostnamesVerification}`,
+  )
 
   const { pki } = await importNodeForge()
 

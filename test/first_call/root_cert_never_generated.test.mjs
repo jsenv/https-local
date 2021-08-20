@@ -20,7 +20,7 @@ import {
 
 const serverCertificateFileUrl = new URL("./certificate/server.crt", import.meta.url)
 const rootCertificateSymlinkUrl = new URL(
-  "./certificate/jsenv_certificate_authority.crt",
+  "./certificate/jsenv_root_certificate.crt",
   import.meta.url,
 )
 const loggerForTest = createLoggerForTest({
@@ -64,7 +64,7 @@ Root certificate must be added to linux trust store
 --- root certificate file ---
 ${urlToFileSystemPath(rootCertificateSymlinkUrl)}
 --- suggested command ---
-> sudo cp "${rootCertificateFilePath}" /usr/local/share/ca-certificates/jsenv_certificate_authority.crt
+> sudo cp "${rootCertificateFilePath}" /usr/local/share/ca-certificates/jsenv_root_certificate.crt
 > sudo update-ca-certificates
 `,
   }[process.platform]
@@ -74,6 +74,8 @@ ${urlToFileSystemPath(rootCertificateSymlinkUrl)}
       `Generating root certificate files`,
       `Generating server certificate files`,
       mustBeTrustedMessage,
+      // on windows and mac chrome reuse OS store.
+      // It's only on linux that people have to trust manually
       ...(process.platform === "linux"
         ? [
             `
@@ -85,14 +87,22 @@ https://docs.vmware.com/en/VMware-Adapter-for-SAP-Landscape-Management/2.0.1/Ins
 `,
           ]
         : []),
-      `
+      // on linux and mac we detect firefox presence to tell user
+      // certificate needs to be trusted in firefox.
+      // On windows detecting firefox might be tricky so the log is skipped
+      ...(process.platform === "linux" || process.platform === "darwin"
+        ? [
+            `
 Root certificate needs to be trusted in Firefox
 --- root certificate file ---
 ${urlToFileSystemPath(rootCertificateSymlinkUrl)}
 --- suggested documentation ---
 https://wiki.mozilla.org/PSM:Changing_Trust_Settings
 `,
+          ]
+        : []),
     ],
+
     warns: [],
     errors: [],
   }

@@ -27,7 +27,7 @@ export const ensureRootCertificateRegistration = async ({
   if (!isInLinuxTrustStore) {
     const copyRootCertificateCommand = `sudo cp "${urlToFileSystemPath(
       rootCertificateFileUrl,
-    )}" /usr/local/share/ca-certificates/jsenv_certificate_authority.crt`
+    )}" /usr/local/share/ca-certificates/jsenv_root_certificate.crt`
     const updateCertificateAuthoritiesCommand = `sudo update-ca-certificates`
 
     if (tryToTrustRootCertificate) {
@@ -91,7 +91,7 @@ ${createDetailedMessage(`Root certificate needs to be trusted in Firefox`, {
 const detectRootCertificateInLinuxTrustStore = async ({ logger, rootCertificatePEM }) => {
   logger.debug(`Searching root certificate in linux trust store`)
   const rootCertificateInTrustStore = existsSync(
-    `/usr/local/share/ca-certificates/jsenv_certificate_authority.crt`,
+    `/usr/local/share/ca-certificates/jsenv_root_certificate.crt`,
   )
 
   if (!rootCertificateInTrustStore) {
@@ -100,7 +100,7 @@ const detectRootCertificateInLinuxTrustStore = async ({ logger, rootCertificateP
   }
 
   const rootCertificatePEMInLinuxStore = await readFile(
-    `/usr/local/share/ca-certificates/jsenv_certificate_authority.crt`,
+    `/usr/local/share/ca-certificates/jsenv_root_certificate.crt`,
   )
   if (rootCertificatePEMInLinuxStore !== rootCertificatePEM) {
     logger.debug(`Root certificate in linux store is different, it needs to be updated`)

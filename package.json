@@ -1,7 +1,6 @@
 {
   "name": "@jsenv/https-localhost",
-  "version": "0.0.1",
-  "private": true,
+  "version": "1.0.0",
   "description": "Https certificate for localhost server",
   "license": "MIT",
   "author": {

@@ -52,10 +52,10 @@ Adding root certificate to macOS keychain
       }
     } else {
       logger.info(`
-${createDetailedMessage(`root certificate must be added to macOS keychain`, {
+${createDetailedMessage(`Root certificate must be added to macOS keychain`, {
   "root certificate file": urlToFileSystemPath(rootCertificateSymlinkUrl),
-  "documentation": `https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac`,
-  "suggestion": addTrustedCertificateCommand,
+  "suggested documentation": `https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac`,
+  "suggested command": addTrustedCertificateCommand,
 })}
 `)
     }
@@ -68,7 +68,7 @@ ${createDetailedMessage(`root certificate must be added to macOS keychain`, {
       logger.info(`
 ${createDetailedMessage(`Firefox detected, root certificate needs to be trusted in Firefox`, {
   "root certificate file": urlToFileSystemPath(rootCertificateSymlinkUrl),
-  "documentation": "https://wiki.mozilla.org/PSM:Changing_Trust_Settings",
+  "suggested documentation": "https://wiki.mozilla.org/PSM:Changing_Trust_Settings",
 })}
 `)
     }

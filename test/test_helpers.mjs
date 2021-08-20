@@ -151,7 +151,10 @@ export const requestServerUsingBrowser = async ({ serverOrigin, browser }) => {
 
     page.goto(serverOrigin).catch((e) => {
       // chrome
-      if (e.message.includes("ERR_CERT_INVALID")) {
+      if (
+        e.message.includes("ERR_CERT_INVALID") ||
+        e.message.includes("ERR_CERT_AUTHORITY_INVALID")
+      ) {
         return
       }
       // firefox

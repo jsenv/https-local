@@ -3,7 +3,7 @@ import { assert } from "@jsenv/assert"
 import {
   createCertificateAuthority,
   requestCertificateFromAuthority,
-} from "@jsenv/https-localhost/src/certificate_generator.js"
+} from "@jsenv/https-localhost/src/internal/certificate_generator.js"
 import { createLoggerForTest } from "@jsenv/https-localhost/test/test_helpers.mjs"
 
 const jsenvCertificateAuthority = await createCertificateAuthority({

@@ -117,8 +117,18 @@ export const requestCertificateForLocalhost = async ({
    * certificate file pointing to the root certificate files
    */
   logger.debug(`Writing root certificate symbol link files`)
-  await writeSymbolicLink(rootCertificateSymlinkUrl, rootCertificateFileUrl)
-  await writeSymbolicLink(rootPrivateKeySymlinkUrl, rootPrivateKeyFileUrl)
+  await writeSymbolicLink({
+    from: rootCertificateSymlinkUrl,
+    to: rootCertificateFileUrl,
+    allowUseless: true,
+    allowOverwrite: true,
+  })
+  await writeSymbolicLink({
+    from: rootPrivateKeySymlinkUrl,
+    to: rootPrivateKeyFileUrl,
+    allowUseless: true,
+    allowOverwrite: true,
+  })
   logger.debug(`Root certificate symbolic links written`)
 
   const { serverCertificateStatus, serverCertificatePEM, serverPrivateKeyPEM } =

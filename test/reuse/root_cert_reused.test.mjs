@@ -10,6 +10,10 @@ import {
 } from "@jsenv/https-localhost/test/test_helpers.mjs"
 
 const serverCertificateFileUrl = new URL("./certificate/server.crt", import.meta.url)
+const rootCertificateSymlinkUrl = new URL(
+  "./certificate/jsenv_certificate_authority.crt",
+  import.meta.url,
+)
 const firstCallParams = {
   ...TEST_PARAMS,
   logLevel: "warn",
@@ -43,11 +47,13 @@ const secondCallResult = await requestCertificateForLocalhost(secondCallParams)
     infos: [
       // it's good to ensure trust is checked even on reuse
       `
-root certificate must be added to macOS keychain
---- suggestion ---
-sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic ${rootCertificateFilePath}
---- documentation ---
+Root certificate must be added to macOS keychain
+--- root certificate file ---
+${urlToFileSystemPath(rootCertificateSymlinkUrl)}
+--- suggested documentation ---
 https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac
+--- suggested command ---
+sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic "${rootCertificateFilePath}"
 `,
     ],
     warns: [],

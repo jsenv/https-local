@@ -37,7 +37,7 @@ await requestCertificateForLocalhost(secondCallParams)
       assert.matchesRegExp(
         /server certificate has expired \d seconds ago, it was valid during 1 second/,
       ),
-      `generating server certificate files`,
+      `Generating server certificate files`,
     ],
     warns: [],
     errors: [],

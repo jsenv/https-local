@@ -1,4 +1,4 @@
-import { assertAndNormalizeDirectoryUrl, resolveUrl, urlToBasename } from "@jsenv/filesystem"
+import { assertAndNormalizeDirectoryUrl, resolveUrl, urlToFilename } from "@jsenv/filesystem"
 
 export const getCertificateAuthorityFileUrls = () => {
   // we need a directory common to every instance of @jsenv/https-localhost
@@ -35,10 +35,10 @@ export const getRootCertificateSymlinkUrls = ({
 }) => {
   const serverCertificateDirectory = resolveUrl("./", serverCertificateFileUrl)
 
-  const rootCertificateBasename = urlToBasename(rootCertificateFileUrl)
-  const rootCertificateSymlinkUrl = resolveUrl(rootCertificateBasename, serverCertificateDirectory)
-  const rootPrivateKeyBasename = urlToBasename(rootPrivateKeyFileUrl)
-  const rootPrivateKeySymlinkUrl = resolveUrl(rootPrivateKeyBasename, serverCertificateDirectory)
+  const rootCertificateFilename = urlToFilename(rootCertificateFileUrl)
+  const rootCertificateSymlinkUrl = resolveUrl(rootCertificateFilename, serverCertificateDirectory)
+  const rootPrivateKeyFilename = urlToFilename(rootPrivateKeyFileUrl)
+  const rootPrivateKeySymlinkUrl = resolveUrl(rootPrivateKeyFilename, serverCertificateDirectory)
 
   return {
     rootCertificateSymlinkUrl,

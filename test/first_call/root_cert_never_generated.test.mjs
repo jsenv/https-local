@@ -20,6 +20,10 @@ import {
 } from "@jsenv/https-localhost/test/test_helpers.mjs"
 
 const serverCertificateFileUrl = new URL("./certificate/server.crt", import.meta.url)
+const rootCertificateSymlinkUrl = new URL(
+  "./certificate/jsenv_certificate_authority.crt",
+  import.meta.url,
+)
 const loggerForTest = createLoggerForTest({
   // forwardToConsole: true,
 })
@@ -45,20 +49,24 @@ const serverOrigin = await startServerForTest({
   const actual = loggerForTest.getLogs({ info: true, warn: true, error: true })
   const expected = {
     infos: [
-      `generating root certificate files`,
-      `generating server certificate files`,
+      `Generating root certificate files`,
+      `Generating server certificate files`,
       // this message depends on the platform and firefox presence
       // for now keep like this but this will become dynamic
       `
-root certificate must be added to macOS keychain
---- suggestion ---
-sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic ${rootCertificateFilePath}
---- documentation ---
+Root certificate must be added to macOS keychain
+--- root certificate file ---
+${urlToFileSystemPath(rootCertificateSymlinkUrl)}
+--- suggested documentation ---
 https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac
+--- suggested command ---
+sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic "${rootCertificateFilePath}"
 `,
       `
 Firefox detected, root certificate needs to be trusted in Firefox
---- suggestion ---
+--- root certificate file ---
+${urlToFileSystemPath(rootCertificateSymlinkUrl)}
+--- suggested documentation ---
 https://wiki.mozilla.org/PSM:Changing_Trust_Settings
 `,
     ],
@@ -78,7 +86,7 @@ https://wiki.mozilla.org/PSM:Changing_Trust_Settings
     throw new Error("should throw")
   } catch (e) {
     const actual = e.errorText
-    const expected = "net::ERR_CERT_INVALID"
+    const expected = "net::ERR_CERT_AUTHORITY_INVALID"
     assert({ actual, expected })
   } finally {
     browser.close()

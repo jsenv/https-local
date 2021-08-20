@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "@jsenv/logger": "4.0.1",
-    "@jsenv/filesystem": "1.0.0",
+    "@jsenv/filesystem": "2.1.0",
     "node-forge": "0.10.0"
   },
   "devDependencies": {

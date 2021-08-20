@@ -5,7 +5,7 @@ export const jsenvVerificationsOnCertificates = async ({
   rootCertificateStatus,
   rootCertificateFileUrl,
   rootCertificateSymlinkUrl,
-  rootCertificate,
+  rootCertificatePEM,
 
   certificateTrustVerification,
   tryToTrustRootCertificate,
@@ -25,7 +25,7 @@ export const jsenvVerificationsOnCertificates = async ({
       rootCertificateFileUrl,
       rootCertificateSymlinkUrl,
       rootCertificateStatus,
-      rootCertificate,
+      rootCertificatePEM,
 
       tryToTrustRootCertificate,
     })

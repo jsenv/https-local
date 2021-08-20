@@ -152,7 +152,7 @@ export const requestCertificateForLocalhost = async ({
     rootCertificateStatus,
     rootCertificateFileUrl,
     rootCertificateSymlinkUrl,
-    rootCertificate: rootCertificatePEM,
+    rootCertificatePEM,
 
     certificateTrustVerification,
     tryToTrustRootCertificate,
@@ -163,7 +163,7 @@ export const requestCertificateForLocalhost = async ({
 
     serverCertificateStatus,
     serverCertificateFileUrl,
-    serverCertificate: serverCertificatePEM,
+    serverCertificatePEM,
     serverCertificateAltNames,
   })
 

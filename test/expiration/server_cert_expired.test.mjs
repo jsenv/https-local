@@ -21,6 +21,7 @@ const secondCallParams = {
   ...firstCallParams,
   logger: loggerForSecondCall,
   certificateTrustVerification: false,
+  certificateHostnamesVerification: false,
 }
 
 await resetAllCertificateFiles()

@@ -30,6 +30,7 @@ const firstCallParams = {
   ...TEST_PARAMS,
   logger: loggerForTest,
   serverCertificateFileUrl,
+  certificateHostnamesVerification: false,
 }
 
 await resetAllCertificateFiles()
@@ -73,6 +74,17 @@ ${urlToFileSystemPath(rootCertificateSymlinkUrl)}
       `Generating root certificate files`,
       `Generating server certificate files`,
       mustBeTrustedMessage,
+      ...(process.platform === "linux"
+        ? [
+            `
+Root certificate needs to be trusted in Chrome
+--- root certificate file ---
+${urlToFileSystemPath(rootCertificateSymlinkUrl)}
+--- suggested documentation ---
+https://docs.vmware.com/en/VMware-Adapter-for-SAP-Landscape-Management/2.0.1/Installation-and-Administration-Guide-for-VLA-Administrators/GUID-D60F08AD-6E54-4959-A272-458D08B8B038.html
+`,
+          ]
+        : []),
       `
 Root certificate needs to be trusted in Firefox
 --- root certificate file ---

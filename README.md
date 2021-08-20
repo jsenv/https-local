@@ -60,11 +60,11 @@ _Message when certificate is not trusted on macOS_
 ```console
 Root certificate must be added to macOS keychain
 --- root certificate file ---
-/Users/dmail/Library/Application Support/jsenv_https_localhost/jsenv_certificate_authority.crt
+/Users/dmail/Library/Application Support/jsenv_https_localhost/jsenv_root_certificate.crt
 --- suggested documentation ---
 https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac
 --- suggested command ---
-sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic "/Users/dmail/Library/Application Support/jsenv_https_localhost/jsenv_certificate_authority.crt"
+sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic "/Users/dmail/Library/Application Support/jsenv_https_localhost/jsenv_root_certificate.crt"
 ```
 
 If you prefer to automate how your certificate is trusted, enable _tryToTrustRootCertificate_ and the command will be runned for you.

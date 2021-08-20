@@ -67,7 +67,7 @@ https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-k
 sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic "/Users/dmail/Library/Application Support/jsenv_https_localhost/jsenv_root_certificate.crt"
 ```
 
-If you prefer to automate how your certificate is trusted, enable _tryToTrustRootCertificate_ and the command will be runned for you.
+It is possible to automate the trusting of the root certificate using _tryToTrustRootCertificate_.
 
 ```js
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
@@ -96,7 +96,7 @@ localhost
 127.0.0.1 *.localhost
 ```
 
-If you prefer to automate how your hostnames are added to your hosts file enable _tryToRegisterHostnames_ and the hosts file will be updated for you.
+It is possible to automate the update of hosts file using _tryToRegisterHostnames_.
 
 ```js
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"

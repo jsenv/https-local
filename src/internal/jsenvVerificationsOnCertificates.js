@@ -4,6 +4,7 @@ export const jsenvVerificationsOnCertificates = async ({
   logger,
   rootCertificateStatus,
   rootCertificateFileUrl,
+  rootCertificateSymlinkUrl,
   rootCertificate,
 
   certificateTrustVerification,
@@ -13,7 +14,6 @@ export const jsenvVerificationsOnCertificates = async ({
   tryToRegisterHostnames,
   hostsFilePath,
 
-  serverCertificateFileUrl,
   serverCertificateAltNames,
 }) => {
   const { ensureRootCertificateRegistration, ensureHostnamesRegistration } =
@@ -23,12 +23,11 @@ export const jsenvVerificationsOnCertificates = async ({
     await ensureRootCertificateRegistration({
       logger,
       rootCertificateFileUrl,
+      rootCertificateSymlinkUrl,
       rootCertificateStatus,
       rootCertificate,
 
       tryToTrustRootCertificate,
-
-      serverCertificateFileUrl,
     })
   }
 

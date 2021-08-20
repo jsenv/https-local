@@ -6,13 +6,7 @@
 
 import { existsSync } from "node:fs"
 import { createDetailedMessage } from "@jsenv/logger"
-import {
-  readFile,
-  writeSymbolicLink,
-  resolveUrl,
-  urlToBasename,
-  urlToFileSystemPath,
-} from "@jsenv/filesystem"
+import { readFile, urlToFileSystemPath } from "@jsenv/filesystem"
 
 import { parseHosts } from "../hosts_parser.js"
 import { exec } from "../exec.js"
@@ -20,36 +14,37 @@ import { exec } from "../exec.js"
 export const ensureRootCertificateRegistration = async ({
   logger,
   rootCertificateFileUrl,
+  rootCertificateSymlinkUrl,
   rootCertificateStatus,
   rootCertificate,
 
   tryToTrustRootCertificate,
-
-  serverCertificateFileUrl,
 }) => {
-  logger.debug(`Searching root certificate in macOS keychain`)
   const findAllCertificatesCommand = `security find-certificate -a -p`
-  logger.debug(`> ${findAllCertificatesCommand}`)
+  logger.debug(`
+Searching root certificate in macOS keychain
+> ${findAllCertificatesCommand}
+`)
   const stringWithAllCertificatesAsPem = await exec(findAllCertificatesCommand)
   const rootCertificateInKeychain = stringWithAllCertificatesAsPem.includes(rootCertificate)
 
   if (rootCertificateInKeychain) {
-    logger.debug(`root certificate found in macOS keychain`)
+    logger.debug(`Root certificate found in macOS keychain`)
   } else {
     const addTrustedCertificateCommand = `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic "${urlToFileSystemPath(
       rootCertificateFileUrl,
     )}"`
     if (tryToTrustRootCertificate) {
-      logger.debug(`root certificate is not in macOS keychain`)
+      logger.debug(`Root certificate is not in macOS keychain`)
       logger.info(`
-adding root certificate to macOS keychain
+Adding root certificate to macOS keychain
 > ${addTrustedCertificateCommand}
 `)
       try {
         await exec(addTrustedCertificateCommand)
       } catch (e) {
         logger.error(
-          createDetailedMessage(`failed to add root certificate to macOS keychain`, {
+          createDetailedMessage(`Failed to add root certificate to macOS keychain`, {
             "error stack": e.stack,
             "root certificate file url": rootCertificateFileUrl,
           }),
@@ -58,8 +53,9 @@ adding root certificate to macOS keychain
     } else {
       logger.info(`
 ${createDetailedMessage(`root certificate must be added to macOS keychain`, {
-  suggestion: addTrustedCertificateCommand,
-  documentation: `https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac`,
+  "root certificate file": urlToFileSystemPath(rootCertificateSymlinkUrl),
+  "documentation": `https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac`,
+  "suggestion": addTrustedCertificateCommand,
 })}
 `)
     }
@@ -69,33 +65,16 @@ ${createDetailedMessage(`root certificate must be added to macOS keychain`, {
     if (rootCertificateStatus === "reused") {
       logger.debug(`Root certificate reused, skip "how to trust for firefox" log`)
     } else {
-      const rootCertificateSymlinkUrl = await writeSymbolinkToMakeRootCertificateFileEasierToFind({
-        serverCertificateFileUrl,
-        rootCertificateFileUrl,
-      })
       logger.info(`
 ${createDetailedMessage(`Firefox detected, root certificate needs to be trusted in Firefox`, {
   "root certificate file": urlToFileSystemPath(rootCertificateSymlinkUrl),
-  "suggestion": "https://wiki.mozilla.org/PSM:Changing_Trust_Settings",
+  "documentation": "https://wiki.mozilla.org/PSM:Changing_Trust_Settings",
 })}
 `)
     }
   } else {
     logger.debug(`Firefox not detected`)
   }
-}
-
-// maybe that should be always done to help?
-// -> yes
-const writeSymbolinkToMakeRootCertificateFileEasierToFind = async ({
-  serverCertificateFileUrl,
-  rootCertificateFileUrl,
-}) => {
-  const serverCertificateDirectory = resolveUrl("./", serverCertificateFileUrl)
-  const rootCertificateBasename = urlToBasename(rootCertificateFileUrl)
-  const rootCertificateSymlinkUrl = resolveUrl(rootCertificateBasename, serverCertificateDirectory)
-  await writeSymbolicLink(rootCertificateSymlinkUrl, rootCertificateFileUrl)
-  return rootCertificateSymlinkUrl
 }
 
 const isFirefoxInstalled = () => {
@@ -113,9 +92,9 @@ export const ensureHostnamesRegistration = async ({
     return
   }
 
-  logger.debug(`reading hosts file at ${hostsFilePath}`)
+  logger.debug(`Reading hosts file at ${hostsFilePath}`)
   const hostsFileContent = await readFile(hostsFilePath, { as: "string" })
-  logger.debug(`parsing hosts file content`)
+  logger.debug(`Parsing hosts file content`)
   const hostnames = parseHosts(hostsFileContent)
   const selfIpHostnames = hostnames.getIpHostnames("127.0.0.1")
   const missingHostnames = serverCertificateAltNames.filter((serverCertificateAltName) => {
@@ -123,7 +102,7 @@ export const ensureHostnamesRegistration = async ({
   })
   const missingHostnameCount = missingHostnames.length
   if (missingHostnameCount === 0) {
-    logger.debug(`all hostnames mappings found in hosts file`)
+    logger.debug(`All hostnames mappings found in hosts file`)
     return
   }
 
@@ -134,7 +113,7 @@ export const ensureHostnamesRegistration = async ({
 
   if (tryToRegisterHostnames) {
     logger.info(`
-${createDetailedMessage(`writing hostnames in your hosts file`, {
+${createDetailedMessage(`Writing hostnames in your hosts file`, {
   "hostnames to add": missingHostnames,
   "hosts file content": newHostsFileContent,
   "hosts file": hostsFilePath,
@@ -147,7 +126,7 @@ ${createDetailedMessage(`writing hostnames in your hosts file`, {
     await exec(updateHostFileCommand, { input: newHostsFileContent })
   } else {
     logger.info(`
-${createDetailedMessage(`some hostnames needs to be added to your hosts file`, {
+${createDetailedMessage(`Some hostnames needs to be added to your hosts file`, {
   "hostnames to add": missingHostnames,
   "suggested hosts file content": newHostsFileContent,
   "hosts file": hostsFilePath,

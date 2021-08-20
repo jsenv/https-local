@@ -7,13 +7,17 @@ import {
   urlToFileSystemPath,
   assertAndNormalizeFileUrl,
   urlToBasename,
+  writeSymbolicLink,
 } from "@jsenv/filesystem"
 
 import {
   createValidityDurationOfXYears,
   createValidityDurationOfXDays,
 } from "./validity_duration.js"
-import { getCertificateAuthorityFileUrls } from "./internal/certificate_authority_file_urls.js"
+import {
+  getCertificateAuthorityFileUrls,
+  getRootCertificateSymlinkUrls,
+} from "./internal/certificate_authority_file_urls.js"
 import { importNodeForge } from "./internal/forge.js"
 import {
   attributeDescriptionFromAttributeArray,
@@ -73,8 +77,13 @@ export const requestCertificateForLocalhost = async ({
   serverCertificateFileUrl = assertAndNormalizeFileUrl(serverCertificateFileUrl)
   const { certificateAuthorityJsonFileUrl, rootCertificateFileUrl, rootPrivateKeyFileUrl } =
     getCertificateAuthorityFileUrls()
+  const { rootCertificateSymlinkUrl, rootPrivateKeySymlinkUrl } = getRootCertificateSymlinkUrls({
+    rootCertificateFileUrl,
+    rootPrivateKeyFileUrl,
+    serverCertificateFileUrl,
+  })
 
-  logger.debug(`certificate requested for localhost`)
+  logger.debug(`Certificate requested for localhost`)
 
   const { pki } = await importNodeForge()
 
@@ -101,6 +110,17 @@ export const requestCertificateForLocalhost = async ({
     aboutToExpireRatio,
   })
 
+  /*
+   * The root certificate files can be "hard" to find because
+   * located in a dedicated application directory specific to the OS
+   * To make them easier to find, we write symbolic links near the server
+   * certificate file pointing to the root certificate files
+   */
+  logger.debug(`Writing root certificate symbol link files`)
+  await writeSymbolicLink(rootCertificateSymlinkUrl, rootCertificateFileUrl)
+  await writeSymbolicLink(rootPrivateKeySymlinkUrl, rootPrivateKeyFileUrl)
+  logger.debug(`Root certificate symbolic links written`)
+
   const { serverCertificateStatus, serverCertificatePEM, serverPrivateKeyPEM } =
     await requestServerCertificate({
       logger,
@@ -121,6 +141,7 @@ export const requestCertificateForLocalhost = async ({
     logger,
     rootCertificateStatus,
     rootCertificateFileUrl,
+    rootCertificateSymlinkUrl,
     rootCertificate: rootCertificatePEM,
 
     certificateTrustVerification,
@@ -141,6 +162,7 @@ export const requestCertificateForLocalhost = async ({
     serverPrivateKey: serverPrivateKeyPEM,
     rootCertificate: rootCertificatePEM,
     rootPrivateKey: rootPrivateKeyPEM,
+    rootCertificateFilePath: urlToFileSystemPath(rootCertificateFileUrl),
   }
 }
 
@@ -163,7 +185,7 @@ const requestRootCertificate = async ({
   const rootCertificateFilePath = urlToFileSystemPath(rootCertificateFileUrl)
 
   const generateRootCertificateAndFiles = async ({ rootCertificateStatus }) => {
-    logger.info(`generating root certificate files`)
+    logger.info(`Generating root certificate files`)
     const { forgeCertificate, privateKey } = await createCertificateAuthority({
       logger,
       // TODO: avoid renaming, keep the long version
@@ -196,13 +218,13 @@ const requestRootCertificate = async ({
   }
 
   if (!fileExistsSync(rootCertificateFileUrl)) {
-    logger.debug(`no root certificate file at ${rootCertificateFilePath}`)
+    logger.debug(`No root certificate file at ${rootCertificateFilePath}`)
     return generateRootCertificateAndFiles({
       rootCertificateStatus: "created",
     })
   }
 
-  logger.debug(`root certificate file found at ${rootCertificateFilePath}`)
+  logger.debug(`Root certificate file found at ${rootCertificateFilePath}`)
   const rootCertificatePEM = await readFile(rootCertificateFileUrl, { as: "string" })
   const rootForgeCertificate = pki.certificateFromPem(rootCertificatePEM)
 
@@ -225,7 +247,7 @@ const requestRootCertificate = async ({
     })
   }
 
-  logger.debug(`checking root certificate validity`)
+  logger.debug(`Checking root certificate validity`)
   const validityRemainingMs = getCertificateRemainingMs(rootForgeCertificate)
   if (validityRemainingMs < 0) {
     const msEllapsedSinceExpiration = -validityRemainingMs
@@ -261,12 +283,12 @@ const requestRootCertificate = async ({
     }),
   )
 
-  logger.debug(`read root certificate private key at ${rootPrivateKeyFileUrl}`)
+  logger.debug(`Read root certificate private key at ${rootPrivateKeyFileUrl}`)
   const rootPrivateKeyPEM = await readFile(rootPrivateKeyFileUrl, {
     as: "string",
   })
   const rootPrivateKey = pki.privateKeyFromPem(rootPrivateKeyPEM)
-  logger.debug(`private key file found, reusing root certificate from filesystem`)
+  logger.debug(`Private key file found, reusing root certificate from filesystem`)
 
   return {
     rootCertificateStatus: "reused",
@@ -299,7 +321,7 @@ const requestServerCertificate = async ({
   )
 
   const generateServerCertificateAndFiles = async ({ serverCertificateStatus }) => {
-    logger.info(`generating server certificate files`)
+    logger.info(`Generating server certificate files`)
     const certificateAuthorityJSON = await readFile(certificateAuthorityJsonFileUrl, { as: "json" })
     const lastSerialNumber = certificateAuthorityJSON.serialNumber
     await writeFile(
@@ -340,20 +362,20 @@ const requestServerCertificate = async ({
   }
 
   if (!fileExistsSync(serverCertificateFileUrl)) {
-    logger.debug(`no server certificate file at ${serverCertificateFilePath}`)
+    logger.debug(`No server certificate file at ${serverCertificateFilePath}`)
     return generateServerCertificateAndFiles({
       serverCertificateStatus: "created",
     })
   }
   if (rootCertificateStatus !== "reused") {
     logger.debug(
-      `ignoring server certificate at ${serverCertificateFilePath} because it was issued with an other root certificate`,
+      `Ignoring server certificate at ${serverCertificateFilePath} because it was issued with an other root certificate`,
     )
     return generateServerCertificateAndFiles({
       serverCertificateStatus: "created",
     })
   }
-  logger.debug(`server certificate file found at ${serverCertificateFilePath}`)
+  logger.debug(`Server certificate file found at ${serverCertificateFilePath}`)
 
   const serverCertificatePEM = await readFile(serverCertificateFileUrl, { as: "string" })
   const serverForgeCertificate = pki.certificateFromPem(serverCertificatePEM)
@@ -367,13 +389,13 @@ const requestServerCertificate = async ({
   })
   if (serverCertificateDifferences.length) {
     const paramNames = Object.keys(serverCertificateDifferences)
-    logger.debug(`server certificate params have changed: ${paramNames}`)
+    logger.debug(`Server certificate params have changed: ${paramNames}`)
     return generateServerCertificateAndFiles({
       serverCertificateStatus: "updated",
     })
   }
 
-  logger.debug(`checking server certificate validity`)
+  logger.debug(`Checking server certificate validity`)
   const validityRemainingMs = getCertificateRemainingMs(serverForgeCertificate)
   if (validityRemainingMs < 0) {
     const msEllapsedSinceExpiration = -validityRemainingMs
@@ -410,11 +432,11 @@ const requestServerCertificate = async ({
     }),
   )
 
-  logger.debug(`read server certificate private key at ${serverPrivateKeyFileUrl}`)
+  logger.debug(`Read server certificate private key at ${serverPrivateKeyFileUrl}`)
   const serverPrivateKeyPEM = await readFile(serverPrivateKeyFileUrl, {
     as: "string",
   })
-  logger.debug(`private key file found, reusing server certificate from filesystem`)
+  logger.debug(`Private key file found, reusing server certificate from filesystem`)
 
   return {
     serverCertificateStatus: "reused",

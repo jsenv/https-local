@@ -27,7 +27,7 @@ export const ensureHostnamesRegistration = async ({
   })
   const missingHostnameCount = missingHostnames.length
   if (missingHostnameCount === 0) {
-    logger.debug(`All hostnames mappings found in hosts file`)
+    logger.debug(`All hostnames already mapped in hosts file`)
     return
   }
 
@@ -58,8 +58,8 @@ Adding ${missingHostnameCount} mapping(s) in your hosts file
     await exec(updateHostFileCommand, { input: newHostsFileContent })
   } else {
     logger.info(`
-${createDetailedMessage(`${missingHostnameCount} mapping(s) must be added in your hosts file`, {
-  "hostnames to add": missingHostnames,
+${createDetailedMessage(`${missingHostnameCount} hostname(s) be mapped to 127.0.0.1`, {
+  "hostnames": missingHostnames,
   "hosts file": hostsFilePath,
   "suggested hosts file content": newHostsFileContent,
 })}`)

@@ -1,11 +1,27 @@
-const { platform } = process
+import { createDetailedMessage } from "@jsenv/logger"
+import { urlToFileSystemPath } from "@jsenv/filesystem"
 
-export const addRootCertificateFileToTrustStore = async ({ logger }) => {
-  logger.debug(`"${platform}" is unsupported: cannot add root certificate to trust store`)
-  return false
+export const ensureHostnamesRegistration = ({ logger, serverCertificateAltNames }) => {
+  const hostnames = serverCertificateAltNames
+
+  logger.info(`
+${createDetailedMessage(`${hostnames.length} hostname(s) must be mapped to 127.0.0.1`, {
+  hostnames,
+})}`)
 }
 
-export const removeRootCertificateFileFromTrustStore = async ({ logger }) => {
-  logger.debug(`"${platform}" is unsupported: cannot remove root certificate from trust store`)
-  return false
+export const ensureRootCertificateRegistration = ({
+  logger,
+  rootCertificateStatus,
+  rootCertificateFileUrl,
+}) => {
+  if (rootCertificateStatus === "reused") {
+    logger.debug(`Root certificate reused, skip "needs to trust" log`)
+  } else {
+    logger.info(`
+${createDetailedMessage(`Root certificate needs to be trusted in your OS and browsers`, {
+  "root certificate file": urlToFileSystemPath(rootCertificateFileUrl),
+})}
+`)
+  }
 }

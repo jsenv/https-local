@@ -37,8 +37,8 @@ if (process.platform !== "win32") {
       `Generating root certificate files`,
       `Generating server certificate files`,
       `
-1 mapping(s) must be added in your hosts file
---- hostnames to add ---
+1 hostnames(s) must be mapped to 127.0.0.1
+--- hostnames ---
 jsenv
 --- hosts file ---
 ${hostsFilePath}

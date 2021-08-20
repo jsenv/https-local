@@ -8,7 +8,10 @@ Generate https certificate to use for a server running on localhost.
 
 # Presentation
 
-`@jsenv/https-localhost` generates what is needed to start a local server in https: a certificate and a private key.
+`@jsenv/https-localhost` generates what is needed to start a local server in https:
+
+- a certificate
+- a private key
 
 ```js
 import { requestCertificateForLocalhost } from "@jsenv/https-localhost"

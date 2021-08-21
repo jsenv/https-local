@@ -5,6 +5,7 @@ const require = createRequire(import.meta.url)
 
 const devcert = require("devcert")
 
+await devcert.uninstall()
 const { key, cert } = await devcert.certificateFor(["localhost", "toto"], { getCaPath: true })
 
 const serverOrigin = await startServerForTest({

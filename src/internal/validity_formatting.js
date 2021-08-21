@@ -15,11 +15,11 @@ export const formatAboutToExpire = ({
 export const formatExpired = ({
   certificateName,
   msEllapsedSinceExpiration,
-  certificateValidityDurationInMs,
+  validityDurationInMs,
 }) => {
   return `${certificateName} has expired ${formatTimeDelta(
     -msEllapsedSinceExpiration,
-  )}, it was valid during ${formatDuration(certificateValidityDurationInMs)}`
+  )}, it was valid during ${formatDuration(validityDurationInMs)}`
 }
 
 const formatTimeDelta = (deltaInMs) => {

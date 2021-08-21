@@ -1,6 +1,6 @@
 {
   "name": "@jsenv/https-localhost",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Https certificate for localhost server",
   "license": "MIT",
   "author": {
@@ -44,8 +44,9 @@
     "postpublish": "node ./script/publish/restore_postinstall.mjs"
   },
   "dependencies": {
-    "@jsenv/logger": "4.0.1",
     "@jsenv/filesystem": "2.1.1",
+    "@jsenv/logger": "4.0.1",
+    "command-exists": "1.2.9",
     "node-forge": "0.10.0"
   },
   "devDependencies": {

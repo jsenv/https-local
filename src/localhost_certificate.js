@@ -1,3 +1,7 @@
+/*
+ THis is deprecated, it will be handled differently by certificate_authority.js
+*/
+
 import { existsSync } from "node:fs"
 import { createLogger } from "@jsenv/logger"
 import {

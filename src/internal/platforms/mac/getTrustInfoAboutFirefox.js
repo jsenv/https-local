@@ -9,14 +9,8 @@ import {
   failureSign,
   warningSign,
 } from "@jsenv/https-localhost/src/internal/logs.js"
-import {
-  detectNSSCommand,
-  detectFirefox,
-  firefoxNSSDBDirectoryUrl,
-  getCertutilBinPath,
-} from "./mac_utils.js"
+import { detectNSSCommand, firefoxNSSDBDirectoryUrl, getCertutilBinPath } from "./mac_utils.js"
 
-const REASON_FIREFOX_NOT_DETECTED = "Firefox not detected"
 const REASON_MISSING_NSS = `"nss" is not installed`
 const REASON_FIREFOX_NSSDB_NOT_FOUND = "could not find Firefox nss database file"
 const REASON_NSSDB_LIST_COMMAND_FAILURE = `error while listing nssdb certificates`
@@ -28,14 +22,6 @@ export const getTrustInfoAboutFirefox = async ({
   rootCertificate,
   rootCertificateCommonName,
 } = {}) => {
-  const firefoxDetected = detectFirefox({ logger })
-  if (!firefoxDetected) {
-    return {
-      status: "other",
-      reason: REASON_FIREFOX_NOT_DETECTED,
-    }
-  }
-
   const nssAvailable = await detectNSSCommand({ logger })
   if (!nssAvailable) {
     return {

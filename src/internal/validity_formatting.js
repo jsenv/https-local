@@ -22,14 +22,14 @@ export const formatExpired = ({
   )}, it was valid during ${formatDuration(validityDurationInMs)}`
 }
 
-const formatTimeDelta = (deltaInMs) => {
+export const formatTimeDelta = (deltaInMs) => {
   const unit = pickUnit(Math.abs(deltaInMs))
   const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" })
   const msRounded = unit.min ? Math.floor(deltaInMs / unit.min) : deltaInMs
   return rtf.format(msRounded, unit.name)
 }
 
-const formatDuration = (ms) => {
+export const formatDuration = (ms) => {
   const unit = pickUnit(ms)
   const rtf = new Intl.RelativeTimeFormat("en", { numeric: "always" })
   const msRounded = unit.min ? Math.floor(ms / unit.min) : ms

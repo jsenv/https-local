@@ -5,14 +5,8 @@ import { executeOnEveryNSSDB } from "@jsenv/https-localhost/src/internal/nssdb.j
 import { okSign, failureSign, commandSign } from "@jsenv/https-localhost/src/internal/logs.js"
 import { commandExists } from "@jsenv/https-localhost/src/internal/command.js"
 import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
-import {
-  detectNSSCommand,
-  detectFirefox,
-  getCertutilBinPath,
-  firefoxNSSDBDirectoryUrl,
-} from "./mac_utils.js"
+import { detectNSSCommand, getCertutilBinPath, firefoxNSSDBDirectoryUrl } from "./mac_utils.js"
 
-const REASON_FIREFOX_NOT_DETECTED = "Firefox not detected"
 const REASON_MISSING_NSS_AND_BREW = `"nss" and "brew" are not installed`
 const REASON_NSS_MISSING_AND_DYNAMIC_INSTALL_DISABLED = `"nss" is not installed and NSSDynamicInstall is false`
 const REASON_FIREFOX_NSSDB_NOT_FOUND = "could not find Firefox nss database file"
@@ -26,14 +20,6 @@ export const addCertificateAuthorityInFirefox = async ({
   rootCertificateCommonName,
   NSSDynamicInstall,
 }) => {
-  const firefoxDetected = detectFirefox({ logger })
-  if (!firefoxDetected) {
-    return {
-      status: "other",
-      reason: REASON_FIREFOX_NOT_DETECTED,
-    }
-  }
-
   logger.info(`Adding certificate authority in Firefox...`)
   const failureMessage = `${failureSign} failed to add certificate authority in Firefox`
   const manualInstallSuggestionMessage = `Ensure ${urlToFileSystemPath(

@@ -1,0 +1,90 @@
+import { createDetailedMessage } from "@jsenv/logger"
+
+import { executeOnEveryNSSDB } from "../nssdb.js"
+import { okSign, failureSign, commandSign } from "../logs.js"
+import { exec } from "../exec.js"
+import {
+  detectNSSCommand,
+  getCertutilBinPath,
+  detectFirefox,
+  firefoxNSSDBDirectoryUrl,
+} from "./mac_utils.js"
+
+const REASON_FIREFOX_NOT_DETECTED = "Firefox not detected"
+const REASON_MISSING_NSS = `"nss" is not installed`
+const REASON_FIREFOX_NSSDB_NOT_FOUND = "could not find Firefox nss database file"
+const REASON_NSSDB_REMOVE_COMMAND_FAILURE = `nss remove command failure`
+const REASON_REMOVED_FROM_ALL_FIREFOX_NSSDB = `removed from all firefox nss database file`
+
+export const removeCertificateAuthorityFromFirefox = async ({
+  logger,
+  rootCertificate,
+  rootCertificateCommonName,
+}) => {
+  const firefoxDetected = detectFirefox({ logger })
+  if (!firefoxDetected) {
+    return {
+      status: "other",
+      reason: REASON_FIREFOX_NOT_DETECTED,
+    }
+  }
+
+  const nssCommandAvailable = await detectNSSCommand({ logger })
+  if (!nssCommandAvailable) {
+    logger.debug(`No certificate authority to remove because "nss" is not installed`)
+    return {
+      status: "unknown",
+      reason: REASON_MISSING_NSS,
+    }
+  }
+
+  logger.info(`Removing certificate authority from Firefox...`)
+  const failureMessage = `${failureSign} failed to remove certificate authority from Firefox`
+  return executeOnEveryNSSDB({
+    logger,
+    NSSDBBrowserName: "Firefox",
+    NSSDBDirectoryUrl: firefoxNSSDBDirectoryUrl,
+    callback: async ({ directoryArg, NSSDBFileUrl }) => {
+      const certutilBinPath = await getCertutilBinPath()
+      const certutilRemoveCommand = `${certutilBinPath} -D -d ${directoryArg} -t C,, -i "${rootCertificate}" -n "${rootCertificateCommonName}"`
+      logger.debug(`Removing certificate fro, ${NSSDBFileUrl}...`)
+      logger.debug(`${commandSign} ${certutilRemoveCommand}`)
+      try {
+        await exec(certutilRemoveCommand)
+        logger.debug(`${okSign} certificate removed`)
+      } catch (error) {
+        logger.error(failureMessage, {
+          "reason": REASON_NSSDB_REMOVE_COMMAND_FAILURE,
+          "error stack": error.stack,
+        })
+        throw error
+      }
+    },
+    onError: () => {
+      return {
+        status: "not_trusted",
+        reason: REASON_NSSDB_REMOVE_COMMAND_FAILURE,
+      }
+    },
+    onComplete: ({ fileCount }) => {
+      if (fileCount === 0) {
+        logger.warn(
+          createDetailedMessage(failureMessage, {
+            reason: REASON_FIREFOX_NSSDB_NOT_FOUND,
+          }),
+        )
+        return {
+          status: "unknown",
+          reason: REASON_FIREFOX_NSSDB_NOT_FOUND,
+        }
+      }
+
+      logger.debug(`${okSign} certificate removed from ${fileCount} firefox nss database file`)
+      logger.info(`${okSign} certificate authority removed from Firefox`)
+      return {
+        status: "not_trusted",
+        reason: REASON_REMOVED_FROM_ALL_FIREFOX_NSSDB,
+      }
+    },
+  })
+}

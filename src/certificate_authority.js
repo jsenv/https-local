@@ -1,3 +1,20 @@
+/*
+ * On va faire de super log genre
+ *
+ * Detect existing certificate authority....
+ * found at ${}
+ * not found, creating a certificate authority
+ *
+ * Adding certificate authority to mac keychain....
+ * certificate authority added to keychain
+ * failed to add certificate to nkeychain
+ *
+ * Detect certificate authority trusted in your mac
+ * Certificate authority found in mac keychain
+ * Cannot find certificate authority in mac keychain
+ *
+ */
+
 import { existsSync } from "node:fs"
 import { createDetailedMessage, createLogger } from "@jsenv/logger"
 import { urlToFileSystemPath, readFile, writeFile, removeFileSystemNode } from "@jsenv/filesystem"
@@ -140,7 +157,7 @@ export const installCertificateAuthority = async ({
   rootCertificateValidityDurationInMs = jsenvParameters.rootCertificateValidityDurationInMs,
 
   aboutToExpireRatio = 0.05,
-}) => {
+} = {}) => {
   const existingCertificateAuthorityInfo = await getCertificateAuthorityInfo({
     logger,
     aboutToExpireRatio,
@@ -155,7 +172,7 @@ export const installCertificateAuthority = async ({
   })
 
   if (isNew) {
-    logger.info(`A root certificate was created, it needs to be trusted`)
+    logger.info(`Certificate authority generated, it needs to be trusted`)
     const { installRootCertificate } = await importPlatformMethods()
     const trustInfo = await installRootCertificate({
       logger,

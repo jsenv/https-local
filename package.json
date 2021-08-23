@@ -47,7 +47,9 @@
     "@jsenv/filesystem": "2.1.1",
     "@jsenv/logger": "4.0.1",
     "command-exists": "1.2.9",
-    "node-forge": "0.10.0"
+    "is-unicode-supported": "1.1.0",
+    "node-forge": "0.10.0",
+    "supports-color": "9.0.2"
   },
   "devDependencies": {
     "@jsenv/assert": "2.3.0",

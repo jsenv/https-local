@@ -1,5 +1,5 @@
-import { exec } from "../exec.js"
-import { commandSign, infoSign, okSign } from "../logs.js"
+import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
+import { commandSign, infoSign, okSign } from "@jsenv/https-localhost/src/internal/logs.js"
 
 export const getTrustInfoAboutMacKeychain = async ({ logger, rootCertificate }) => {
   const findCertificateCommand = `security find-certificate -a -p`

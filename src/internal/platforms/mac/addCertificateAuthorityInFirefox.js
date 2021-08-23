@@ -1,10 +1,10 @@
 import { urlToFileSystemPath } from "@jsenv/filesystem"
 import { createDetailedMessage } from "@jsenv/logger"
 
-import { executeOnEveryNSSDB } from "../nssdb.js"
-import { okSign, failureSign, commandSign } from "../logs.js"
-import { commandExists } from "../command.js"
-import { exec } from "../exec.js"
+import { executeOnEveryNSSDB } from "@jsenv/https-localhost/src/internal/nssdb.js"
+import { okSign, failureSign, commandSign } from "@jsenv/https-localhost/src/internal/logs.js"
+import { commandExists } from "@jsenv/https-localhost/src/internal/command.js"
+import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
 import {
   detectNSSCommand,
   detectFirefox,

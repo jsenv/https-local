@@ -1,27 +1,28 @@
-import { createDetailedMessage } from "@jsenv/logger"
-import { urlToFileSystemPath } from "@jsenv/filesystem"
+const platform = { status: "unknown", reason: "unsupported platform" }
 
-export const ensureHostnamesRegistration = ({ logger, serverCertificateAltNames }) => {
-  const hostnames = serverCertificateAltNames
+const chrome = { status: "unknown", reason: "unsupported platform" }
 
-  logger.info(`
-${createDetailedMessage(`${hostnames.length} hostname(s) must be mapped to 127.0.0.1`, {
-  hostnames,
-})}`)
+const safari = { status: "unknown", reason: "unsupported platform" }
+
+const firefox = { status: "unknown", reason: "unsupported platform" }
+
+const trustInfo = {
+  platform,
+  chrome,
+  safari,
+  firefox,
 }
 
-export const ensureRootCertificateRegistration = ({
-  logger,
-  rootCertificateStatus,
-  rootCertificateFileUrl,
-}) => {
-  if (rootCertificateStatus === "reused") {
-    logger.debug(`Root certificate reused, skip "needs to trust" log`)
-  } else {
-    logger.info(`
-${createDetailedMessage(`Root certificate needs to be trusted in your OS and browsers`, {
-  "root certificate file": urlToFileSystemPath(rootCertificateFileUrl),
-})}
-`)
-  }
+export const getCertificateAuthorityTrustInfo = () => {
+  return trustInfo
+}
+
+export const addCertificateAuthority = ({ logger }) => {
+  logger.warn(`platform is not supported, cannot add certificate authority to OS and browsers`)
+  return trustInfo
+}
+
+export const removeCertificateAuthority = ({ logger }) => {
+  logger.warn(`platform is not supported, cannot remove certificate authority from OS and browsers`)
+  return undefined
 }

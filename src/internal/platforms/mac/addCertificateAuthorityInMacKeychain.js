@@ -1,8 +1,8 @@
 import { urlToFileSystemPath } from "@jsenv/filesystem"
 import { createDetailedMessage } from "@jsenv/logger"
 
-import { commandSign, okSign, failureSign } from "../logs.js"
-import { exec } from "../exec.js"
+import { commandSign, okSign, failureSign } from "@jsenv/https-localhost/src/internal/logs.js"
+import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
 
 export const addCertificateAuthorityInMacKeychain = async ({ logger, rootCertificateFileUrl }) => {
   const addTrustedCertCommand = `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic "${urlToFileSystemPath(

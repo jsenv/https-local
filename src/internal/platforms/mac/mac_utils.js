@@ -1,9 +1,9 @@
 import { existsSync } from "node:fs"
 import { assertAndNormalizeDirectoryUrl, resolveUrl, urlToFileSystemPath } from "@jsenv/filesystem"
 
-import { memoize } from "../memoize.js"
-import { exec } from "../exec.js"
-import { infoSign, okSign } from "../logs.js"
+import { memoize } from "@jsenv/https-localhost/src/internal/memoize.js"
+import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
+import { infoSign, okSign } from "@jsenv/https-localhost/src/internal/logs.js"
 
 export const detectNSSCommand = async ({ logger }) => {
   logger.debug(`Detecting nss command....`)

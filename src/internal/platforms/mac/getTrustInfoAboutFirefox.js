@@ -1,14 +1,20 @@
 import { createDetailedMessage } from "@jsenv/logger"
 
-import { executeOnEveryNSSDB } from "../nssdb.js"
-import { exec } from "../exec.js"
+import { executeOnEveryNSSDB } from "@jsenv/https-localhost/src/internal/nssdb.js"
+import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
+import {
+  okSign,
+  infoSign,
+  commandSign,
+  failureSign,
+  warningSign,
+} from "@jsenv/https-localhost/src/internal/logs.js"
 import {
   detectNSSCommand,
   detectFirefox,
   firefoxNSSDBDirectoryUrl,
   getCertutilBinPath,
 } from "./mac_utils.js"
-import { okSign, infoSign, commandSign, failureSign, warningSign } from "../logs.js"
 
 const REASON_FIREFOX_NOT_DETECTED = "Firefox not detected"
 const REASON_MISSING_NSS = `"nss" is not installed`

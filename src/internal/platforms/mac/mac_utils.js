@@ -29,7 +29,7 @@ export const getCertutilBinPath = memoize(async () => {
   return certutilBinPath
 })
 
-export const detectFirefox = ({ logger }) => {
+export const detectFirefox = memoize(({ logger }) => {
   logger.debug(`Detecting Firefox...`)
 
   const firefoxDetected = existsSync("/Applications/Firefox.app")
@@ -40,7 +40,7 @@ export const detectFirefox = ({ logger }) => {
 
   logger.debug(`${infoSign} Firefox not detected`)
   return false
-}
+})
 
 export const firefoxNSSDBDirectoryUrl = resolveUrl(
   `./Library/Application Support/Firefox/Profiles/`,

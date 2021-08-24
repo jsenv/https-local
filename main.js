@@ -4,7 +4,10 @@
  * Ideally this file should be kept simple to help discovering codebase progressively.
  */
 
-export { requestCertificateForLocalhost } from "./src/localhost_certificate.js"
+export {
+  installCertificateAuthority,
+  uninstallCertificateAuthority,
+} from "./src/certificate_authority.js"
 
 export {
   createValidityDurationOfXYears,

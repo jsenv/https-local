@@ -7,13 +7,12 @@ import {
   infoSign,
   commandSign,
   failureSign,
-  warningSign,
 } from "@jsenv/https-localhost/src/internal/logs.js"
 import { detectNSSCommand, firefoxNSSDBDirectoryUrl, getCertutilBinPath } from "./mac_utils.js"
 
 const REASON_MISSING_NSS = `"nss" is not installed`
 const REASON_FIREFOX_NSSDB_NOT_FOUND = "could not find Firefox nss database file"
-const REASON_NSSDB_LIST_COMMAND_FAILURE = `error while listing nssdb certificates`
+const REASON_NSSDB_LIST_COMMAND_FAILURE = `error while listing nss database certificates`
 const REASON_MISSING_IN_SOME_FIREFOX_NSSDB = `missing in some firefox nss database file`
 const REASON_FOUND_IN_ALL_FIREFOX_NSSDB = `found in all firefox nss database file`
 
@@ -82,9 +81,7 @@ export const getTrustInfoAboutFirefox = async ({
 
       const missingCount = missings.length
       if (missingCount > 0) {
-        logger.warn(
-          `${warningSign} certificate missing in ${missingCount} firefox nss database file`,
-        )
+        logger.debug(`${infoSign} certificate missing in ${missingCount} firefox nss database file`)
         return {
           status: "not_trusted",
           reason: REASON_MISSING_IN_SOME_FIREFOX_NSSDB,

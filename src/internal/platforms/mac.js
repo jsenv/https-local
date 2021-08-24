@@ -19,51 +19,68 @@ export const getCertificateAuthorityTrustInfo = async ({
   rootCertificate,
   rootCertificateCommonName,
 }) => {
-  logger.info(`Check if certificate is trusted in mac OS...`)
-  const mac = await getTrustInfoAboutMacKeychain({
+  const macTrustInfo = await getMacTrustInfo({
     logger,
   })
-  if (mac.status === "trusted") {
+
+  // chrome use OS trust store
+  const chromeTrustInfo = { ...macTrustInfo }
+
+  // safari use OS trust store
+  const safariTrustInfo = { ...macTrustInfo }
+
+  const firefoxTrustInfo = await getFirefoxTrustInfo({
+    logger,
+    rootCertificate,
+    rootCertificateCommonName,
+  })
+
+  return {
+    mac: macTrustInfo,
+    chrome: chromeTrustInfo,
+    safari: safariTrustInfo,
+    firefox: firefoxTrustInfo,
+  }
+}
+
+const getMacTrustInfo = async ({ logger }) => {
+  logger.info(`Check if certificate is trusted in mac OS...`)
+  const macTrustInfo = await getTrustInfoAboutMacKeychain({
+    logger,
+  })
+  if (macTrustInfo.status === "trusted") {
     logger.info(`${okSign} certificate trusted by mac OS`)
   } else {
     logger.info(`${infoSign} certificate not trusted by mac OS`)
   }
+  return macTrustInfo
+}
 
-  // chrome use OS trust store
-  const chrome = { ...mac }
-
-  // safari use OS trust store
-  const safari = { ...mac }
-
-  let firefox
+const getFirefoxTrustInfo = async ({ logger, rootCertificate, rootCertificateCommonName }) => {
   const firefoxDetected = detectFirefox({ logger })
-  if (firefoxDetected) {
-    logger.info(`Check if certificate is trusted in Firefox...`)
-    firefox = await getTrustInfoAboutFirefox({
-      logger,
-      rootCertificate,
-      rootCertificateCommonName,
-    })
-    if (firefox.status === "trusted") {
-      logger.info(`${okSign} certificate trusted by Firefox`)
-    } else if (firefox.status === "not_trusted") {
-      logger.info(`${infoSign} certificate not trusted by mac OS`)
-    } else {
-      logger.info(`${infoSign} unable to detect if certificate is trusted by Firefox`)
-    }
-  } else {
-    firefox = {
+  if (!firefoxDetected) {
+    return {
       status: "other",
       reason: "Firefox not detected",
     }
   }
 
-  return {
-    mac,
-    chrome,
-    safari,
-    firefox,
+  logger.info(`Check if certificate is trusted in Firefox...`)
+  const firefoxTrustInfo = await getTrustInfoAboutFirefox({
+    logger,
+    rootCertificate,
+    rootCertificateCommonName,
+  })
+  if (firefoxTrustInfo.status === "trusted") {
+    logger.info(`${okSign} certificate trusted by Firefox`)
+  } else if (firefoxTrustInfo.status === "not_trusted") {
+    logger.info(`${infoSign} certificate not trusted by Firefox`)
+  } else {
+    logger.info(
+      `${infoSign} unable to detect if certificate is trusted by Firefox (${firefoxTrustInfo.reason})`,
+    )
   }
+  return firefoxTrustInfo
 }
 
 export const addCertificateAuthority = async ({
@@ -71,43 +88,130 @@ export const addCertificateAuthority = async ({
   rootCertificate,
   rootCertificateFileUrl,
   rootCertificateCommonName,
-  existingCertificateAuthorityInfo,
+  existingTrustInfo,
+  tryToTrust = false,
   NSSDynamicInstall = true,
 }) => {
-  const trustInfo = {}
+  const macTrustInfo = await getMacTrustInfoTryingToTrust({
+    logger,
+    tryToTrust,
+    existingMacTrustInfo: existingTrustInfo ? existingTrustInfo.mac : null,
+    rootCertificate,
+    rootCertificateFileUrl,
+  })
 
-  const needsToBeAddedToKeyChain =
-    !existingCertificateAuthorityInfo ||
-    existingCertificateAuthorityInfo.trustInfo.mac.status === "not_trusted"
+  // chrome use OS trust store
+  const chromeTrustInfo = { ...macTrustInfo }
 
-  if (needsToBeAddedToKeyChain) {
-    const macTrustInfo = await addCertificateAuthorityInMacKeychain({
-      logger,
-      rootCertificate,
-      rootCertificateFileUrl,
-    })
-    trustInfo.mac = macTrustInfo
-    // chrome use OS trust store
-    trustInfo.chrome = { ...macTrustInfo }
-    // safari use OS trust store
-    trustInfo.safari = { ...macTrustInfo }
+  // safari use OS trust store
+  const safariTrustInfo = { ...macTrustInfo }
+
+  const firefoxTrustInfo = await getFirefoxTrustInfoTryingToTrust({
+    logger,
+    tryToTrust,
+    existingFirefoxTrustInfo: existingTrustInfo ? existingTrustInfo.firefox : null,
+    rootCertificate,
+    rootCertificateFileUrl,
+    rootCertificateCommonName,
+    NSSDynamicInstall,
+  })
+
+  return {
+    mac: macTrustInfo,
+    chrome: chromeTrustInfo,
+    safari: safariTrustInfo,
+    firefox: firefoxTrustInfo,
+  }
+}
+
+const getMacTrustInfoTryingToTrust = async ({
+  logger,
+  tryToTrust,
+  existingMacTrustInfo,
+  rootCertificate,
+  rootCertificateFileUrl,
+}) => {
+  if (!existingMacTrustInfo) {
+    if (tryToTrust) {
+      return await addCertificateAuthorityInMacKeychain({
+        logger,
+        rootCertificate,
+        rootCertificateFileUrl,
+      })
+    }
+    return {
+      status: "not_trusted",
+      reason: "tryToTrust disabled",
+    }
   }
 
-  const needsToBeAddedToFirefox =
-    !existingCertificateAuthorityInfo ||
-    existingCertificateAuthorityInfo.trustInfo.firefox.status === "not_trusted"
-
-  if (needsToBeAddedToFirefox) {
-    trustInfo.firefox = await addCertificateAuthorityInFirefox({
-      logger,
-      rootCertificateFileUrl,
-      rootCertificate,
-      rootCertificateCommonName,
-      NSSDynamicInstall,
-    })
+  if (existingMacTrustInfo.status === "not_trusted") {
+    if (tryToTrust) {
+      return await addCertificateAuthorityInMacKeychain({
+        logger,
+        rootCertificate,
+        rootCertificateFileUrl,
+      })
+    }
+    return {
+      status: existingMacTrustInfo.status,
+      reason: `${existingMacTrustInfo.reason} and tryToTrust disabled`,
+    }
   }
 
-  return trustInfo
+  return existingMacTrustInfo
+}
+
+const getFirefoxTrustInfoTryingToTrust = async ({
+  logger,
+  tryToTrust,
+  existingFirefoxTrustInfo,
+  rootCertificate,
+  rootCertificateFileUrl,
+  rootCertificateCommonName,
+  NSSDynamicInstall,
+}) => {
+  if (!existingFirefoxTrustInfo) {
+    const firefoxDetected = detectFirefox({ logger })
+    if (!firefoxDetected) {
+      return {
+        status: "other",
+        reason: "Firefox not detected",
+      }
+    }
+
+    if (tryToTrust) {
+      return await addCertificateAuthorityInFirefox({
+        logger,
+        rootCertificate,
+        rootCertificateFileUrl,
+        rootCertificateCommonName,
+        NSSDynamicInstall,
+      })
+    }
+    return {
+      status: "not_trusted",
+      reason: "tryToTrust disabled",
+    }
+  }
+
+  if (existingFirefoxTrustInfo.status === "not_trusted") {
+    if (tryToTrust) {
+      return await addCertificateAuthorityInFirefox({
+        logger,
+        rootCertificate,
+        rootCertificateFileUrl,
+        rootCertificateCommonName,
+        NSSDynamicInstall,
+      })
+    }
+    return {
+      status: existingFirefoxTrustInfo.status,
+      reason: `${existingFirefoxTrustInfo.reason} and tryToTrust disabled`,
+    }
+  }
+
+  return existingFirefoxTrustInfo
 }
 
 export const removeCertificateAuthority = async ({

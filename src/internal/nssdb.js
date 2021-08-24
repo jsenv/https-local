@@ -15,7 +15,7 @@ export const executeOnEveryNSSDB = async ({
   onError,
   onComplete,
 }) => {
-  logger.debug(`Detecting ${NSSDBBrowserName} bss database files...`)
+  logger.debug(`Detecting ${NSSDBBrowserName} nss database files...`)
 
   const firefoxNSSDBFiles = await findNSSDBFiles({ NSSDBDirectoryUrl })
   const fileCount = firefoxNSSDBFiles.length
@@ -28,12 +28,16 @@ export const executeOnEveryNSSDB = async ({
     })
   }
 
-  logger.debug(`${okSign} found ${fileCount} ${NSSDBBrowserName} nss database file`)
+  logger.debug(
+    `${okSign} found ${fileCount} ${NSSDBBrowserName} nss database ${
+      fileCount === 1 ? "file" : "files"
+    }`,
+  )
   try {
     await firefoxNSSDBFiles.reduce(async (previous, NSSDBFile) => {
       await previous
 
-      const NSSDBFileUrl = resolveUrl(resolveUrl(NSSDBFile.relativeUrl, NSSDBDirectoryUrl))
+      const NSSDBFileUrl = resolveUrl(NSSDBFile.relativeUrl, NSSDBDirectoryUrl)
       const NSSDBFileDirectoryUrl = resolveUrl("./", NSSDBFileUrl)
       const { isLegacyNSSDB } = NSSDBFile.meta
       const directoryArg = isLegacyNSSDB

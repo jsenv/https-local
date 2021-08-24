@@ -6,7 +6,7 @@
 import { assert } from "@jsenv/assert"
 import { urlToFileSystemPath } from "@jsenv/filesystem"
 
-import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
+import { installCertificateAuthority } from "@jsenv/https-localhost"
 import {
   TEST_PARAMS,
   resetAllCertificateFiles,
@@ -18,24 +18,17 @@ import {
   requestServerUsingBrowser,
 } from "@jsenv/https-localhost/test/test_helpers.mjs"
 
-const serverCertificateFileUrl = new URL("./certificate/server.crt", import.meta.url)
-const rootCertificateSymlinkUrl = new URL(
-  "./certificate/jsenv_root_certificate.crt",
-  import.meta.url,
-)
 const loggerForTest = createLoggerForTest({
   // forwardToConsole: true,
 })
-const firstCallParams = {
+const params = {
   ...TEST_PARAMS,
   logger: loggerForTest,
-  serverCertificateFileUrl,
-  certificateHostnamesVerification: false,
 }
 
 await resetAllCertificateFiles()
 const { serverCertificate, serverPrivateKey, rootCertificateFilePath } =
-  await requestCertificateForLocalhost(firstCallParams)
+  await installCertificateAuthority(params)
 const serverOrigin = await startServerForTest({
   serverCertificate,
   serverPrivateKey,

@@ -15,8 +15,8 @@ const REASON_ADDED_IN_ALL_FIREFOX_NSSDB = `added in all firefox nss database fil
 
 export const addCertificateAuthorityInFirefox = async ({
   logger,
-  rootCertificateFileUrl,
   rootCertificate,
+  rootCertificateFileUrl,
   rootCertificateCommonName,
   NSSDynamicInstall,
 }) => {

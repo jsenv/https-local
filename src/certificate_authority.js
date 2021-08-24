@@ -25,20 +25,23 @@ export const installCertificateAuthority = async ({
   rootCertificateCommonName = jsenvParameters.rootCertificateCommonName,
   rootCertificateValidityDurationInMs = jsenvParameters.rootCertificateValidityDurationInMs,
 
+  // for unit tests
   aboutToExpireRatio = 0.05,
+  tryToTrust = false,
 } = {}) => {
-  const existingCertificateAuthorityInfo = await getCertificateAuthorityInfo({
-    logger,
-    aboutToExpireRatio,
-  })
-  const { certificateAuthorityJsonFileUrl, rootCertificateFileUrl, rootPrivateKeyFileUrl } =
-    getCertificateAuthorityFileUrls()
+  const { authorityJsonFileInfo, rootCertificateFileInfo, rootPrivateKeyFileInfo } =
+    getAuthorityFileInfos()
+  const authorityJsonFileUrl = authorityJsonFileInfo.url
+  const rootCertificateFileUrl = rootCertificateFileInfo.url
+  const rootPrivateKeyFileUrl = rootPrivateKeyFileInfo.url
+  const platformMethods = await importPlatformMethods()
 
   const generateRootCertificate = async () => {
     logger.info(`Generating authority certificate...`)
     const { forgeCertificate, privateKey } = await createCertificateAuthority({
       logger,
       commonName: rootCertificateCommonName,
+      validityDurationInMs: rootCertificateValidityDurationInMs,
       serialNumber: 0,
     })
 
@@ -47,16 +50,9 @@ export const installCertificateAuthority = async ({
     const rootPrivateKey = pki.privateKeyToPem(privateKey)
     await writeFile(rootCertificateFileUrl, rootCertificate)
     await writeFile(rootPrivateKeyFileUrl, rootPrivateKey)
+    await writeFile(authorityJsonFileUrl, JSON.stringify({ serialNumber: 0 }, null, "  "))
 
-    await writeFile(
-      certificateAuthorityJsonFileUrl,
-      JSON.stringify({ serialNumber: 0 }, null, "  "),
-    )
-
-    logger.info(
-      `${okSign} authority certificate written at ${urlToFileSystemPath(rootCertificateFileUrl)}`,
-    )
-
+    logger.info(`${okSign} authority certificate written at ${rootCertificateFileInfo.path}`)
     return {
       rootForgeCertificate: forgeCertificate,
       rootForgePrivateKey: privateKey,
@@ -67,45 +63,83 @@ export const installCertificateAuthority = async ({
   }
 
   const generate = async () => {
-    const rootCertificateInfo = await generateRootCertificate()
-    const { addCertificateAuthority } = await importPlatformMethods()
-    const trustInfo = await addCertificateAuthority({
-      logger,
+    const {
+      rootForgeCertificate,
+      rootForgePrivateKey,
       rootCertificate,
+      rootPrivateKey,
       rootCertificateFileUrl,
+    } = await generateRootCertificate()
+
+    const trustInfo = await platformMethods.addCertificateAuthority({
+      logger,
+      tryToTrust,
+      rootCertificate,
       rootCertificateCommonName,
-      mac: true,
-      firefox: true,
+      rootCertificateFileUrl,
     })
+
     return {
-      ...rootCertificateInfo,
+      rootForgeCertificate,
+      rootForgePrivateKey,
+      rootCertificate,
+      rootPrivateKey,
+      rootCertificatePath: rootCertificateFileInfo.path,
       trustInfo,
     }
   }
 
   const regenerate = async () => {
-    const { removeCertificateAuthority } = await importPlatformMethods()
-    await removeCertificateAuthority({
+    await platformMethods.removeCertificateAuthority({
       logger,
       rootCertificate,
       rootCertificateFileUrl,
       rootCertificateCommonName,
     })
-
     return generate()
   }
 
-  if (!existingCertificateAuthorityInfo) {
+  logger.info(`Detect existing certificate authority...`)
+  if (!rootCertificateFileInfo.exists) {
+    logger.debug(
+      `Authority certificate file is not on filesystem at ${rootCertificateFileInfo.path}`,
+    )
+    logger.info(`${infoSign} no certificate authority found`)
     return generate()
   }
+  if (!rootPrivateKeyFileInfo.exists) {
+    logger.debug(
+      `Authority private key file is not on filesystem at ${rootPrivateKeyFileInfo.path}`,
+    )
+    logger.info(`${infoSign} no certificate authority found`)
+    return generate()
+  }
+  logger.debug(
+    `found authority files at ${rootCertificateFileInfo.path} and ${rootPrivateKeyFileInfo.path}`,
+  )
+  logger.info(`${okSign} found an existing certificate authority`)
 
-  const { validityStatus } = existingCertificateAuthorityInfo
-  if (validityStatus === "about_to_expire" || validityStatus === "expired") {
+  const rootCertificate = await readFile(rootCertificateFileInfo.path, { as: "string" })
+  const rootPrivateKey = await readFile(rootPrivateKeyFileInfo.path, { as: "string" })
+  const { pki } = await importNodeForge()
+  const rootForgeCertificate = pki.certificateFromPem(rootCertificate)
+  const rootForgePrivateKey = pki.privateKeyFromPem(rootPrivateKey)
+
+  logger.info(`Checking certificate validity...`)
+  const validityDurationInMs = getCertificateValidityDurationInMs(rootForgeCertificate)
+  const validityRemainingMs = getCertificateRemainingMs(rootForgeCertificate)
+  const validityRemainingMsRatio = validityRemainingMs / validityDurationInMs
+  if (validityRemainingMs < 0) {
+    logger.info(`${infoSign} certificate has expired ${formatTimeDelta(validityRemainingMs)}`)
     return regenerate()
   }
+  if (validityRemainingMsRatio < aboutToExpireRatio) {
+    logger.info(`${infoSign} certificate will expire in ${formatTimeDelta(validityRemainingMs)}`)
+    return regenerate()
+  }
+  logger.info(`${okSign} certificate valid for ${formatDuration(validityRemainingMs)}`)
 
   logger.info(`Detect if certificate attributes have changed...`)
-  const { rootCertificate, rootForgeCertificate } = existingCertificateAuthorityInfo
   const rootCertificateDifferences = compareRootCertificateAttributes(rootForgeCertificate, {
     rootCertificateCommonName,
     rootCertificateValidityDurationInMs,
@@ -117,112 +151,41 @@ export const installCertificateAuthority = async ({
   }
   logger.info(`${okSign} certificate attributes are the same`)
 
-  const rootCertificateInfo = {
-    isNew: false,
-    rootForgeCertificate,
-    rootForgePrivateKey: existingCertificateAuthorityInfo.rootForgePrivateKey,
-    rootCertificate: existingCertificateAuthorityInfo.rootCertificate,
-    rootPrivateKey: existingCertificateAuthorityInfo.rootPrivateKey,
-    rootCertificateFileUrl,
-  }
-
-  const { addCertificateAuthority } = await importPlatformMethods()
-  const trustInfo = await addCertificateAuthority({
+  const existingTrustInfo = await platformMethods.getCertificateAuthorityTrustInfo({
     logger,
     rootCertificate,
-    rootCertificateFileUrl,
-    rootCertificateCommonName,
-    existingCertificateAuthorityInfo,
+    rootCertificateCommonName: attributeDescriptionFromAttributeArray(
+      rootForgeCertificate.subject.attributes,
+    ).commonName,
   })
 
-  return {
-    ...rootCertificateInfo,
-    trustInfo,
-  }
-}
-
-const getCertificateAuthorityInfo = async ({
-  logLevel,
-  logger = createLogger({ logLevel }),
-  aboutToExpireRatio = 0.05,
-  checkValidity = true,
-  checkTrust = true,
-} = {}) => {
-  logger.info(`Detect existing certificate authority...`)
-  const { rootCertificateFile, rootPrivateKeyFile } = getAuthorityFileInfos()
-
-  if (!rootCertificateFile.exists) {
-    logger.info(`${infoSign} no certificate authority found`)
-    logger.debug(
-      `Authority root certificate file is not on filesystem at ${rootCertificateFile.path}`,
-    )
-    return null
-  }
-
-  if (!rootPrivateKeyFile.exists) {
-    logger.info(`${infoSign} no certificate authority found`)
-    logger.debug(
-      `Authority root private key file is not on filesystem at ${rootPrivateKeyFile.path}`,
-    )
-    return null
-  }
-
-  logger.info(`${okSign} found an existing certificate authority`)
-  logger.debug(
-    `restoring certificate authority from files at ${rootCertificateFile.path} and ${rootPrivateKeyFile.path}...`,
-  )
-  const rootCertificate = await readFile(rootCertificateFile.path, { as: "string" })
-  const rootPrivateKey = await readFile(rootPrivateKeyFile.path, { as: "string" })
-  const { pki } = await importNodeForge()
-  const rootForgeCertificate = pki.certificateFromPem(rootCertificateFile.content)
-  const rootForgePrivateKey = pki.privateKeyFromPem(rootPrivateKeyFile.content)
-
-  // test root certificate validity
-  let validityStatus
-  if (checkValidity) {
-    logger.info(`Checking certificate validity...`)
-    const validityDurationInMs = getCertificateValidityDurationInMs(rootForgeCertificate)
-    const validityRemainingMs = getCertificateRemainingMs(rootForgeCertificate)
-    const validityRemainingMsRatio = validityRemainingMs / validityDurationInMs
-    validityStatus =
-      validityRemainingMs < 0
-        ? "expired"
-        : validityRemainingMsRatio < aboutToExpireRatio
-        ? "about_to_expire"
-        : "valid"
-    if (validityStatus === "expired") {
-      logger.info(`${infoSign} certificate has expired ${formatTimeDelta(validityRemainingMs)}`)
-    } else if (validityStatus === "about_to_expire") {
-      logger.info(`${infoSign} certificate will expire in ${formatTimeDelta(validityRemainingMs)}`)
-    } else {
-      logger.info(`${okSign} certificate is still valid for ${formatDuration(validityRemainingMs)}`)
-    }
-  }
-
-  let trustInfo
-  if (checkTrust) {
-    const { getCertificateAuthorityTrustInfo } = await importPlatformMethods()
-    trustInfo = await getCertificateAuthorityTrustInfo({
-      logger,
-      rootCertificate,
-      rootCertificateCommonName: attributeDescriptionFromAttributeArray(
-        rootForgeCertificate.subject.attributes,
-      ).commonName,
-    })
-  }
-
-  return {
+  const trustInfo = await platformMethods.addCertificateAuthority({
+    logger,
     rootCertificate,
-    rootPrivateKey,
+    rootCertificateFileUrl: rootCertificateFileInfo.url,
+    rootCertificateCommonName,
+    existingTrustInfo,
+    tryToTrust,
+  })
+  return {
     rootForgeCertificate,
     rootForgePrivateKey,
-    validityStatus,
-    trustInfo,
+    rootCertificate,
+    rootPrivateKey,
+    rootCertificatePath: rootCertificateFileInfo.path,
+    trustInfo: {
+      ...existingTrustInfo,
+      ...trustInfo,
+    },
   }
 }
 
 const getAuthorityFileInfos = () => {
-  const { rootCertificateFileUrl, rootPrivateKeyFileUrl } = getCertificateAuthorityFileUrls()
+  const { certificateAuthorityJsonFileUrl, rootCertificateFileUrl, rootPrivateKeyFileUrl } =
+    getCertificateAuthorityFileUrls()
+
+  const authorityJsonFilePath = urlToFileSystemPath(certificateAuthorityJsonFileUrl)
+  const authorityJsonFileDetected = existsSync(authorityJsonFilePath)
 
   const rootCertificateFilePath = urlToFileSystemPath(rootCertificateFileUrl)
   const rootCertificateFileDetected = existsSync(rootCertificateFilePath)
@@ -231,12 +194,17 @@ const getAuthorityFileInfos = () => {
   const rootPrivateKeyFileDetected = existsSync(rootPrivateKeyFilePath)
 
   return {
-    rootCertificateFile: {
+    authorityJsonFileInfo: {
+      url: certificateAuthorityJsonFileUrl,
+      path: authorityJsonFilePath,
+      exists: authorityJsonFileDetected,
+    },
+    rootCertificateFileInfo: {
       url: rootCertificateFileUrl,
       path: rootCertificateFilePath,
       exists: rootCertificateFileDetected,
     },
-    rootPrivateKeyFile: {
+    rootPrivateKeyFileInfo: {
       url: rootPrivateKeyFileUrl,
       path: rootPrivateKeyFilePath,
       exists: rootPrivateKeyFileDetected,
@@ -297,29 +265,32 @@ const compareRootCertificateAttributes = (
 export const uninstallCertificateAuthority = async ({
   logLevel,
   logger = createLogger({ logLevel }),
-}) => {
-  const { rootCertificateFile, rootPrivateKeyFile } = getAuthorityFileInfos()
+  tryToUntrust = false,
+} = {}) => {
+  const { rootCertificateFileInfo, rootPrivateKeyFileInfo } = getAuthorityFileInfos()
 
-  if (rootCertificateFile.exists) {
+  if (rootCertificateFileInfo.exists) {
     // first untrust the root cert file
-    const rootCertificate = await readFile(rootCertificateFile.url, { as: "string" })
-    const { pki } = await importNodeForge()
-    const rootForgeCertificate = pki.certificateFromPem(rootCertificate)
-    const rootCertificateCommonName = attributeDescriptionFromAttributeArray(
-      rootForgeCertificate.subject.attributes,
-    ).commonName
-    const { removeCertificateAuthority } = await importPlatformMethods()
-    await removeCertificateAuthority({
-      logger,
-      rootCertificate,
-      rootCertificateFileUrl: rootCertificateFile.url,
-      rootCertificateCommonName,
-    })
+    if (tryToUntrust) {
+      const rootCertificate = await readFile(rootCertificateFileInfo.url, { as: "string" })
+      const { pki } = await importNodeForge()
+      const rootForgeCertificate = pki.certificateFromPem(rootCertificate)
+      const rootCertificateCommonName = attributeDescriptionFromAttributeArray(
+        rootForgeCertificate.subject.attributes,
+      ).commonName
+      const { removeCertificateAuthority } = await importPlatformMethods()
+      await removeCertificateAuthority({
+        logger,
+        rootCertificate,
+        rootCertificateFileUrl: rootCertificateFileInfo.url,
+        rootCertificateCommonName,
+      })
+    }
     // then remove the file
-    await removeFileSystemNode(rootCertificateFile.url)
+    await removeFileSystemNode(rootCertificateFileInfo.url)
   }
 
-  if (rootPrivateKeyFile.exists) {
-    await removeFileSystemNode(rootPrivateKeyFile.url)
+  if (rootPrivateKeyFileInfo.exists) {
+    await removeFileSystemNode(rootPrivateKeyFileInfo.url)
   }
 }

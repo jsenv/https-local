@@ -25,9 +25,11 @@ export const installCertificateAuthority = async ({
   rootCertificateCommonName = jsenvParameters.rootCertificateCommonName,
   rootCertificateValidityDurationInMs = jsenvParameters.rootCertificateValidityDurationInMs,
 
+  tryToTrust = false,
+  NSSDynamicInstall = false,
+
   // for unit tests
   aboutToExpireRatio = 0.05,
-  tryToTrust = false,
 } = {}) => {
   const { authorityJsonFileInfo, rootCertificateFileInfo, rootPrivateKeyFileInfo } =
     getAuthorityFileInfos()
@@ -74,6 +76,7 @@ export const installCertificateAuthority = async ({
     const trustInfo = await platformMethods.addCertificateAuthority({
       logger,
       tryToTrust,
+      NSSDynamicInstall,
       rootCertificate,
       rootCertificateCommonName,
       rootCertificateFileUrl,
@@ -161,11 +164,12 @@ export const installCertificateAuthority = async ({
 
   const trustInfo = await platformMethods.addCertificateAuthority({
     logger,
+    tryToTrust,
+    NSSDynamicInstall,
     rootCertificate,
     rootCertificateFileUrl: rootCertificateFileInfo.url,
     rootCertificateCommonName,
     existingTrustInfo,
-    tryToTrust,
   })
   return {
     rootForgeCertificate,

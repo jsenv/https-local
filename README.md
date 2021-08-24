@@ -8,18 +8,37 @@ Generate https certificate to use for a server running on localhost.
 
 # Presentation
 
-`@jsenv/https-localhost` generates what is needed to start a local server in https:
+`@jsenv/https-localhost` provides what is needed to start a local server in https:
 
-- a certificate
+- a trusted certificate
 - a private key
+- mapping _127.0.0.1_ to _localhost_
 
 ```js
-import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
+import {
+  installCertificateAuthority,
+  ensureIpMappingsInHostsFile,
+  requestCertificateForLocalhost,
+} from "@jsenv/https-localhost"
 
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateFileUrl: new URL("./certificates/server.crt", import.meta.url),
+await installCertificateAuthority({
+  tryToTrust: true, // auto trust the certificate in the OS and browsers
+  NSSDynamicInstall: true, // allow dynamic installation of "nss" if needed
 })
+
+await ensureIpMappingsInHostsFile({
+  ipMappings: {
+    "127.0.0.1": ["localhost"],
+  },
+  tryToUpdateHostsFile: true, // auto update hosts file if needed
+})
+
+const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost()
 ```
+
+# How to use
+
+TODO: explain how to use in practice
 
 # Trusting certificate
 

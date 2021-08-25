@@ -49,6 +49,7 @@
     "command-exists": "1.2.9",
     "is-unicode-supported": "1.1.0",
     "node-forge": "0.10.0",
+    "sudo-prompt": "9.2.1",
     "supports-color": "9.0.2"
   },
   "devDependencies": {

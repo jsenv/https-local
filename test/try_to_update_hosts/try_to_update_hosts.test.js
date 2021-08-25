@@ -9,43 +9,43 @@ const hostFileUrl = new URL("./hosts", import.meta.url)
 const hostsFilePath = urlToFileSystemPath(hostFileUrl)
 
 // required and missing
-if (process.platform !== "win32") {
-  await writeFile(hostFileUrl, ``)
-  const loggerForTest = createLoggerForTest({
-    // forwardToConsole: true,
-  })
-  await ensureIpMappingsInHostsFile({
-    logger: loggerForTest,
-    ipMappings: {
-      "127.0.0.1": ["jsenv"],
-    },
-    tryToUpdateHostsFile: true,
-    hostsFilePath,
-  })
 
-  const { infos, warns, errors } = loggerForTest.getLogs({ info: true, warn: true, error: true })
-  const hostsFileContent = await readFile(hostsFilePath, { as: "string" })
-  const actual = {
-    hostsFileContent,
-    infos,
-    warns,
-    errors,
-  }
-  const expected = {
-    hostsFileContent: `127.0.0.1 jsenv
-`,
-    infos: [
-      `Check hosts files content...`,
-      `${infoSign} 1 mapping is missing in hosts file`,
-      `Adding 1 mapping(s) in hosts file...`,
-      `${commandSign} echo "127.0.0.1 jsenv" | tee ${hostsFilePath}`,
-      `${okSign} mappings added to hosts file`,
-    ],
-    warns: [],
-    errors: [],
-  }
-  assert({ actual, expected })
+await writeFile(hostFileUrl, ``)
+const loggerForTest = createLoggerForTest({
+  // forwardToConsole: true,
+})
+await ensureIpMappingsInHostsFile({
+  logger: loggerForTest,
+  ipMappings: {
+    "127.0.0.1": ["jsenv"],
+  },
+  tryToUpdateHostsFile: true,
+  hostsFilePath,
+})
+
+const { infos, warns, errors } = loggerForTest.getLogs({ info: true, warn: true, error: true })
+const hostsFileContent = await readFile(hostsFilePath, { as: "string" })
+const actual = {
+  hostsFileContent,
+  infos,
+  warns,
+  errors,
 }
+const expected = {
+  hostsFileContent: process.platform === "win32" ? `127.0.0.1 jsenv\r\n` : `127.0.0.1 jsenv\n`,
+  infos: [
+    `Check hosts files content...`,
+    `${infoSign} 1 mapping is missing in hosts file`,
+    `Adding 1 mapping(s) in hosts file...`,
+    process.platform === "win32"
+      ? `${commandSign} echo "127.0.0.1 jsenv" | tree -filepath ${hostsFilePath}`
+      : `${commandSign} echo "127.0.0.1 jsenv" | tee ${hostsFilePath}`,
+    `${okSign} mappings added to hosts file`,
+  ],
+  warns: [],
+  errors: [],
+}
+assert({ actual, expected })
 
 // required and exists
 if (process.platform !== "win32") {

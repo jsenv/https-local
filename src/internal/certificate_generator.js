@@ -126,10 +126,10 @@ export const requestCertificateFromAuthority = async ({
       `certificateAuthority.forgeCertificate must be an object but received ${authorityForgeCertificate}`,
     )
   }
-  const { privateKey: authorityPrivateKey } = certificateAuthority
-  if (typeof authorityPrivateKey !== "object" || authorityPrivateKey === null) {
+  const { forgePrivateKey: authorityForgePrivateKey } = certificateAuthority
+  if (typeof authorityForgePrivateKey !== "object" || authorityForgePrivateKey === null) {
     throw new TypeError(
-      `certificateAuthority.privateKey must be an object but received ${authorityPrivateKey}`,
+      `certificateAuthority.forgePrivateKey must be an object but received ${authorityForgePrivateKey}`,
     )
   }
   if (typeof serialNumber !== "number") {
@@ -198,7 +198,7 @@ export const requestCertificateFromAuthority = async ({
       },
     }),
   )
-  forgeCertificate.sign(authorityPrivateKey, forge.sha256.create())
+  forgeCertificate.sign(authorityForgePrivateKey, forge.sha256.create())
 
   return {
     forgeCertificate,

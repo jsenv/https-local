@@ -1,12 +1,12 @@
 /* eslint-disable import/max-dependencies */
 
-import { existsSync } from "node:fs"
 import { createLogger } from "@jsenv/logger"
-import { urlToFileSystemPath, readFile, writeFile, removeFileSystemNode } from "@jsenv/filesystem"
+import { readFile, writeFile, removeFileSystemNode } from "@jsenv/filesystem"
 
 import { createValidityDurationOfXYears } from "./validity_duration.js"
 import { infoSign, okSign } from "./internal/logs.js"
-import { getCertificateAuthorityFileUrls } from "./internal/certificate_authority_file_urls.js"
+
+import { getAuthorityFileInfos } from "./internal/authority_file_infos.js"
 import { attributeDescriptionFromAttributeArray } from "./internal/certificate_data_converter.js"
 import { formatTimeDelta, formatDuration } from "./internal/validity_formatting.js"
 import { importNodeForge } from "./internal/forge.js"
@@ -17,6 +17,14 @@ const jsenvParameters = {
   rootCertificateCommonName: "Jsenv localhost root certificate",
   rootCertificateValidityDurationInMs: createValidityDurationOfXYears(20),
 }
+
+// const jsenvCertificateParams = {
+//   rootCertificateOrganizationName: "jsenv",
+//   rootCertificateOrganizationalUnitName: "https-localhost",
+//   rootCertificateCountryName: "FR",
+//   rootCertificateStateOrProvinceName: "Alpes Maritimes",
+//   rootCertificateLocalityName: "Valbonne",
+// }
 
 export const installCertificateAuthority = async ({
   logLevel,
@@ -184,38 +192,6 @@ export const installCertificateAuthority = async ({
   }
 }
 
-const getAuthorityFileInfos = () => {
-  const { certificateAuthorityJsonFileUrl, rootCertificateFileUrl, rootPrivateKeyFileUrl } =
-    getCertificateAuthorityFileUrls()
-
-  const authorityJsonFilePath = urlToFileSystemPath(certificateAuthorityJsonFileUrl)
-  const authorityJsonFileDetected = existsSync(authorityJsonFilePath)
-
-  const rootCertificateFilePath = urlToFileSystemPath(rootCertificateFileUrl)
-  const rootCertificateFileDetected = existsSync(rootCertificateFilePath)
-
-  const rootPrivateKeyFilePath = urlToFileSystemPath(rootPrivateKeyFileUrl)
-  const rootPrivateKeyFileDetected = existsSync(rootPrivateKeyFilePath)
-
-  return {
-    authorityJsonFileInfo: {
-      url: certificateAuthorityJsonFileUrl,
-      path: authorityJsonFilePath,
-      exists: authorityJsonFileDetected,
-    },
-    rootCertificateFileInfo: {
-      url: rootCertificateFileUrl,
-      path: rootCertificateFilePath,
-      exists: rootCertificateFileDetected,
-    },
-    rootPrivateKeyFileInfo: {
-      url: rootPrivateKeyFileUrl,
-      path: rootPrivateKeyFilePath,
-      exists: rootPrivateKeyFileDetected,
-    },
-  }
-}
-
 // const getCertificateValidSinceInMs = (forgeCertificate) => {
 //   const { notBefore } = forgeCertificate.validity
 //   const nowDate = Date.now()
@@ -298,3 +274,28 @@ export const uninstallCertificateAuthority = async ({
     await removeFileSystemNode(rootPrivateKeyFileInfo.url)
   }
 }
+
+/*
+ * The root certificate files can be "hard" to find because
+ * located in a dedicated application directory specific to the OS
+ * To make them easier to find, we write symbolic links near the server
+ * certificate file pointing to the root certificate files
+ */
+// if (!isWindows) { // not on windows because symlink requires admin rights
+//   logger.debug(`Writing root certificate symbol link files`)
+//   await writeSymbolicLink({
+//     from: rootCertificateSymlinkUrl,
+//     to: rootCertificateFileUrl,
+//     type: "file",
+//     allowUseless: true,
+//     allowOverwrite: true,
+//   })
+//   await writeSymbolicLink({
+//     from: rootPrivateKeySymlinkUrl,
+//     to: rootPrivateKeyFileUrl,
+//     type: "file",
+//     allowUseless: true,
+//     allowOverwrite: true,
+//   })
+//   logger.debug(`Root certificate symbolic links written`)
+// }

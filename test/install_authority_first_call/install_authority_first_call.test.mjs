@@ -52,7 +52,7 @@ const expected = {
       `Detect existing certificate authority...`,
       `${infoSign} no certificate authority found`,
       `Generating authority certificate...`,
-      `${okSign} authority certificate written at ${actual.returnValue.rootCertificatePath}`,
+      `${okSign} authority certificate valid for 20 years written at ${actual.returnValue.rootCertificatePath}`,
     ],
     warns: [],
     errors: [],

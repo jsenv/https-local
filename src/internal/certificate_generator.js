@@ -1,9 +1,6 @@
 // https://github.com/digitalbazaar/forge/blob/master/examples/create-cert.js
 // https://github.com/digitalbazaar/forge/issues/660#issuecomment-467145103
 
-import { createDetailedMessage } from "@jsenv/logger"
-
-import { verifyRootCertificateValidityDuration } from "../validity_duration.js"
 import { importNodeForge } from "./forge.js"
 import {
   attributeArrayFromAttributeDescription,
@@ -13,7 +10,6 @@ import {
 } from "./certificate_data_converter.js"
 
 export const createCertificateAuthority = async ({
-  logger,
   commonName,
   countryName,
   stateOrProvinceName,
@@ -25,25 +21,6 @@ export const createCertificateAuthority = async ({
 } = {}) => {
   if (typeof serialNumber !== "number") {
     throw new TypeError(`serial must be a number but received ${serialNumber}`)
-  }
-
-  if (typeof validityDurationInMs !== "number") {
-    throw new TypeError(
-      `validityDurationInMs must be a number but received ${validityDurationInMs}`,
-    )
-  }
-  if (validityDurationInMs < 1) {
-    throw new TypeError(`validityDurationInMs must be > 0 but received ${validityDurationInMs}`)
-  }
-  const rootCertificateValidityDuration =
-    verifyRootCertificateValidityDuration(validityDurationInMs)
-  if (!rootCertificateValidityDuration.ok) {
-    validityDurationInMs = rootCertificateValidityDuration.maxAllowedValue
-    logger.warn(
-      createDetailedMessage(rootCertificateValidityDuration.message, {
-        details: rootCertificateValidityDuration.details,
-      }),
-    )
   }
 
   const forge = await importNodeForge()
@@ -107,51 +84,23 @@ export const createCertificateAuthority = async ({
 }
 
 export const requestCertificateFromAuthority = async ({
-  logger,
-  certificateAuthority,
-  altNames = [],
-  commonName,
-  organizationName,
-  validityDurationInMs,
-  serialNumber,
+  rootForgeCertificate,
+  rootForgePrivateKey,
+  serverCertificateAltNames = [],
+  serverCertificateValidityDurationInMs,
+  serverCertificateSerialNumber,
 }) => {
-  if (typeof certificateAuthority !== "object" || certificateAuthority === null) {
+  if (typeof rootForgeCertificate !== "object" || rootForgeCertificate === null) {
     throw new TypeError(
-      `certificateAuthority must be an object but received ${certificateAuthority}`,
+      `rootForgeCertificate must be an object but received ${rootForgeCertificate}`,
     )
   }
-  const { forgeCertificate: authorityForgeCertificate } = certificateAuthority
-  if (typeof authorityForgeCertificate !== "object") {
+  if (typeof rootForgePrivateKey !== "object" || rootForgePrivateKey === null) {
+    throw new TypeError(`rootForgePrivateKey must be an object but received ${rootForgePrivateKey}`)
+  }
+  if (typeof serverCertificateSerialNumber !== "number") {
     throw new TypeError(
-      `certificateAuthority.forgeCertificate must be an object but received ${authorityForgeCertificate}`,
-    )
-  }
-  const { forgePrivateKey: authorityForgePrivateKey } = certificateAuthority
-  if (typeof authorityForgePrivateKey !== "object" || authorityForgePrivateKey === null) {
-    throw new TypeError(
-      `certificateAuthority.forgePrivateKey must be an object but received ${authorityForgePrivateKey}`,
-    )
-  }
-  if (typeof serialNumber !== "number") {
-    throw new TypeError(`serial must be a number but received ${serialNumber}`)
-  }
-
-  if (typeof validityDurationInMs !== "number") {
-    throw new TypeError(
-      `validityDurationInMs must be a number but received ${validityDurationInMs}`,
-    )
-  }
-  if (validityDurationInMs < 1) {
-    throw new TypeError(`validityDurationInMs must be > 0 but received ${validityDurationInMs}`)
-  }
-  const serverCertificateValidityDuration =
-    verifyRootCertificateValidityDuration(validityDurationInMs)
-  if (!serverCertificateValidityDuration.ok) {
-    validityDurationInMs = serverCertificateValidityDuration.maxAllowedValue
-    logger.warn(
-      createDetailedMessage(serverCertificateValidityDuration.message, {
-        details: serverCertificateValidityDuration.details,
-      }),
+      `serverCertificateSerialNumber must be a number but received ${serverCertificateSerialNumber}`,
     )
   }
 
@@ -161,18 +110,18 @@ export const requestCertificateFromAuthority = async ({
   const { privateKey, publicKey } = pki.rsa.generateKeyPair(2048)
 
   forgeCertificate.publicKey = publicKey
-  forgeCertificate.serialNumber = serialNumber.toString(16)
+  forgeCertificate.serialNumber = serverCertificateSerialNumber.toString(16)
   forgeCertificate.validity.notBefore = new Date()
-  forgeCertificate.validity.notAfter = new Date(Date.now() + validityDurationInMs)
+  forgeCertificate.validity.notAfter = new Date(Date.now() + serverCertificateValidityDurationInMs)
 
   const attributeDescription = {
-    ...attributeDescriptionFromAttributeArray(authorityForgeCertificate.subject.attributes),
-    commonName,
-    organizationName,
+    ...attributeDescriptionFromAttributeArray(rootForgeCertificate.subject.attributes),
+    // commonName: serverCertificateCommonName,
+    // organizationName: serverCertificateOrganizationName
   }
   const attributeArray = attributeArrayFromAttributeDescription(attributeDescription)
   forgeCertificate.setSubject(attributeArray)
-  forgeCertificate.setIssuer(authorityForgeCertificate.subject.attributes)
+  forgeCertificate.setIssuer(rootForgeCertificate.subject.attributes)
   forgeCertificate.setExtensions(
     extensionArrayFromExtensionDescription({
       basicConstraints: {
@@ -190,15 +139,15 @@ export const requestCertificateFromAuthority = async ({
       },
       authorityKeyIdentifier: {
         critical: false,
-        keyIdentifier: authorityForgeCertificate.generateSubjectKeyIdentifier().getBytes(),
+        keyIdentifier: rootForgeCertificate.generateSubjectKeyIdentifier().getBytes(),
       },
       subjectAltName: {
         critical: false,
-        altNames: subjectAltNamesFromAltNames(altNames),
+        altNames: subjectAltNamesFromAltNames(serverCertificateAltNames),
       },
     }),
   )
-  forgeCertificate.sign(authorityForgePrivateKey, forge.sha256.create())
+  forgeCertificate.sign(rootForgePrivateKey, forge.sha256.create())
 
   return {
     forgeCertificate,

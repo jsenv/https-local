@@ -1,9 +1,12 @@
 /* eslint-disable import/max-dependencies */
 
-import { createLogger } from "@jsenv/logger"
+import { createLogger, createDetailedMessage } from "@jsenv/logger"
 import { readFile, writeFile, removeFileSystemNode } from "@jsenv/filesystem"
 
-import { createValidityDurationOfXYears } from "./validity_duration.js"
+import {
+  createValidityDurationOfXYears,
+  verifyRootCertificateValidityDuration,
+} from "./validity_duration.js"
 import { infoSign, okSign } from "./internal/logs.js"
 
 import { getAuthorityFileInfos } from "./internal/authority_file_infos.js"
@@ -39,6 +42,29 @@ export const installCertificateAuthority = async ({
   // for unit tests
   aboutToExpireRatio = 0.05,
 } = {}) => {
+  if (typeof rootCertificateValidityDurationInMs !== "number") {
+    throw new TypeError(
+      `rootCertificateValidityDurationInMs must be a number but received ${rootCertificateValidityDurationInMs}`,
+    )
+  }
+  if (rootCertificateValidityDurationInMs < 1) {
+    throw new TypeError(
+      `rootCertificateValidityDurationInMs must be > 0 but received ${rootCertificateValidityDurationInMs}`,
+    )
+  }
+
+  const rootCertificateValidityDuration = verifyRootCertificateValidityDuration(
+    rootCertificateValidityDurationInMs,
+  )
+  if (!rootCertificateValidityDuration.ok) {
+    rootCertificateValidityDurationInMs = rootCertificateValidityDuration.maxAllowedValue
+    logger.warn(
+      createDetailedMessage(rootCertificateValidityDuration.message, {
+        details: rootCertificateValidityDuration.details,
+      }),
+    )
+  }
+
   const { authorityJsonFileInfo, rootCertificateFileInfo, rootPrivateKeyFileInfo } =
     getAuthorityFileInfos()
   const authorityJsonFileUrl = authorityJsonFileInfo.url
@@ -62,7 +88,11 @@ export const installCertificateAuthority = async ({
     await writeFile(rootPrivateKeyFileUrl, rootPrivateKey)
     await writeFile(authorityJsonFileUrl, JSON.stringify({ serialNumber: 0 }, null, "  "))
 
-    logger.info(`${okSign} authority certificate written at ${rootCertificateFileInfo.path}`)
+    logger.info(
+      `${okSign} authority certificate valid for ${formatDuration(
+        rootCertificateValidityDurationInMs,
+      )} written at ${rootCertificateFileInfo.path}`,
+    )
     return {
       rootForgeCertificate: forgeCertificate,
       rootForgePrivateKey: privateKey,

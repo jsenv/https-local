@@ -35,6 +35,6 @@ export const verifyServerCertificateValidityDuration = (serverCertificateValidit
   return { ok: true }
 }
 
-export const createValidityDurationOfXYears = (years) => MILLISECONDS_PER_YEAR * years
+export const createValidityDurationOfXYears = (years) => MILLISECONDS_PER_YEAR * years + 10000
 
-export const createValidityDurationOfXDays = (days) => MILLISECONDS_PER_DAY * days
+export const createValidityDurationOfXDays = (days) => MILLISECONDS_PER_DAY * days + 10000

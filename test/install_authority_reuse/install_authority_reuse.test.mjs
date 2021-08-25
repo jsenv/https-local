@@ -56,7 +56,7 @@ const expected = {
       `Detect existing certificate authority...`,
       `${okSign} found an existing certificate authority`,
       `Checking certificate validity...`,
-      `${okSign} certificate valid for 19 years`,
+      `${okSign} certificate valid for 20 years`,
       `Detect if certificate attributes have changed...`,
       `${okSign} certificate attributes are the same`,
       "Check if certificate is trusted in mac OS...",

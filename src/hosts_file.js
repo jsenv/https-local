@@ -31,7 +31,7 @@ export const ensureIpMappingsInHostsFile = async ({
     }
 
     const existingMappings = hostnames.getIpHostnames(ip)
-    const missingMappings = existingMappings.filter((ipHostname) => {
+    const missingMappings = ipHostnames.filter((ipHostname) => {
       return !existingMappings.includes(ipHostname)
     })
     if (missingMappings.length) {
@@ -71,13 +71,12 @@ export const ensureIpMappingsInHostsFile = async ({
   }
 
   // https://en.wikipedia.org/wiki/Tee_(command)
-  const updateHostFileCommand = `sudo tee ${hostsFilePath}`
+  const needsSudo = hostsFilePath === HOSTS_FILE_PATH
+  const updateHostFileCommand = `echo "${newHostsFileContent}" | ${
+    needsSudo ? "sudo tee" : "tee"
+  } ${hostsFilePath}`
   logger.info(`Adding ${missingMappingCount} mapping(s) in hosts file...`)
   logger.info(`${commandSign} ${updateHostFileCommand}`)
-  logger.debug(`Hosts file info`, {
-    "hosts file content": newHostsFileContent,
-    "hosts file": hostsFilePath,
-  })
   try {
     await exec(updateHostFileCommand, { input: newHostsFileContent })
     logger.info(`${okSign} mappings added to hosts file`)

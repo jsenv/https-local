@@ -1,26 +1,15 @@
-import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
 import {
-  TEST_PARAMS,
-  resetAllCertificateFiles,
-  createLoggerForTest,
-  startServerForTest,
-} from "@jsenv/https-localhost/test/test_helpers.mjs"
+  installCertificateAuthority,
+  uninstallCertificateAuthority,
+  requestCertificateForLocalhost,
+} from "@jsenv/https-localhost"
+import { startServerForTest } from "@jsenv/https-localhost/test/test_helpers.mjs"
 
-const serverCertificateFileUrl = new URL("./certificate/server.crt", import.meta.url)
-const loggerForCall = createLoggerForTest({
-  forwardToConsole: true,
+await uninstallCertificateAuthority()
+await installCertificateAuthority({
+  tryToTrust: true,
 })
-const firstCallParams = {
-  ...TEST_PARAMS,
-  logger: loggerForCall,
-  serverCertificateFileUrl,
-  tryToTrustRootCertificate: true,
-}
-
-await resetAllCertificateFiles()
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost(
-  firstCallParams,
-)
+const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost()
 
 const serverOrigin = await startServerForTest({
   port: 4456,

@@ -14,4 +14,4 @@ export {
   createValidityDurationOfXDays,
 } from "./src/validity_duration.js"
 
-export { ensureIpMappingsInHostsFile } from "./src/hosts.js"
+export { ensureIpMappingsInHostsFile } from "./src/hosts_file.js"

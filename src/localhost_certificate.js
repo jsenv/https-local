@@ -42,7 +42,7 @@ export const requestCertificateForLocalhost = async ({
 
   const { authorityJsonFileInfo, rootCertificateFileInfo, rootPrivateKeyFileInfo } =
     getAuthorityFileInfos()
-  if (!rootCertificateFileInfo.exsists) {
+  if (!rootCertificateFileInfo.exists) {
     throw new Error(
       `Certificate authority not found, "installCertificateAuthority" must be called before "requestCertificateForLocalhost"`,
     )
@@ -81,7 +81,7 @@ export const requestCertificateForLocalhost = async ({
   const serverCertificate = pki.certificateToPem(forgeCertificate)
   const serverPrivateKey = pki.privateKeyToPem(privateKey)
   logger.debug(
-    `${okSign} Server certificate generated, it will be valid for ${formatDuration(
+    `${okSign} server certificate generated, it will be valid for ${formatDuration(
       serverCertificateValidityDurationInMs,
     )}`,
   )

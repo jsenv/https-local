@@ -296,12 +296,15 @@ export const uninstallCertificateAuthority = async ({
         rootCertificateCommonName,
       })
     }
-    // then remove the file
+    logger.info(`Removing authority root certificate from filesystem...`)
     await removeFileSystemNode(rootCertificateFileInfo.url)
+    logger.info(`${okSign} authority root certificate removed from filesystem`)
   }
 
   if (rootPrivateKeyFileInfo.exists) {
+    logger.info(`Removing authority root private key from filesystem...`)
     await removeFileSystemNode(rootPrivateKeyFileInfo.url)
+    logger.info(`${okSign} Removing authority root private key from filesystem...`)
   }
 }
 

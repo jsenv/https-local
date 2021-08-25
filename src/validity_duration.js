@@ -22,11 +22,11 @@ export const verifyServerCertificateValidityDuration = (serverCertificateValidit
   const serverCertificateValidityDurationInDays =
     serverCertificateValidityDurationInMs / MILLISECONDS_PER_DAY
 
-  if (serverCertificateValidityDurationInDays > 396) {
+  if (serverCertificateValidityDurationInDays > 397) {
     return {
       ok: false,
-      maxAllowedValue: MILLISECONDS_PER_DAY * 396,
-      message: `certificate validity duration of ${serverCertificateValidityDurationInMs} days is too much, using the max recommended duration: 396 days`,
+      maxAllowedValue: MILLISECONDS_PER_DAY * 397,
+      message: `certificate validity duration of ${serverCertificateValidityDurationInMs} days is too much, using the max recommended duration: 397 days`,
       details:
         "https://www.globalsign.com/en/blog/maximum-ssltls-certificate-validity-now-one-year",
     }
@@ -35,6 +35,6 @@ export const verifyServerCertificateValidityDuration = (serverCertificateValidit
   return { ok: true }
 }
 
-export const createValidityDurationOfXYears = (years) => MILLISECONDS_PER_YEAR * years + 10000
+export const createValidityDurationOfXYears = (years) => MILLISECONDS_PER_YEAR * years + 5000
 
-export const createValidityDurationOfXDays = (days) => MILLISECONDS_PER_DAY * days + 10000
+export const createValidityDurationOfXDays = (days) => MILLISECONDS_PER_DAY * days + 5000

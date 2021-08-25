@@ -10,7 +10,7 @@ const hostsFilePath = urlToFileSystemPath(hostFileUrl)
 
 // required and missing
 
-await writeFile(hostFileUrl, ``)
+await writeFile(hostFileUrl, `127.0.0.1 localhost`)
 const loggerForTest = createLoggerForTest({
   // forwardToConsole: true,
 })
@@ -32,14 +32,19 @@ const actual = {
   errors,
 }
 const expected = {
-  hostsFileContent: process.platform === "win32" ? `127.0.0.1 jsenv\r\n` : `127.0.0.1 jsenv\n`,
+  hostsFileContent:
+    process.platform === "win32"
+      ? `127.0.0.1 localhost\r\n127.0.0.1 jsenv\r\n`
+      : `127.0.0.1 localhost\n127.0.0.1 jsenv\n`,
   infos: [
     `Check hosts files content...`,
     `${infoSign} 1 mapping is missing in hosts file`,
     `Adding 1 mapping(s) in hosts file...`,
     process.platform === "win32"
-      ? `${commandSign} echo "127.0.0.1 jsenv" | tree -filepath ${hostsFilePath}`
-      : `${commandSign} echo "127.0.0.1 jsenv" | tee ${hostsFilePath}`,
+      ? `${commandSign} echo "127.0.0.1 localhost
+127.0.0.1 jsenv" | tree -filepath ${hostsFilePath}`
+      : `${commandSign} echo "127.0.0.1 localhost
+127.0.0.1 jsenv" | tee ${hostsFilePath}`,
     `${okSign} mappings added to hosts file`,
   ],
   warns: [],

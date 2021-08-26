@@ -8,37 +8,63 @@ Generate https certificate to use for a server running on localhost.
 
 # Presentation
 
-`@jsenv/https-localhost` provides what is needed to start a local server in https:
-
-- a trusted certificate
-- a private key
-- mapping _127.0.0.1_ to _localhost_
+`@jsenv/https-localhost` helps you to get certificates for your local server running in HTTPS.
 
 ```js
 import {
   installCertificateAuthority,
-  ensureIpMappingsInHostsFile,
+  verifyHostsFile,
   requestCertificateForLocalhost,
 } from "@jsenv/https-localhost"
 
-await installCertificateAuthority({
-  tryToTrust: true, // auto trust the certificate in the OS and browsers
-  NSSDynamicInstall: true, // allow dynamic installation of "nss" if needed
-})
-
-await ensureIpMappingsInHostsFile({
+await installCertificateAuthority()
+await verifyHostsFile({
   ipMappings: {
-    "127.0.0.1": ["localhost"],
+    "127.0.0.1": ["localhost", "local.example.com"],
   },
-  tryToUpdateHostsFile: true, // auto update hosts file if needed
 })
-
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost()
+const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
+  serverCertificateAltNames: ["localhost", "local.example.com"],
+})
 ```
 
 # How to use
 
-TODO: explain how to use in practice
+_installCertificateAuthority_ function will generate a root certificate authority valid for 20 years. This function is designed to be runned once per machine and same for _verifyHostsFile_.
+
+```js
+import { installCertificateAuthority, verifyHostsFile } from "@jsenv/https-localhost"
+
+await installCertificateAuthority()
+await verifyHostsFile({
+  ipMappings: {
+    "127.0.0.1": ["localhost", "local.example.com"],
+  },
+})
+```
+
+```console
+Search existing certificate authority on filesystem...
+Authority root certificate file is not on filesystem at /Users/dmail/jsenv_root_certificate.crt
+ℹ no certificate authority on filesystem
+Generating authority root certificate...
+✔ authority root certificate valid for 20 years written at /Users/dmail/jsenv_https_localhost/jsenv_root_certificate.crt
+```
+
+# installCertificateAuthority
+
+```js
+installCertificateAuthority({
+  certificateCommonName: "Jsenv localhost root certificate",
+  certificateValidityDurationInMs: 630720005000, // 20 years
+  tryToTrust: false,
+  NSSDynamicInstall: false,
+})
+```
+
+# verifyHostsFile
+
+# requestCertificateForLocalhost
 
 # Trusting certificate
 

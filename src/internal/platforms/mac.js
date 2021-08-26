@@ -7,12 +7,16 @@
 import { infoSign, okSign } from "@jsenv/https-localhost/src/internal/logs.js"
 
 import { detectFirefox } from "./mac/mac_utils.js"
-import { getCertificateTrustInfoFromMac } from "./mac/getCertificateTrustInfoFromMac.js"
-import { getCertificateTrustInfoFromFirefox } from "./mac/getCertificateTrustInfoFromFirefox.js"
-import { addCertificateInMacTrustStore } from "./mac/addCertificateInMacTrustStore.js"
-import { addCertificateInFirefoxTrustStore } from "./mac/addCertificateInFirefoxTrustStore.js"
-import { removeCertificateFromMacTrustStore } from "./mac/removeCertificateFromMacTrustStore.js"
-import { removeCertificateFromFirefoxTrustStore } from "./mac/removeCertificateFromFirefoxTrustStore.js"
+import {
+  getCertificateTrustInfoFromMac,
+  addCertificateInMacTrustStore,
+  removeCertificateFromMacTrustStore,
+} from "./mac/mac_trust_store.js"
+import {
+  getCertificateTrustInfoFromFirefox,
+  addCertificateInFirefoxTrustStore,
+  removeCertificateFromFirefoxTrustStore,
+} from "./mac/firefox_trust_store.js"
 
 export const getCertificateTrustInfo = async ({ logger, certificate, certificateCommonName }) => {
   const macTrustInfo = await getMacTrustInfo({
@@ -186,7 +190,6 @@ const putInFirefoxTrustStoreIfNeeded = async ({
 
 export const removeCertificateFromTrustStores = async ({
   logger,
-  certificate,
   certificateFileUrl,
   certificateCommonName,
 }) => {
@@ -199,7 +202,7 @@ export const removeCertificateFromTrustStores = async ({
 
   await removeCertificateFromFirefoxTrustStore({
     logger,
-    certificate,
+    certificateFileUrl,
     certificateCommonName,
   })
 }

@@ -136,12 +136,14 @@ export const installCertificateAuthority = async ({
   }
 
   const regenerate = async () => {
-    await platformMethods.uninstallCertificate({
-      logger,
-      certificate: rootCertificate,
-      certificateFileUrl: rootCertificateFileUrl,
-      certificateCommonName,
-    })
+    if (tryToTrust) {
+      await platformMethods.removeCertificateFromTrustStores({
+        logger,
+        certificate: rootCertificate,
+        certificateFileUrl: rootCertificateFileUrl,
+        certificateCommonName,
+      })
+    }
     return generate()
   }
 
@@ -184,9 +186,7 @@ export const installCertificateAuthority = async ({
     rootCertificateValidityRemainingMs / rootCertificateValidityDurationInMs
   if (rootCertificateValidityRemainingRatio < aboutToExpireRatio) {
     logger.info(
-      `${infoSign} certificate will expire in ${formatTimeDelta(
-        rootCertificateValidityRemainingMs,
-      )}`,
+      `${infoSign} certificate will expire ${formatTimeDelta(rootCertificateValidityRemainingMs)}`,
     )
     return regenerate()
   }

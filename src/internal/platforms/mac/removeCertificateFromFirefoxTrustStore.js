@@ -54,10 +54,12 @@ export const removeCertificateFromFirefoxTrustStore = async ({
         await exec(certutilRemoveCommand)
         logger.debug(`${okSign} certificate removed`)
       } catch (error) {
-        logger.error(failureMessage, {
-          "reason": REASON_NSSDB_REMOVE_COMMAND_FAILURE,
-          "error stack": error.stack,
-        })
+        logger.error(
+          createDetailedMessage(failureMessage, {
+            "reason": REASON_NSSDB_REMOVE_COMMAND_FAILURE,
+            "error stack": error.stack,
+          }),
+        )
         throw error
       }
     },

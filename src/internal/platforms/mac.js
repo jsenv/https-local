@@ -120,9 +120,8 @@ export const addCertificateToTrustStores = async ({
 }) => {
   const macTrustInfo = await putInMacTrustStoreIfNeeded({
     logger,
-    existingMacTrustInfo: existingTrustInfo ? existingTrustInfo.mac : null,
-    certificate,
     certificateFileUrl,
+    existingMacTrustInfo: existingTrustInfo ? existingTrustInfo.mac : null,
   })
 
   // chrome use OS trust store
@@ -148,14 +147,14 @@ export const addCertificateToTrustStores = async ({
   }
 }
 
-const putInMacTrustStoreIfNeeded = async ({ logger, certificate, existingMacTrustInfo }) => {
+const putInMacTrustStoreIfNeeded = async ({ logger, certificateFileUrl, existingMacTrustInfo }) => {
   if (existingMacTrustInfo && existingMacTrustInfo.status !== "not_trusted") {
     return existingMacTrustInfo
   }
 
   return await addCertificateInMacTrustStore({
     logger,
-    certificate,
+    certificateFileUrl,
   })
 }
 
@@ -190,11 +189,13 @@ const putInFirefoxTrustStoreIfNeeded = async ({
 
 export const removeCertificateFromTrustStores = async ({
   logger,
+  certificate,
   certificateFileUrl,
   certificateCommonName,
 }) => {
   await removeCertificateFromMacTrustStore({
     logger,
+    certificate,
     certificateFileUrl,
   })
 
@@ -202,7 +203,7 @@ export const removeCertificateFromTrustStores = async ({
 
   await removeCertificateFromFirefoxTrustStore({
     logger,
-    certificateFileUrl,
     certificateCommonName,
+    certificateFileUrl,
   })
 }

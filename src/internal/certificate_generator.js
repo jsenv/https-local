@@ -87,6 +87,7 @@ export const createAuthorityRootCertificate = async ({
 export const requestCertificateFromAuthority = async ({
   authorityCertificateForgeObject, // could be intermediate or root certificate authority
   auhtorityCertificatePrivateKeyForgeObject,
+  commonName,
   serialNumber,
   altNames = [],
   validityDurationInMs,
@@ -125,7 +126,7 @@ export const requestCertificateFromAuthority = async ({
 
   const attributeDescription = {
     ...attributeDescriptionFromAttributeArray(authorityCertificateForgeObject.subject.attributes),
-    // commonName: serverCertificateCommonName,
+    commonName,
     // organizationName: serverCertificateOrganizationName
   }
   const attributeArray = attributeArrayFromAttributeDescription(attributeDescription)

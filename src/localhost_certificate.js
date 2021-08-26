@@ -16,6 +16,7 @@ export const requestCertificateForLocalhost = async ({
   logger = createLogger({ logLevel }), // to be able to catch logs during unit tests
 
   serverCertificateAltNames = [],
+  serverCertificateCommonName = '',
   serverCertificateValidityDurationInMs = createValidityDurationOfXDays(396),
 } = {}) => {
   if (typeof serverCertificateValidityDurationInMs !== "number") {

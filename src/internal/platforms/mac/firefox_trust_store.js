@@ -116,7 +116,6 @@ const REASON_ADDED_IN_ALL_FIREFOX_NSSDB = `added in all firefox nss database fil
 
 export const addCertificateInFirefoxTrustStore = async ({
   logger,
-  certificate,
   certificateFileUrl,
   certificateCommonName,
   NSSDynamicInstall,
@@ -175,7 +174,8 @@ export const addCertificateInFirefoxTrustStore = async ({
     NSSDBDirectoryUrl: firefoxNSSDBDirectoryUrl,
     callback: async ({ directoryArg, NSSDBFileUrl }) => {
       const certutilBinPath = await getCertutilBinPath()
-      const certutilAddCommand = `${certutilBinPath} -A -d ${directoryArg} -t C,, -i "${certificate}" -n "${certificateCommonName}"`
+      const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
+      const certutilAddCommand = `${certutilBinPath} -A -d ${directoryArg} -t C,, -i "${certificateFilePath}" -n "${certificateCommonName}"`
       logger.debug(`Adding certificate to ${NSSDBFileUrl}...`)
       logger.debug(`${commandSign} ${certutilAddCommand}`)
       try {
@@ -226,8 +226,8 @@ const REASON_REMOVED_FROM_ALL_FIREFOX_NSSDB = `removed from all firefox nss data
 
 export const removeCertificateFromFirefoxTrustStore = async ({
   logger,
-  certificateFileUrl,
   certificateCommonName,
+  certificateFileUrl,
 }) => {
   const firefoxDetected = detectFirefox({ logger })
   if (!firefoxDetected) {

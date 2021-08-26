@@ -11,8 +11,10 @@ import {
 } from "@jsenv/https-localhost/src/internal/logs.js"
 import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
 
+const systemKeychainPath = "/Library/Keychains/System.keychain"
+
 export const getCertificateTrustInfoFromMac = async ({ logger, certificate }) => {
-  const findCertificateCommand = `security find-certificate -a -p`
+  const findCertificateCommand = `security find-certificate -a -p ${systemKeychainPath}`
 
   logger.debug(`Searching certificate in mac keychain...`)
   logger.debug(`${commandSign} ${findCertificateCommand}`)
@@ -36,7 +38,7 @@ export const getCertificateTrustInfoFromMac = async ({ logger, certificate }) =>
 }
 
 export const addCertificateInMacTrustStore = async ({ logger, certificateFileUrl }) => {
-  const addTrustedCertCommand = `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic "${urlToFileSystemPath(
+  const addTrustedCertCommand = `sudo security add-trusted-cert -d -r trustRoot -k ${systemKeychainPath} -p ssl -p basic "${urlToFileSystemPath(
     certificateFileUrl,
   )}"`
   logger.info(`Adding certificate to mac keychain...`)
@@ -62,22 +64,35 @@ export const addCertificateInMacTrustStore = async ({ logger, certificateFileUrl
   }
 }
 
-export const removeCertificateFromMacTrustStore = async ({ logger, certificateFileUrl }) => {
-  const removeTrustedCertCommand = `sudo security remove-trusted-cert -d "${urlToFileSystemPath(
+export const removeCertificateFromMacTrustStore = async ({
+  logger,
+  certificate,
+  certificateFileUrl,
+}) => {
+  // ensure it's in mac keychain or the command to remove would fail
+  const trustInfo = await getCertificateTrustInfoFromMac({
+    logger,
+    certificate,
+  })
+  if (trustInfo.status === "not_trusted") {
+    return trustInfo
+  }
+
+  const removeTrustedCertCommand = `sudo security remove-trusted-cert -d -r trustRoot -k ${systemKeychainPath} -p ssl -p basic "${urlToFileSystemPath(
     certificateFileUrl,
   )}"`
   logger.info(`Removing certificate from mac keychain...`)
   logger.info(`${commandSign} ${removeTrustedCertCommand}`)
   try {
     await exec(removeTrustedCertCommand)
-    logger.info(`${okSign} certificate removed from keychain`)
+    logger.info(`${okSign} certificate removed from mac keychain`)
     return {
       status: "not_trusted",
       reason: "remove trusted cert command completed",
     }
   } catch (e) {
     logger.error(
-      createDetailedMessage(`${failureSign} Failed to remove certificate from keychain`, {
+      createDetailedMessage(`${failureSign} Failed to remove certificate from mac keychain`, {
         "error stack": e.stack,
         "certificate file url": certificateFileUrl,
       }),

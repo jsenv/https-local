@@ -4,7 +4,9 @@ import { installCertificateAuthority, uninstallCertificateAuthority } from "@jse
 import { infoSign, okSign } from "@jsenv/https-localhost/src/internal/logs.js"
 import { createLoggerForTest } from "@jsenv/https-localhost/test/test_helpers.mjs"
 
-await uninstallCertificateAuthority()
+await uninstallCertificateAuthority({
+  logLevel: "warn",
+})
 const firstCallReturnValue = await installCertificateAuthority({
   logLevel: "warn",
 })
@@ -27,41 +29,41 @@ const actual = {
 const expected = {
   sameCertificate: true,
   secondCallReturnValue: {
-    rootForgeCertificate: assert.any(Object),
-    rootForgePrivateKey: assert.any(Object),
+    rootCertificateForgeObject: assert.any(Object),
+    rootCertificatePrivateKeyForgeObject: assert.any(Object),
     rootCertificate: assert.any(String),
-    rootPrivateKey: assert.any(String),
+    rootCertificatePrivateKey: assert.any(String),
     rootCertificatePath: assert.any(String),
     trustInfo: {
       mac: {
         status: "not_trusted",
-        reason: "not found in mac keychain and tryToTrust disabled",
+        reason: "not found in mac keychain",
       },
       chrome: {
         status: "not_trusted",
-        reason: "not found in mac keychain and tryToTrust disabled",
+        reason: "not found in mac keychain",
       },
       safari: {
         status: "not_trusted",
-        reason: "not found in mac keychain and tryToTrust disabled",
+        reason: "not found in mac keychain",
       },
       firefox: {
         status: "not_trusted",
-        reason: "missing in some firefox nss database file and tryToTrust disabled",
+        reason: "missing in some firefox nss database file",
       },
     },
   },
   secondCallLogs: {
     infos: [
-      `Detect existing certificate authority...`,
-      `${okSign} found an existing certificate authority`,
+      `Search existing certificate authority on filesystem...`,
+      `${okSign} certificate authority found on filesystem`,
       `Checking certificate validity...`,
       `${okSign} certificate valid for 20 years`,
       `Detect if certificate attributes have changed...`,
       `${okSign} certificate attributes are the same`,
-      "Check if certificate is trusted in mac OS...",
+      "Check if certificate is trusted by mac OS...",
       `${infoSign} certificate not trusted by mac OS`,
-      "Check if certificate is trusted in Firefox...",
+      "Check if certificate is trusted by Firefox...",
       `${infoSign} certificate not trusted by Firefox`,
     ],
     warns: [],

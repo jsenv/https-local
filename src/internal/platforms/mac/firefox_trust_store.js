@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process"
 import { createDetailedMessage } from "@jsenv/logger"
 import { urlToFileSystemPath } from "@jsenv/filesystem"
 
@@ -211,6 +212,7 @@ export const addCertificateInFirefoxTrustStore = async ({
   }
   logger.debug(`${okSign} found ${fileCount} Firefox nss database file`)
 
+  await getFirefoxClosedPromise({ logger })
   const certutilBinPath = await getCertutilBinPath()
   for (const NSSDBFileUrl of NSSDBFiles) {
     const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
@@ -272,6 +274,7 @@ export const removeCertificateFromFirefoxTrustStore = async ({
 
   logger.info(`Removing certificate from Firefox...`)
   const failureMessage = `${failureSign} failed to remove certificate from Firefox`
+  await getFirefoxClosedPromise({ logger })
   const certutilBinPath = await getCertutilBinPath()
   for (const NSSDBFileUrl of NSSDBFiles) {
     const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
@@ -334,6 +337,31 @@ const getCriticalTrustInfo = async ({ logger }) => {
   }
 
   return null
+}
+
+const getFirefoxClosedPromise = async ({ logger }) => {
+  if (!isFirefoxOpen()) {
+    return
+  }
+
+  logger.warn(`${warningSign} waiting for you to close Firefox before resuming...`)
+  const next = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    if (isFirefoxOpen()) {
+      await next()
+    } else {
+      logger.info(`${okSign} Firefox closed, resuming`)
+      // wait 50ms more to ensure firefox has time to cleanup
+      // othrwise sometimes there is an SEC_ERROR_REUSED_ISSUER_AND_SERIAL error
+      // because we updated nss database file while firefox is not fully closed
+      await new Promise((resolve) => setTimeout(resolve, 50))
+    }
+  }
+  await next()
+}
+
+const isFirefoxOpen = () => {
+  return execSync("ps aux").includes("firefox")
 }
 
 // for test

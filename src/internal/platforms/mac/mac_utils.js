@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs"
+
 import { assertAndNormalizeDirectoryUrl, resolveUrl, urlToFileSystemPath } from "@jsenv/filesystem"
 
 import { memoize } from "@jsenv/https-localhost/src/internal/memoize.js"

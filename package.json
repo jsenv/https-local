@@ -35,7 +35,7 @@
     "measure-performances": "node ./script/performance/generate_performance_report.mjs --local",
     "log-keychain-info": "node ./script/authority/log_keychain_info.mjs",
     "add-to-keychain": "node ./script/authority/add_to_keychain.mjs",
-    "remove-from-keychain": "node ./script/authority/from_from_keychain.mjs",
+    "remove-from-keychain": "node ./script/authority/remove_from_keychain.mjs",
     "test": "node ./script/test/test.mjs",
     "test-with-coverage": "npm run test -- --coverage",
     "prettier-format": "node ./script/prettier/prettier_format.mjs",

@@ -69,11 +69,12 @@ export const getNewCertificateTrustInfo = () => {
   }
 }
 
-const getMacTrustInfo = async ({ logger, certificate }) => {
+const getMacTrustInfo = async ({ logger, certificate, certificateCommonName }) => {
   logger.info(`Check if certificate is trusted by mac OS...`)
   const macTrustInfo = await getCertificateTrustInfoFromMac({
     logger,
     certificate,
+    certificateCommonName,
   })
   if (macTrustInfo.status === "trusted") {
     logger.info(`${okSign} certificate trusted by mac OS`)
@@ -197,6 +198,7 @@ export const removeCertificateFromTrustStores = async ({
     logger,
     certificate,
     certificateFileUrl,
+    certificateCommonName,
   })
 
   // no need for chrome and safari, they are handled by mac keychain
@@ -204,7 +206,7 @@ export const removeCertificateFromTrustStores = async ({
   await removeCertificateFromFirefoxTrustStore({
     logger,
     certificate,
-    certificateCommonName,
     certificateFileUrl,
+    certificateCommonName,
   })
 }

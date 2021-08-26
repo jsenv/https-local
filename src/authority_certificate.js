@@ -88,11 +88,13 @@ export const installCertificateAuthority = async ({
       })
 
     const { pki } = await importNodeForge()
-    const rootCertificate = pki.certificateToPem(rootCertificateForgeObject)
-    const rootCertificatePrivateKey = pki.privateKeyToPem(rootCertificatePrivateKeyForgeObject)
+    const rootCertificate = pemAsFileContent(pki.certificateToPem(rootCertificateForgeObject))
+    const rootCertificatePrivateKey = pemAsFileContent(
+      pki.privateKeyToPem(rootCertificatePrivateKeyForgeObject),
+    )
 
-    await writeFile(rootCertificateFileUrl, pemAsFileContent(rootCertificate))
-    await writeFile(rootPrivateKeyFileUrl, pemAsFileContent(rootCertificatePrivateKey))
+    await writeFile(rootCertificateFileUrl, rootCertificate)
+    await writeFile(rootPrivateKeyFileUrl, rootCertificatePrivateKey)
     await writeFile(authorityJsonFileUrl, JSON.stringify({ serialNumber: 0 }, null, "  "))
 
     logger.info(

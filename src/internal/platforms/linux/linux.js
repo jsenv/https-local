@@ -6,9 +6,7 @@ import { existsSync } from "node:fs"
 import { createDetailedMessage } from "@jsenv/logger"
 import { readFile, urlToFileSystemPath } from "@jsenv/filesystem"
 
-import { exec } from "../exec.js"
-
-export { ensureHostnamesRegistration } from "./shared.js"
+import { exec } from "../../exec.js"
 
 export const ensureRootCertificateRegistration = async ({
   logger,

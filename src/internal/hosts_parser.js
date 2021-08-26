@@ -114,9 +114,7 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
       }
 
       const nextLine = lines[index + 1]
-      const nextLineIsLastAndEmptyLine =
-        index + 1 === lines.length - 1 && nextLine.type === "other" && nextLine.value === ""
-      if (nextLine && !nextLineIsLastAndEmptyLine) {
+      if (nextLine) {
         hostsFileContent += EOL
       }
     })

@@ -7,8 +7,6 @@ import { urlToFileSystemPath } from "@jsenv/filesystem"
 
 import { exec } from "../exec.js"
 
-export { ensureHostnamesRegistration } from "./shared.js"
-
 export const ensureRootCertificateRegistration = async ({
   logger,
   rootCertificateFileUrl,

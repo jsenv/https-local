@@ -41,7 +41,7 @@ const expected = {
     `Search existing certificate authority on filesystem...`,
     `${infoSign} no certificate authority on filesystem`,
     `Generating authority root certificate...`,
-    `${okSign} authority root certificate valid for 20 years written at ${actual.returnValue.rootCertificateFilePath}`,
+    `${okSign} authority root certificate valid for 20 years written at ${actual.rootCertificateFilePath}`,
   ],
   warns: [],
   errors: [],

@@ -87,9 +87,9 @@ export const createAuthorityRootCertificate = async ({
 export const requestCertificateFromAuthority = async ({
   authorityCertificateForgeObject, // could be intermediate or root certificate authority
   auhtorityCertificatePrivateKeyForgeObject,
-  commonName,
   serialNumber,
   altNames = [],
+  commonName,
   validityDurationInMs,
 }) => {
   if (

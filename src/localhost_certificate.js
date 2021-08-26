@@ -16,7 +16,7 @@ export const requestCertificateForLocalhost = async ({
   logger = createLogger({ logLevel }), // to be able to catch logs during unit tests
 
   serverCertificateAltNames = [],
-  serverCertificateCommonName = '',
+  serverCertificateCommonName = "Jsenv localhost server certificate",
   serverCertificateValidityDurationInMs = createValidityDurationOfXDays(396),
 } = {}) => {
   if (typeof serverCertificateValidityDurationInMs !== "number") {
@@ -72,6 +72,10 @@ export const requestCertificateForLocalhost = async ({
     JSON.stringify({ serialNumber: serverCertificateSerialNumber }, null, "  "),
   )
 
+  if (!serverCertificateAltNames.includes("localhost")) {
+    serverCertificateAltNames.push("localhost")
+  }
+
   logger.debug(`Generating server certificate...`)
   const { certificateForgeObject, certificatePrivateKeyForgeObject } =
     await requestCertificateFromAuthority({
@@ -80,6 +84,7 @@ export const requestCertificateForLocalhost = async ({
       auhtorityCertificatePrivateKeyForgeObject: rootCertificatePrivateKeyForgeObject,
       serialNumber: serverCertificateSerialNumber,
       altNames: serverCertificateAltNames,
+      commonName: serverCertificateCommonName,
       validityDurationInMs: serverCertificateValidityDurationInMs,
     })
   const serverCertificate = pki.certificateToPem(certificateForgeObject)

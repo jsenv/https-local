@@ -11,7 +11,9 @@ await uninstallCertificateAuthority({
 await installCertificateAuthority({
   tryToTrust: true,
 })
-const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost()
+const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost({
+  serverCertificateAltNames: ["localhost"],
+})
 
 const serverOrigin = await startServerForTest({
   port: 4456,

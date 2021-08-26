@@ -86,7 +86,7 @@ export const createAuthorityRootCertificate = async ({
 
 export const requestCertificateFromAuthority = async ({
   authorityCertificateForgeObject, // could be intermediate or root certificate authority
-  authorityCertificatePrivateKey,
+  auhtorityCertificatePrivateKeyForgeObject,
   serialNumber,
   altNames = [],
   validityDurationInMs,
@@ -100,11 +100,11 @@ export const requestCertificateFromAuthority = async ({
     )
   }
   if (
-    typeof authorityCertificatePrivateKey !== "object" ||
-    authorityCertificatePrivateKey === null
+    typeof auhtorityCertificatePrivateKeyForgeObject !== "object" ||
+    auhtorityCertificatePrivateKeyForgeObject === null
   ) {
     throw new TypeError(
-      `authorityCertificatePrivateKey must be an object but received ${authorityCertificatePrivateKey}`,
+      `auhtorityCertificatePrivateKeyForgeObject must be an object but received ${auhtorityCertificatePrivateKeyForgeObject}`,
     )
   }
   if (typeof serialNumber !== "number") {
@@ -156,7 +156,7 @@ export const requestCertificateFromAuthority = async ({
       },
     }),
   )
-  certificateForgeObject.sign(authorityCertificatePrivateKey, forge.sha256.create())
+  certificateForgeObject.sign(auhtorityCertificatePrivateKeyForgeObject, forge.sha256.create())
 
   return {
     certificateForgeObject,

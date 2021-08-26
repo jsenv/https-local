@@ -72,16 +72,17 @@ export const requestCertificateForLocalhost = async ({
   )
 
   logger.debug(`Generating server certificate...`)
-  const { forgeCertificate, privateKey } = await requestCertificateFromAuthority({
-    logger,
-    authorityCertificateForgeObject: rootCertificateForgeObject,
-    auhtorityCertificatePrivateKeyForgeObject: rootCertificatePrivateKeyForgeObject,
-    serialNumber: serverCertificateSerialNumber,
-    altNames: serverCertificateAltNames,
-    validityDurationInMs: serverCertificateValidityDurationInMs,
-  })
-  const serverCertificate = pki.certificateToPem(forgeCertificate)
-  const serverCertificatePrivateKey = pki.privateKeyToPem(privateKey)
+  const { certificateForgeObject, certificatePrivateKeyForgeObject } =
+    await requestCertificateFromAuthority({
+      logger,
+      authorityCertificateForgeObject: rootCertificateForgeObject,
+      auhtorityCertificatePrivateKeyForgeObject: rootCertificatePrivateKeyForgeObject,
+      serialNumber: serverCertificateSerialNumber,
+      altNames: serverCertificateAltNames,
+      validityDurationInMs: serverCertificateValidityDurationInMs,
+    })
+  const serverCertificate = pki.certificateToPem(certificateForgeObject)
+  const serverCertificatePrivateKey = pki.privateKeyToPem(certificatePrivateKeyForgeObject)
   logger.debug(
     `${okSign} server certificate generated, it will be valid for ${formatDuration(
       serverCertificateValidityDurationInMs,

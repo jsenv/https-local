@@ -49,7 +49,7 @@ const returnValue = await requestCertificateForLocalhost({
     errors: [],
     returnValue: {
       serverCertificate: assert.any(String),
-      serverPrivateKey: assert.any(String),
+      serverCertificatePrivateKey: assert.any(String),
       rootCertificateFilePath: assert.any(String),
     },
   }

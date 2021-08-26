@@ -10,6 +10,7 @@ import {
   failureSign,
 } from "@jsenv/https-localhost/src/internal/logs.js"
 import { commandExists } from "@jsenv/https-localhost/src/internal/command.js"
+import { searchCertificateInCommandOutput } from "@jsenv/https-localhost/src/internal/search_certificate_in_command_output.js"
 import {
   detectNSSCommand,
   detectFirefox,
@@ -17,6 +18,7 @@ import {
   getCertutilBinPath,
 } from "./mac_utils.js"
 
+const REASON_FIREFOX_NOT_DETECTED = "Firefox not detected"
 const REASON_MISSING_NSS = `"nss" is not installed`
 const REASON_FIREFOX_NSSDB_NOT_FOUND = "could not find Firefox nss database file"
 const REASON_NSSDB_LIST_COMMAND_FAILURE = `error while listing nss database certificates`
@@ -28,6 +30,14 @@ export const getCertificateTrustInfoFromFirefox = async ({
   certificate,
   certificateCommonName,
 } = {}) => {
+  const firefoxDetected = detectFirefox({ logger })
+  if (!firefoxDetected) {
+    return {
+      status: "other",
+      reason: REASON_FIREFOX_NOT_DETECTED,
+    }
+  }
+
   const nssAvailable = await detectNSSCommand({ logger })
   if (!nssAvailable) {
     return {
@@ -50,7 +60,7 @@ export const getCertificateTrustInfoFromFirefox = async ({
 
       try {
         const certutilCommandOutput = await exec(certutilListCommand)
-        const isInDatabase = certificate === certutilCommandOutput
+        const isInDatabase = searchCertificateInCommandOutput(certutilCommandOutput, certificate)
         if (isInDatabase) {
           logger.debug(`${okSign} certificate found in nssdb`)
           founds.push(NSSDBFileUrl)
@@ -60,6 +70,11 @@ export const getCertificateTrustInfoFromFirefox = async ({
         }
       } catch (error) {
         if (error.message.includes("PR_FILE_NOT_FOUND_ERROR")) {
+          logger.debug(`${infoSign} certificate authority not found in nssdb`)
+          missings.push(NSSDBFileUrl)
+          return
+        }
+        if (error.message.includes("could not find certificate named")) {
           logger.debug(`${infoSign} certificate authority not found in nssdb`)
           missings.push(NSSDBFileUrl)
           return
@@ -111,7 +126,7 @@ export const getCertificateTrustInfoFromFirefox = async ({
 
 const REASON_MISSING_NSS_AND_BREW = `"nss" and "brew" are not installed`
 const REASON_NSS_MISSING_AND_DYNAMIC_INSTALL_DISABLED = `"nss" is not installed and NSSDynamicInstall is false`
-const REASON_NSSDB_ADD_COMMAND_FAILURE = `nss list command failure`
+const REASON_NSSDB_ADD_COMMAND_FAILURE = `nss add command failure`
 const REASON_ADDED_IN_ALL_FIREFOX_NSSDB = `added in all firefox nss database file`
 
 export const addCertificateInFirefoxTrustStore = async ({
@@ -220,30 +235,23 @@ export const addCertificateInFirefoxTrustStore = async ({
   })
 }
 
-const REASON_FIREFOX_NOT_DETECTED = "Firefox not detected"
 const REASON_NSSDB_REMOVE_COMMAND_FAILURE = `nss remove command failure`
 const REASON_REMOVED_FROM_ALL_FIREFOX_NSSDB = `removed from all firefox nss database file`
 
 export const removeCertificateFromFirefoxTrustStore = async ({
   logger,
+  certificate,
   certificateCommonName,
   certificateFileUrl,
 }) => {
-  const firefoxDetected = detectFirefox({ logger })
-  if (!firefoxDetected) {
-    return {
-      status: "other",
-      reason: REASON_FIREFOX_NOT_DETECTED,
-    }
-  }
-
-  const nssCommandAvailable = await detectNSSCommand({ logger })
-  if (!nssCommandAvailable) {
-    logger.debug(`No certificate to remove because "nss" is not installed`)
-    return {
-      status: "unknown",
-      reason: REASON_MISSING_NSS,
-    }
+  const firefoxTrustInfo = await getCertificateTrustInfoFromFirefox({
+    logger,
+    certificate,
+    certificateCommonName,
+  })
+  if (firefoxTrustInfo.status !== "trusted") {
+    logger.debug(`No certificate to remove from firefox because ${firefoxTrustInfo.reason}`)
+    return firefoxTrustInfo
   }
 
   logger.info(`Removing certificate from Firefox...`)
@@ -297,5 +305,20 @@ export const removeCertificateFromFirefoxTrustStore = async ({
         reason: REASON_REMOVED_FROM_ALL_FIREFOX_NSSDB,
       }
     },
+  })
+}
+
+// for test
+{
+  const { createLogger } = await import("@jsenv/logger")
+  const { getCertificateAuthorityFileUrls } = await import(
+    "../../certificate_authority_file_urls.js"
+  )
+  const { rootCertificateFileUrl } = getCertificateAuthorityFileUrls()
+  await removeCertificateFromFirefoxTrustStore({
+    logger: createLogger({ logLevel: "debug" }),
+    certificate: "",
+    certificateCommonName: "Jsenv localhost root certificate",
+    certificateFileUrl: rootCertificateFileUrl,
   })
 }

@@ -75,7 +75,7 @@ export const createAuthorityRootCertificate = async ({
   )
 
   // self-sign certificate
-  rootCertificateForgeObject.sign(rootCertificatePrivateKeyForgeObject, forge.sha256.create())
+  rootCertificateForgeObject.sign(rootCertificatePrivateKeyForgeObject) // , forge.sha256.create())
 
   return {
     rootCertificateForgeObject,
@@ -149,7 +149,9 @@ export const requestCertificateFromAuthority = async ({
       },
       authorityKeyIdentifier: {
         critical: false,
-        keyIdentifier: authorityCertificateForgeObject.generateSubjectKeyIdentifier().getBytes(),
+        // keyIdentifier: authorityCertificateForgeObject.generateSubjectKeyIdentifier().getBytes(),
+        authorityCertIssuer: true,
+        serialNumber: Number(0).toString(16),
       },
       subjectAltName: {
         critical: false,

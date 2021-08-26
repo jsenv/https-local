@@ -203,6 +203,7 @@ export const removeCertificateFromTrustStores = async ({
 
   await removeCertificateFromFirefoxTrustStore({
     logger,
+    certificate,
     certificateCommonName,
     certificateFileUrl,
   })

@@ -10,6 +10,7 @@ import {
   failureSign,
 } from "@jsenv/https-localhost/src/internal/logs.js"
 import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
+import { searchCertificateInCommandOutput } from "@jsenv/https-localhost/src/internal/search_certificate_in_command_output.js"
 
 const systemKeychainPath = "/Library/Keychains/System.keychain"
 
@@ -20,7 +21,10 @@ export const getCertificateTrustInfoFromMac = async ({ logger, certificate }) =>
   logger.debug(`${commandSign} ${findCertificateCommand}`)
 
   const findCertificateCommandOutput = await exec(findCertificateCommand)
-  const certificateFoundInCommandOutput = findCertificateCommandOutput.includes(certificate)
+  const certificateFoundInCommandOutput = searchCertificateInCommandOutput(
+    findCertificateCommandOutput,
+    certificate,
+  )
 
   if (!certificateFoundInCommandOutput) {
     logger.debug(`${infoSign} certificate is not in keychain`)
@@ -38,9 +42,9 @@ export const getCertificateTrustInfoFromMac = async ({ logger, certificate }) =>
 }
 
 export const addCertificateInMacTrustStore = async ({ logger, certificateFileUrl }) => {
-  const addTrustedCertCommand = `sudo security add-trusted-cert -d -r trustRoot -k ${systemKeychainPath} -p ssl -p basic "${urlToFileSystemPath(
-    certificateFileUrl,
-  )}"`
+  const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
+  // https://ss64.com/osx/security-cert.html
+  const addTrustedCertCommand = `sudo security add-trusted-cert -d -r trustRoot -k ${systemKeychainPath} "${certificateFilePath}"`
   logger.info(`Adding certificate to mac keychain...`)
   logger.info(`${commandSign} ${addTrustedCertCommand}`)
   try {
@@ -78,9 +82,9 @@ export const removeCertificateFromMacTrustStore = async ({
     return trustInfo
   }
 
-  const removeTrustedCertCommand = `sudo security remove-trusted-cert -d -r trustRoot -k ${systemKeychainPath} -p ssl -p basic "${urlToFileSystemPath(
-    certificateFileUrl,
-  )}"`
+  const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
+  // https://ss64.com/osx/security-cert.html
+  const removeTrustedCertCommand = `sudo security remove-trusted-cert -d "${certificateFilePath}"`
   logger.info(`Removing certificate from mac keychain...`)
   logger.info(`${commandSign} ${removeTrustedCertCommand}`)
   try {

@@ -90,8 +90,9 @@ export const installCertificateAuthority = async ({
     const { pki } = await importNodeForge()
     const rootCertificate = pki.certificateToPem(rootCertificateForgeObject)
     const rootCertificatePrivateKey = pki.privateKeyToPem(rootCertificatePrivateKeyForgeObject)
-    await writeFile(rootCertificateFileUrl, rootCertificate)
-    await writeFile(rootPrivateKeyFileUrl, rootCertificatePrivateKey)
+
+    await writeFile(rootCertificateFileUrl, pemAsFileContent(rootCertificate))
+    await writeFile(rootPrivateKeyFileUrl, pemAsFileContent(rootCertificatePrivateKey))
     await writeFile(authorityJsonFileUrl, JSON.stringify({ serialNumber: 0 }, null, "  "))
 
     logger.info(
@@ -294,8 +295,14 @@ export const uninstallCertificateAuthority = async ({
   logger = createLogger({ logLevel }),
   tryToUntrust = false,
 } = {}) => {
-  const { rootCertificateFileInfo, rootCertificatePrivateKeyFileInfo } = getAuthorityFileInfos()
+  const { authorityJsonFileInfo, rootCertificateFileInfo, rootCertificatePrivateKeyFileInfo } =
+    getAuthorityFileInfos()
 
+  const filesToRemove = []
+
+  if (authorityJsonFileInfo.exists) {
+    filesToRemove.push(authorityJsonFileInfo.url)
+  }
   if (rootCertificateFileInfo.exists) {
     // first untrust the root cert file
     if (tryToUntrust) {
@@ -313,16 +320,29 @@ export const uninstallCertificateAuthority = async ({
         certificateCommonName: rootCertificateCommonName,
       })
     }
-    logger.info(`Removing authority root certificate from filesystem...`)
-    await removeFileSystemNode(rootCertificateFileInfo.url)
-    logger.info(`${okSign} authority root certificate removed from filesystem`)
+    filesToRemove.push(rootCertificateFileInfo.url)
+  }
+  if (rootCertificatePrivateKeyFileInfo.exists) {
+    filesToRemove.push(rootCertificatePrivateKeyFileInfo.url)
   }
 
-  if (rootCertificatePrivateKeyFileInfo.exists) {
-    logger.info(`Removing authority root certificate private key from filesystem...`)
-    await removeFileSystemNode(rootCertificatePrivateKeyFileInfo.url)
-    logger.info(`${okSign} Removing authority root certificate private key from filesystem...`)
+  if (filesToRemove.length) {
+    logger.info(`Removing certificate authority files...`)
+    await Promise.all(
+      filesToRemove.map(async (file) => {
+        await removeFileSystemNode(file)
+      }),
+    )
+    logger.info(`${okSign} certificate authority files removed from filesystem`)
   }
+}
+
+const pemAsFileContent = (pem) => {
+  if (process.platform === "win32") {
+    return pem
+  }
+  // prefer \n when writing pem into files
+  return pem.replace(/\r\n/g, "\n")
 }
 
 /*

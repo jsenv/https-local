@@ -5,6 +5,7 @@ import {
   requestCertificateFromAuthority,
 } from "@jsenv/https-localhost/src/internal/certificate_generator.js"
 import { createLoggerForTest } from "@jsenv/https-localhost/test/test_helpers.mjs"
+import { importNodeForge } from "@jsenv/https-localhost/src/internal/forge.js"
 
 const {
   rootCertificateForgeObject,
@@ -18,7 +19,7 @@ const {
   localityName: "Valbonne",
   organizationName: "jsenv",
   organizationalUnitName: "jsenv server",
-  validityDurationInMs: 10,
+  validityDurationInMs: 100000,
   serialNumber: 0,
 })
 
@@ -37,22 +38,66 @@ const {
 }
 
 {
-  const certificate = await requestCertificateFromAuthority({
+  const { pki } = await importNodeForge()
+  // const rootCertificate = pki.certificateToPem(rootCertificateForgeObject)
+  // const authorityCertificateForgeObject = pki.certificateFromPem(rootCertificate)
+  const rootCertificatePrivateKey = pki.privateKeyToPem(rootCertificatePrivateKeyForgeObject)
+  await new Promise((resolve) => {
+    setTimeout(resolve, 1000)
+  })
+  const auhtorityCertificatePrivateKeyForgeObject = pki.privateKeyFromPem(rootCertificatePrivateKey)
+  const actual = auhtorityCertificatePrivateKeyForgeObject
+  const expected = auhtorityCertificatePrivateKeyForgeObject
+  assert({ actual, expected })
+}
+
+{
+  const {
+    certificateForgeObject,
+    certificatePublicKeyForgeObject,
+    certificatePrivateKeyForgeObject,
+  } = await requestCertificateFromAuthority({
     authorityCertificateForgeObject: rootCertificateForgeObject,
     auhtorityCertificatePrivateKeyForgeObject: rootCertificatePrivateKeyForgeObject,
     serialNumber: 1,
-    altNames: ["localhost", "jsenv"],
-    validityDurationInMs: 100,
+    altNames: ["localhost"],
+    validityDurationInMs: 10000,
   })
-  const actual = certificate
+  const actual = {
+    certificateForgeObject,
+    certificatePublicKeyForgeObject,
+    certificatePrivateKeyForgeObject,
+  }
   const expected = {
     certificateForgeObject: assert.any(Object),
     certificatePublicKeyForgeObject: assert.any(Object),
     certificatePrivateKeyForgeObject: assert.any(Object),
   }
   assert({ actual, expected })
-}
 
-// ici ça serais bien de tester des truc de forge,
-// genre que le certificat issuer est bien l'authorité
-PEM
+  // ici ça serais bien de tester des truc de forge,
+  // genre que le certificat issuer est bien l'authorité
+  // {
+  //   const { pki } = await importNodeForge()
+  //   const caStore = pki.createCaStore()
+  //   caStore.addCertificate(rootCertificateForgeObject)
+  //   caStore.addCertificate(certificateForgeObject)
+  //   const actual = await new Promise((resolve) => {
+  //     pki.verifyCertificateChain(
+  //       caStore,
+  //       [rootCertificateForgeObject, certificateForgeObject],
+  //       (
+  //         vfd,
+  //         // depth,
+  //         // chain
+  //       ) => {
+  //         if (vfd === true) {
+  //           resolve() // certificateForgeObject.verifySubjectKeyIdentifier())
+  //         }
+  //       },
+  //     )
+  //   })
+  //   const expected = false
+  //   assert({ actual, expected })
+  // }
+}

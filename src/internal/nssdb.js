@@ -3,63 +3,9 @@
  * Certutil command documentation: https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/tools/NSS_Tools_certutil
  */
 
-import { collectFiles, resolveUrl, urlToFileSystemPath } from "@jsenv/filesystem"
+import { collectFiles, resolveUrl, urlToFilename, urlToFileSystemPath } from "@jsenv/filesystem"
 
-import { okSign, warningSign } from "./logs.js"
-
-export const executeOnEveryNSSDB = async ({
-  logger,
-  NSSDBDirectoryUrl,
-  NSSDBBrowserName,
-  callback,
-  onError,
-  onComplete,
-}) => {
-  logger.debug(`Detecting ${NSSDBBrowserName} nss database files...`)
-
-  const firefoxNSSDBFiles = await findNSSDBFiles({ NSSDBDirectoryUrl })
-  const fileCount = firefoxNSSDBFiles.length
-  if (fileCount === 0) {
-    logger.warn(
-      `${warningSign} could not find ${NSSDBBrowserName} nss database file in ${NSSDBDirectoryUrl}`,
-    )
-    return onComplete({
-      fileCount,
-    })
-  }
-
-  logger.debug(
-    `${okSign} found ${fileCount} ${NSSDBBrowserName} nss database ${
-      fileCount === 1 ? "file" : "files"
-    }`,
-  )
-  try {
-    await firefoxNSSDBFiles.reduce(async (previous, NSSDBFile) => {
-      await previous
-
-      const NSSDBFileUrl = resolveUrl(NSSDBFile.relativeUrl, NSSDBDirectoryUrl)
-      const NSSDBFileDirectoryUrl = resolveUrl("./", NSSDBFileUrl)
-      const { isLegacyNSSDB } = NSSDBFile.meta
-      const directoryArg = isLegacyNSSDB
-        ? `"${urlToFileSystemPath(NSSDBFileDirectoryUrl)}"`
-        : `sql:"${urlToFileSystemPath(NSSDBFileDirectoryUrl)}"`
-
-      await callback({
-        NSSDBFile,
-        NSSDBFileUrl,
-        directoryArg,
-      })
-    }, Promise.resolve())
-  } catch (error) {
-    return onError({ error })
-  }
-
-  return onComplete({
-    fileCount,
-  })
-}
-
-const findNSSDBFiles = async ({ NSSDBDirectoryUrl }) => {
+export const findNSSDBFiles = async ({ NSSDBDirectoryUrl }) => {
   const NSSDBFiles = await collectFiles({
     directoryUrl: NSSDBDirectoryUrl,
     structuredMetaMap: {
@@ -72,5 +18,12 @@ const findNSSDBFiles = async ({ NSSDBDirectoryUrl }) => {
     },
     predicate: ({ isLegacyNSSDB, isModernNSSDB }) => isLegacyNSSDB || isModernNSSDB,
   })
-  return NSSDBFiles
+  return NSSDBFiles.map((file) => resolveUrl(file.relativeUrl, NSSDBDirectoryUrl))
+}
+
+export const getDirectoryArgFromNSSDBFileUrl = (NSSDBFileUrl) => {
+  const nssDBFilename = urlToFilename(NSSDBFileUrl)
+  const nssDBDirectoryUrl = resolveUrl("./", NSSDBFileUrl)
+  const nssDBDirectoryPath = urlToFileSystemPath(nssDBDirectoryUrl)
+  return nssDBFilename === "cert8.db" ? `"${nssDBDirectoryPath}"` : `sql:"${nssDBDirectoryPath}"`
 }

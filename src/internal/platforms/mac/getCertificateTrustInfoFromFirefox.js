@@ -16,10 +16,10 @@ const REASON_NSSDB_LIST_COMMAND_FAILURE = `error while listing nss database cert
 const REASON_MISSING_IN_SOME_FIREFOX_NSSDB = `missing in some firefox nss database file`
 const REASON_FOUND_IN_ALL_FIREFOX_NSSDB = `found in all firefox nss database file`
 
-export const getTrustInfoAboutFirefox = async ({
+export const getCertificateTrustInfoFromFirefox = async ({
   logger,
-  rootCertificate,
-  rootCertificateCommonName,
+  certificate,
+  certificateCommonName,
 } = {}) => {
   const nssAvailable = await detectNSSCommand({ logger })
   if (!nssAvailable) {
@@ -37,18 +37,18 @@ export const getTrustInfoAboutFirefox = async ({
     NSSDBDirectoryUrl: firefoxNSSDBDirectoryUrl,
     callback: async ({ directoryArg, NSSDBFileUrl }) => {
       const certutilBinPath = await getCertutilBinPath()
-      const certutilListCommand = `${certutilBinPath} -L -a -d ${directoryArg} -n "${rootCertificateCommonName}"`
+      const certutilListCommand = `${certutilBinPath} -L -a -d ${directoryArg} -n "${certificateCommonName}"`
       logger.debug(`Checking if certificate authority is in nss database file...`)
       logger.debug(`${commandSign} ${certutilListCommand}`)
 
       try {
         const certutilCommandOutput = await exec(certutilListCommand)
-        const isInDatabase = rootCertificate === certutilCommandOutput
+        const isInDatabase = certificate === certutilCommandOutput
         if (isInDatabase) {
-          logger.debug(`${okSign} certificate authority found in nssdb`)
+          logger.debug(`${okSign} certificate found in nssdb`)
           founds.push(NSSDBFileUrl)
         } else {
-          logger.debug(`${infoSign} certificate authority in nssdb is outdated`)
+          logger.debug(`${infoSign} certificate in nssdb is outdated`)
           missings.push(NSSDBFileUrl)
         }
       } catch (error) {

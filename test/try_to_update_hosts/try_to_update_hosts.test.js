@@ -1,7 +1,7 @@
 import { assert } from "@jsenv/assert"
 import { readFile, urlToFileSystemPath, writeFile } from "@jsenv/filesystem"
 
-import { ensureIpMappingsInHostsFile } from "@jsenv/https-localhost"
+import { verifyHostsFile } from "@jsenv/https-localhost"
 import { infoSign, commandSign, okSign } from "@jsenv/https-localhost/src/internal/logs.js"
 import { createLoggerForTest } from "@jsenv/https-localhost/test/test_helpers.mjs"
 
@@ -14,7 +14,7 @@ await writeFile(hostFileUrl, `127.0.0.1 localhost`)
 const loggerForTest = createLoggerForTest({
   // forwardToConsole: true,
 })
-await ensureIpMappingsInHostsFile({
+await verifyHostsFile({
   logger: loggerForTest,
   ipMappings: {
     "127.0.0.1": ["jsenv"],
@@ -58,7 +58,7 @@ if (process.platform !== "win32") {
     // forwardToConsole: true,
   })
   await writeFile(hostFileUrl, `127.0.0.1 jsenv`)
-  await ensureIpMappingsInHostsFile({
+  await verifyHostsFile({
     logger: loggerForTest,
     ipMappings: {
       "127.0.0.1": ["jsenv"],

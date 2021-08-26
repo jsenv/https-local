@@ -7,20 +7,17 @@
 import { infoSign, okSign } from "@jsenv/https-localhost/src/internal/logs.js"
 
 import { detectFirefox } from "./mac/mac_utils.js"
-import { getTrustInfoAboutMacKeychain } from "./mac/getTrustInfoAboutMacKeychain.js"
-import { getTrustInfoAboutFirefox } from "./mac/getTrustInfoAboutFirefox.js"
-import { addCertificateAuthorityInMacKeychain } from "./mac/addCertificateAuthorityInMacKeychain.js"
-import { addCertificateAuthorityInFirefox } from "./mac/addCertificateAuthorityInFirefox.js"
-import { removeCertificateAuthorityFromMacKeychain } from "./mac/removeCertificateAuthorityFromMacKeychain.js"
-import { removeCertificateAuthorityFromFirefox } from "./mac/removeCertificateAuthorityFromFirefox.js"
+import { getCertificateTrustInfoFromMac } from "./mac/getCertificateTrustInfoFromMac.js"
+import { getCertificateTrustInfoFromFirefox } from "./mac/getCertificateTrustInfoFromFirefox.js"
+import { addCertificateInMacTrustStore } from "./mac/addCertificateInMacTrustStore.js"
+import { addCertificateInFirefoxTrustStore } from "./mac/addCertificateInFirefoxTrustStore.js"
+import { removeCertificateFromMacTrustStore } from "./mac/removeCertificateFromMacTrustStore.js"
+import { removeCertificateFromFirefoxTrustStore } from "./mac/removeCertificateFromFirefoxTrustStore.js"
 
-export const getCertificateAuthorityTrustInfo = async ({
-  logger,
-  rootCertificate,
-  rootCertificateCommonName,
-}) => {
+export const getCertificateTrustInfo = async ({ logger, certificate, certificateCommonName }) => {
   const macTrustInfo = await getMacTrustInfo({
     logger,
+    certificate,
   })
 
   // chrome use OS trust store
@@ -31,8 +28,8 @@ export const getCertificateAuthorityTrustInfo = async ({
 
   const firefoxTrustInfo = await getFirefoxTrustInfo({
     logger,
-    rootCertificate,
-    rootCertificateCommonName,
+    certificate,
+    certificateCommonName,
   })
 
   return {
@@ -43,10 +40,36 @@ export const getCertificateAuthorityTrustInfo = async ({
   }
 }
 
-const getMacTrustInfo = async ({ logger }) => {
-  logger.info(`Check if certificate is trusted in mac OS...`)
-  const macTrustInfo = await getTrustInfoAboutMacKeychain({
+export const getNewCertificateTrustInfo = () => {
+  const macTrustInfo = {
+    status: "not_trusted",
+    reason: "tryToTrust disabled",
+  }
+
+  // chrome use OS trust store
+  const chromeTrustInfo = { ...macTrustInfo }
+
+  // safari use OS trust store
+  const safariTrustInfo = { ...macTrustInfo }
+
+  const firefoxTrustInfo = {
+    status: "not_trusted",
+    reason: "tryToTrust disabled",
+  }
+
+  return {
+    mac: macTrustInfo,
+    chrome: chromeTrustInfo,
+    safari: safariTrustInfo,
+    firefox: firefoxTrustInfo,
+  }
+}
+
+const getMacTrustInfo = async ({ logger, certificate }) => {
+  logger.info(`Check if certificate is trusted by mac OS...`)
+  const macTrustInfo = await getCertificateTrustInfoFromMac({
     logger,
+    certificate,
   })
   if (macTrustInfo.status === "trusted") {
     logger.info(`${okSign} certificate trusted by mac OS`)
@@ -56,7 +79,7 @@ const getMacTrustInfo = async ({ logger }) => {
   return macTrustInfo
 }
 
-const getFirefoxTrustInfo = async ({ logger, rootCertificate, rootCertificateCommonName }) => {
+const getFirefoxTrustInfo = async ({ logger, certificate, certificateCommonName }) => {
   const firefoxDetected = detectFirefox({ logger })
   if (!firefoxDetected) {
     return {
@@ -65,11 +88,11 @@ const getFirefoxTrustInfo = async ({ logger, rootCertificate, rootCertificateCom
     }
   }
 
-  logger.info(`Check if certificate is trusted in Firefox...`)
-  const firefoxTrustInfo = await getTrustInfoAboutFirefox({
+  logger.info(`Check if certificate is trusted by Firefox...`)
+  const firefoxTrustInfo = await getCertificateTrustInfoFromFirefox({
     logger,
-    rootCertificate,
-    rootCertificateCommonName,
+    certificate,
+    certificateCommonName,
   })
   if (firefoxTrustInfo.status === "trusted") {
     logger.info(`${okSign} certificate trusted by Firefox`)
@@ -83,21 +106,19 @@ const getFirefoxTrustInfo = async ({ logger, rootCertificate, rootCertificateCom
   return firefoxTrustInfo
 }
 
-export const addCertificateAuthority = async ({
+export const addCertificateToTrustStores = async ({
   logger,
-  rootCertificate,
-  rootCertificateFileUrl,
-  rootCertificateCommonName,
-  existingTrustInfo,
-  tryToTrust = false,
+  certificate,
+  certificateFileUrl,
+  certificateCommonName,
   NSSDynamicInstall = true,
+  existingTrustInfo,
 }) => {
-  const macTrustInfo = await getMacTrustInfoTryingToTrust({
+  const macTrustInfo = await putInMacTrustStoreIfNeeded({
     logger,
-    tryToTrust,
     existingMacTrustInfo: existingTrustInfo ? existingTrustInfo.mac : null,
-    rootCertificate,
-    rootCertificateFileUrl,
+    certificate,
+    certificateFileUrl,
   })
 
   // chrome use OS trust store
@@ -106,14 +127,13 @@ export const addCertificateAuthority = async ({
   // safari use OS trust store
   const safariTrustInfo = { ...macTrustInfo }
 
-  const firefoxTrustInfo = await getFirefoxTrustInfoTryingToTrust({
+  const firefoxTrustInfo = await putInFirefoxTrustStoreIfNeeded({
     logger,
-    tryToTrust,
-    existingFirefoxTrustInfo: existingTrustInfo ? existingTrustInfo.firefox : null,
-    rootCertificate,
-    rootCertificateFileUrl,
-    rootCertificateCommonName,
+    certificate,
+    certificateFileUrl,
+    certificateCommonName,
     NSSDynamicInstall,
+    existingFirefoxTrustInfo: existingTrustInfo ? existingTrustInfo.firefox : null,
   })
 
   return {
@@ -124,113 +144,62 @@ export const addCertificateAuthority = async ({
   }
 }
 
-const getMacTrustInfoTryingToTrust = async ({
-  logger,
-  tryToTrust,
-  existingMacTrustInfo,
-  rootCertificate,
-  rootCertificateFileUrl,
-}) => {
-  if (!existingMacTrustInfo) {
-    if (tryToTrust) {
-      return await addCertificateAuthorityInMacKeychain({
-        logger,
-        rootCertificate,
-        rootCertificateFileUrl,
-      })
-    }
-    return {
-      status: "not_trusted",
-      reason: "tryToTrust disabled",
-    }
+const putInMacTrustStoreIfNeeded = async ({ logger, certificate, existingMacTrustInfo }) => {
+  if (existingMacTrustInfo && existingMacTrustInfo.status !== "not_trusted") {
+    return existingMacTrustInfo
   }
 
-  if (existingMacTrustInfo.status === "not_trusted") {
-    if (tryToTrust) {
-      return await addCertificateAuthorityInMacKeychain({
-        logger,
-        rootCertificate,
-        rootCertificateFileUrl,
-      })
-    }
-    return {
-      status: existingMacTrustInfo.status,
-      reason: `${existingMacTrustInfo.reason} and tryToTrust disabled`,
-    }
-  }
-
-  return existingMacTrustInfo
-}
-
-const getFirefoxTrustInfoTryingToTrust = async ({
-  logger,
-  tryToTrust,
-  existingFirefoxTrustInfo,
-  rootCertificate,
-  rootCertificateFileUrl,
-  rootCertificateCommonName,
-  NSSDynamicInstall,
-}) => {
-  if (!existingFirefoxTrustInfo) {
-    const firefoxDetected = detectFirefox({ logger })
-    if (!firefoxDetected) {
-      return {
-        status: "other",
-        reason: "Firefox not detected",
-      }
-    }
-
-    if (tryToTrust) {
-      return await addCertificateAuthorityInFirefox({
-        logger,
-        rootCertificate,
-        rootCertificateFileUrl,
-        rootCertificateCommonName,
-        NSSDynamicInstall,
-      })
-    }
-    return {
-      status: "not_trusted",
-      reason: "tryToTrust disabled",
-    }
-  }
-
-  if (existingFirefoxTrustInfo.status === "not_trusted") {
-    if (tryToTrust) {
-      return await addCertificateAuthorityInFirefox({
-        logger,
-        rootCertificate,
-        rootCertificateFileUrl,
-        rootCertificateCommonName,
-        NSSDynamicInstall,
-      })
-    }
-    return {
-      status: existingFirefoxTrustInfo.status,
-      reason: `${existingFirefoxTrustInfo.reason} and tryToTrust disabled`,
-    }
-  }
-
-  return existingFirefoxTrustInfo
-}
-
-export const removeCertificateAuthority = async ({
-  logger,
-  rootCertificate,
-  rootCertificateFileUrl,
-  rootCertificateCommonName,
-}) => {
-  await removeCertificateAuthorityFromMacKeychain({
+  return await addCertificateInMacTrustStore({
     logger,
-    rootCertificate,
-    rootCertificateFileUrl,
+    certificate,
+  })
+}
+
+const putInFirefoxTrustStoreIfNeeded = async ({
+  logger,
+  certificate,
+  certificateFileUrl,
+  certificateCommonName,
+  NSSDynamicInstall,
+  existingFirefoxTrustInfo,
+}) => {
+  if (existingFirefoxTrustInfo && existingFirefoxTrustInfo.status !== "not_trusted") {
+    return existingFirefoxTrustInfo
+  }
+
+  const firefoxDetected = detectFirefox({ logger })
+  if (!firefoxDetected) {
+    return {
+      status: "other",
+      reason: "Firefox not detected",
+    }
+  }
+
+  return await addCertificateInFirefoxTrustStore({
+    logger,
+    certificate,
+    certificateFileUrl,
+    certificateCommonName,
+    NSSDynamicInstall,
+  })
+}
+
+export const removeCertificateFromTrustStores = async ({
+  logger,
+  certificate,
+  certificateFileUrl,
+  certificateCommonName,
+}) => {
+  await removeCertificateFromMacTrustStore({
+    logger,
+    certificateFileUrl,
   })
 
   // no need for chrome and safari, they are handled by mac keychain
 
-  await removeCertificateAuthorityFromFirefox({
+  await removeCertificateFromFirefoxTrustStore({
     logger,
-    rootCertificate,
-    rootCertificateCommonName,
+    certificate,
+    certificateCommonName,
   })
 }

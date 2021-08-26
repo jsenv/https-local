@@ -17,10 +17,10 @@ const REASON_FIREFOX_NSSDB_NOT_FOUND = "could not find Firefox nss database file
 const REASON_NSSDB_REMOVE_COMMAND_FAILURE = `nss remove command failure`
 const REASON_REMOVED_FROM_ALL_FIREFOX_NSSDB = `removed from all firefox nss database file`
 
-export const removeCertificateAuthorityFromFirefox = async ({
+export const removeCertificateFromFirefoxTrustStore = async ({
   logger,
-  rootCertificate,
-  rootCertificateCommonName,
+  certificate,
+  certificateCommonName,
 }) => {
   const firefoxDetected = detectFirefox({ logger })
   if (!firefoxDetected) {
@@ -32,23 +32,23 @@ export const removeCertificateAuthorityFromFirefox = async ({
 
   const nssCommandAvailable = await detectNSSCommand({ logger })
   if (!nssCommandAvailable) {
-    logger.debug(`No certificate authority to remove because "nss" is not installed`)
+    logger.debug(`No certificate to remove because "nss" is not installed`)
     return {
       status: "unknown",
       reason: REASON_MISSING_NSS,
     }
   }
 
-  logger.info(`Removing certificate authority from Firefox...`)
-  const failureMessage = `${failureSign} failed to remove certificate authority from Firefox`
+  logger.info(`Removing certificate from Firefox...`)
+  const failureMessage = `${failureSign} failed to remove certificate from Firefox`
   return executeOnEveryNSSDB({
     logger,
     NSSDBBrowserName: "Firefox",
     NSSDBDirectoryUrl: firefoxNSSDBDirectoryUrl,
     callback: async ({ directoryArg, NSSDBFileUrl }) => {
       const certutilBinPath = await getCertutilBinPath()
-      const certutilRemoveCommand = `${certutilBinPath} -D -d ${directoryArg} -t C,, -i "${rootCertificate}" -n "${rootCertificateCommonName}"`
-      logger.debug(`Removing certificate fro, ${NSSDBFileUrl}...`)
+      const certutilRemoveCommand = `${certutilBinPath} -D -d ${directoryArg} -t C,, -i "${certificate}" -n "${certificateCommonName}"`
+      logger.debug(`Removing certificate from ${NSSDBFileUrl}...`)
       logger.debug(`${commandSign} ${certutilRemoveCommand}`)
       try {
         await exec(certutilRemoveCommand)
@@ -81,7 +81,7 @@ export const removeCertificateAuthorityFromFirefox = async ({
       }
 
       logger.debug(`${okSign} certificate removed from ${fileCount} firefox nss database file`)
-      logger.info(`${okSign} certificate authority removed from Firefox`)
+      logger.info(`${okSign} certificate removed from Firefox`)
       return {
         status: "not_trusted",
         reason: REASON_REMOVED_FROM_ALL_FIREFOX_NSSDB,

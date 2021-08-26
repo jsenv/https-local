@@ -13,17 +13,17 @@ const REASON_FIREFOX_NSSDB_NOT_FOUND = "could not find Firefox nss database file
 const REASON_NSSDB_ADD_COMMAND_FAILURE = `nss list command failure`
 const REASON_ADDED_IN_ALL_FIREFOX_NSSDB = `added in all firefox nss database file`
 
-export const addCertificateAuthorityInFirefox = async ({
+export const addCertificateInFirefoxTrustStore = async ({
   logger,
-  rootCertificate,
-  rootCertificateFileUrl,
-  rootCertificateCommonName,
+  certificate,
+  certificateFileUrl,
+  certificateCommonName,
   NSSDynamicInstall,
 }) => {
-  logger.info(`Adding certificate authority in Firefox...`)
-  const failureMessage = `${failureSign} failed to add certificate authority in Firefox`
+  logger.info(`Adding certificate in Firefox...`)
+  const failureMessage = `${failureSign} failed to add certificate in Firefox`
   const manualInstallSuggestionMessage = `Ensure ${urlToFileSystemPath(
-    rootCertificateFileUrl,
+    certificateFileUrl,
   )} is installed in Firefox as documented in https://wiki.mozilla.org/PSM:Changing_Trust_Settings`
 
   const nssCommandAvailable = await detectNSSCommand({ logger })
@@ -74,7 +74,7 @@ export const addCertificateAuthorityInFirefox = async ({
     NSSDBDirectoryUrl: firefoxNSSDBDirectoryUrl,
     callback: async ({ directoryArg, NSSDBFileUrl }) => {
       const certutilBinPath = await getCertutilBinPath()
-      const certutilAddCommand = `${certutilBinPath} -A -d ${directoryArg} -t C,, -i "${rootCertificate}" -n "${rootCertificateCommonName}"`
+      const certutilAddCommand = `${certutilBinPath} -A -d ${directoryArg} -t C,, -i "${certificate}" -n "${certificateCommonName}"`
       logger.debug(`Adding certificate to ${NSSDBFileUrl}...`)
       logger.debug(`${commandSign} ${certutilAddCommand}`)
       try {
@@ -110,7 +110,7 @@ export const addCertificateAuthorityInFirefox = async ({
       }
 
       logger.debug(`${okSign} certificate added in ${fileCount} firefox nss database file`)
-      logger.info(`${okSign} certificate authority added in Firefox`)
+      logger.info(`${okSign} certificate added in Firefox`)
       return {
         status: "trusted",
         reason: REASON_ADDED_IN_ALL_FIREFOX_NSSDB,

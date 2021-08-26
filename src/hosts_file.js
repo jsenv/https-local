@@ -8,7 +8,7 @@ import { importSudoPrompt } from "./internal/sudo_prompt.js"
 
 const isWindows = process.platform === "win32"
 
-export const ensureIpMappingsInHostsFile = async ({
+export const verifyHostsFile = async ({
   ipMappings,
   logLevel,
   logger = createLogger({ logLevel }),

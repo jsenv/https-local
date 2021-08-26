@@ -5,8 +5,11 @@ import { urlToFileSystemPath } from "@jsenv/filesystem"
 import { getCertificateAuthorityFileUrls } from "./certificate_authority_file_urls.js"
 
 export const getAuthorityFileInfos = () => {
-  const { certificateAuthorityJsonFileUrl, rootCertificateFileUrl, rootPrivateKeyFileUrl } =
-    getCertificateAuthorityFileUrls()
+  const {
+    certificateAuthorityJsonFileUrl,
+    rootCertificateFileUrl,
+    rootCertificatePrivateKeyFileUrl,
+  } = getCertificateAuthorityFileUrls()
 
   const authorityJsonFilePath = urlToFileSystemPath(certificateAuthorityJsonFileUrl)
   const authorityJsonFileDetected = existsSync(authorityJsonFilePath)
@@ -14,8 +17,8 @@ export const getAuthorityFileInfos = () => {
   const rootCertificateFilePath = urlToFileSystemPath(rootCertificateFileUrl)
   const rootCertificateFileDetected = existsSync(rootCertificateFilePath)
 
-  const rootPrivateKeyFilePath = urlToFileSystemPath(rootPrivateKeyFileUrl)
-  const rootPrivateKeyFileDetected = existsSync(rootPrivateKeyFilePath)
+  const rootCertificatePrivateKeyFilePath = urlToFileSystemPath(rootCertificatePrivateKeyFileUrl)
+  const rootCertificatePrivateKeyFileDetected = existsSync(rootCertificatePrivateKeyFilePath)
 
   return {
     authorityJsonFileInfo: {
@@ -29,9 +32,9 @@ export const getAuthorityFileInfos = () => {
       exists: rootCertificateFileDetected,
     },
     rootPrivateKeyFileInfo: {
-      url: rootPrivateKeyFileUrl,
-      path: rootPrivateKeyFilePath,
-      exists: rootPrivateKeyFileDetected,
+      url: rootCertificatePrivateKeyFileUrl,
+      path: rootCertificatePrivateKeyFilePath,
+      exists: rootCertificatePrivateKeyFileDetected,
     },
   }
 }

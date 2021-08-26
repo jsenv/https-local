@@ -28,39 +28,41 @@ export const requestCertificateForLocalhost = async ({
       `serverCertificateValidityDurationInMs must be > 0 but received ${serverCertificateValidityDurationInMs}`,
     )
   }
-  const serverCertificateValidityDuration = verifyServerCertificateValidityDuration(
+  const validityDurationInfo = verifyServerCertificateValidityDuration(
     serverCertificateValidityDurationInMs,
   )
-  if (!serverCertificateValidityDuration.ok) {
-    serverCertificateValidityDurationInMs = serverCertificateValidityDuration.maxAllowedValue
+  if (!validityDurationInfo.ok) {
+    serverCertificateValidityDurationInMs = validityDurationInfo.maxAllowedValue
     logger.warn(
-      createDetailedMessage(serverCertificateValidityDuration.message, {
-        details: serverCertificateValidityDuration.details,
+      createDetailedMessage(validityDurationInfo.message, {
+        details: validityDurationInfo.details,
       }),
     )
   }
 
-  const { authorityJsonFileInfo, rootCertificateFileInfo, rootPrivateKeyFileInfo } =
+  const { authorityJsonFileInfo, rootCertificateFileInfo, rootCertificatePrivateKeyFileInfo } =
     getAuthorityFileInfos()
   if (!rootCertificateFileInfo.exists) {
     throw new Error(
       `Certificate authority not found, "installCertificateAuthority" must be called before "requestCertificateForLocalhost"`,
     )
   }
-  if (!rootPrivateKeyFileInfo.exists) {
-    throw new Error(`Cannot find certificate authority private key`)
+  if (!rootCertificatePrivateKeyFileInfo.exists) {
+    throw new Error(`Cannot find authority root certificate private key`)
   }
   if (!authorityJsonFileInfo.exists) {
-    throw new Error(`Cannot find certificate authority json file`)
+    throw new Error(`Cannot find authority json file`)
   }
 
   logger.debug(`Restoring certificate authority from filesystem...`)
   const { pki } = await importNodeForge()
-  const rootCertificateFileContent = await readFile(rootCertificateFileInfo.url, { as: "string" })
-  const rootPrivateKeyFileContent = await readFile(rootPrivateKeyFileInfo.url, { as: "string" })
+  const rootCertificate = await readFile(rootCertificateFileInfo.url, { as: "string" })
+  const rootCertificatePrivateKey = await readFile(rootCertificatePrivateKeyFileInfo.url, {
+    as: "string",
+  })
   const certificateAuthorityData = await readFile(authorityJsonFileInfo.url, { as: "json" })
-  const rootForgeCertificate = pki.certificateFromPem(rootCertificateFileContent)
-  const rootForgePrivateKey = pki.privateKeyFromPem(rootPrivateKeyFileContent)
+  const rootCertificateForgeObject = pki.certificateFromPem(rootCertificate)
+  const rootCertificatePrivateKeyForgeObject = pki.privateKeyFromPem(rootCertificatePrivateKey)
   logger.debug(`${okSign} certificate authority restored from filesystem`)
 
   const serverCertificateSerialNumber = certificateAuthorityData.serialNumber + 1
@@ -72,14 +74,14 @@ export const requestCertificateForLocalhost = async ({
   logger.debug(`Generating server certificate...`)
   const { forgeCertificate, privateKey } = await requestCertificateFromAuthority({
     logger,
-    rootForgeCertificate,
-    rootForgePrivateKey,
-    serverCertificateAltNames,
-    serverCertificateSerialNumber,
-    serverCertificateValidityDurationInMs,
+    authorityCertificateForgeObject: rootCertificateForgeObject,
+    auhtorityCertificatePrivateKeyForgeObject: rootCertificatePrivateKeyForgeObject,
+    serialNumber: serverCertificateSerialNumber,
+    altNames: serverCertificateAltNames,
+    validityDurationInMs: serverCertificateValidityDurationInMs,
   })
   const serverCertificate = pki.certificateToPem(forgeCertificate)
-  const serverPrivateKey = pki.privateKeyToPem(privateKey)
+  const serverCertificatePrivateKey = pki.privateKeyToPem(privateKey)
   logger.debug(
     `${okSign} server certificate generated, it will be valid for ${formatDuration(
       serverCertificateValidityDurationInMs,
@@ -88,7 +90,7 @@ export const requestCertificateForLocalhost = async ({
 
   return {
     serverCertificate,
-    serverPrivateKey,
+    serverCertificatePrivateKey,
     rootCertificateFilePath: rootCertificateFileInfo.path,
   }
 }

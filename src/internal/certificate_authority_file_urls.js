@@ -13,12 +13,15 @@ export const getCertificateAuthorityFileUrls = () => {
 
   const rootCertificateFileUrl = new URL("./jsenv_root_certificate.crt", applicationDirectoryUrl)
 
-  const rootPrivateKeyFileUrl = resolveUrl("./jsenv_root_certificate.key", applicationDirectoryUrl)
+  const rootCertificatePrivateKeyFileUrl = resolveUrl(
+    "./jsenv_root_certificate.key",
+    applicationDirectoryUrl,
+  )
 
   return {
     certificateAuthorityJsonFileUrl,
     rootCertificateFileUrl,
-    rootPrivateKeyFileUrl,
+    rootCertificatePrivateKeyFileUrl,
   }
 }
 

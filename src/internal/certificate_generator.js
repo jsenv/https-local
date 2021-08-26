@@ -9,7 +9,7 @@ import {
   extensionArrayFromExtensionDescription,
 } from "./certificate_data_converter.js"
 
-export const createCertificateAuthority = async ({
+export const createAuthorityRootCertificate = async ({
   commonName,
   countryName,
   stateOrProvinceName,
@@ -25,15 +25,16 @@ export const createCertificateAuthority = async ({
 
   const forge = await importNodeForge()
   const { pki } = forge
-  const forgeCertificate = pki.createCertificate()
-  const { privateKey, publicKey } = pki.rsa.generateKeyPair(2048)
+  const rootCertificateForgeObject = pki.createCertificate()
+  const keyPair = pki.rsa.generateKeyPair(2048)
+  const rootCertificatePublicKeyForgeObject = keyPair.publicKey
+  const rootCertificatePrivateKeyForgeObject = keyPair.privateKey
 
-  forgeCertificate.publicKey = publicKey
-  forgeCertificate.serialNumber = serialNumber.toString(16)
-  forgeCertificate.validity.notBefore = new Date()
-  forgeCertificate.validity.notAfter = new Date(Date.now() + validityDurationInMs)
-
-  forgeCertificate.setSubject(
+  rootCertificateForgeObject.publicKey = rootCertificatePublicKeyForgeObject
+  rootCertificateForgeObject.serialNumber = serialNumber.toString(16)
+  rootCertificateForgeObject.validity.notBefore = new Date()
+  rootCertificateForgeObject.validity.notAfter = new Date(Date.now() + validityDurationInMs)
+  rootCertificateForgeObject.setSubject(
     attributeArrayFromAttributeDescription({
       commonName,
       countryName,
@@ -43,7 +44,7 @@ export const createCertificateAuthority = async ({
       organizationalUnitName,
     }),
   )
-  forgeCertificate.setIssuer(
+  rootCertificateForgeObject.setIssuer(
     attributeArrayFromAttributeDescription({
       commonName,
       countryName,
@@ -53,7 +54,7 @@ export const createCertificateAuthority = async ({
       organizationalUnitName,
     }),
   )
-  forgeCertificate.setExtensions(
+  rootCertificateForgeObject.setExtensions(
     extensionArrayFromExtensionDescription({
       basicConstraints: {
         critical: true,
@@ -74,55 +75,63 @@ export const createCertificateAuthority = async ({
   )
 
   // self-sign certificate
-  forgeCertificate.sign(privateKey, forge.sha256.create())
+  rootCertificateForgeObject.sign(rootCertificatePrivateKeyForgeObject, forge.sha256.create())
 
   return {
-    forgeCertificate,
-    publicKey,
-    privateKey,
+    rootCertificateForgeObject,
+    rootCertificatePublicKeyForgeObject,
+    rootCertificatePrivateKeyForgeObject,
   }
 }
 
 export const requestCertificateFromAuthority = async ({
-  rootForgeCertificate,
-  rootForgePrivateKey,
-  serverCertificateAltNames = [],
-  serverCertificateValidityDurationInMs,
-  serverCertificateSerialNumber,
+  authorityCertificateForgeObject, // could be intermediate or root certificate authority
+  authorityCertificatePrivateKey,
+  serialNumber,
+  altNames = [],
+  validityDurationInMs,
 }) => {
-  if (typeof rootForgeCertificate !== "object" || rootForgeCertificate === null) {
+  if (
+    typeof authorityCertificateForgeObject !== "object" ||
+    authorityCertificateForgeObject === null
+  ) {
     throw new TypeError(
-      `rootForgeCertificate must be an object but received ${rootForgeCertificate}`,
+      `authorityCertificateForgeObject must be an object but received ${authorityCertificateForgeObject}`,
     )
   }
-  if (typeof rootForgePrivateKey !== "object" || rootForgePrivateKey === null) {
-    throw new TypeError(`rootForgePrivateKey must be an object but received ${rootForgePrivateKey}`)
-  }
-  if (typeof serverCertificateSerialNumber !== "number") {
+  if (
+    typeof authorityCertificatePrivateKey !== "object" ||
+    authorityCertificatePrivateKey === null
+  ) {
     throw new TypeError(
-      `serverCertificateSerialNumber must be a number but received ${serverCertificateSerialNumber}`,
+      `authorityCertificatePrivateKey must be an object but received ${authorityCertificatePrivateKey}`,
     )
+  }
+  if (typeof serialNumber !== "number") {
+    throw new TypeError(`serialNumber must be a number but received ${serialNumber}`)
   }
 
   const forge = await importNodeForge()
   const { pki } = forge
-  const forgeCertificate = pki.createCertificate()
-  const { privateKey, publicKey } = pki.rsa.generateKeyPair(2048)
+  const certificateForgeObject = pki.createCertificate()
+  const keyPair = pki.rsa.generateKeyPair(2048)
+  const certificatePublicKeyForgeObject = keyPair.publicKey
+  const certificatePrivateKeyForgeObject = keyPair.privateKey
 
-  forgeCertificate.publicKey = publicKey
-  forgeCertificate.serialNumber = serverCertificateSerialNumber.toString(16)
-  forgeCertificate.validity.notBefore = new Date()
-  forgeCertificate.validity.notAfter = new Date(Date.now() + serverCertificateValidityDurationInMs)
+  certificateForgeObject.publicKey = certificatePublicKeyForgeObject
+  certificateForgeObject.serialNumber = serialNumber.toString(16)
+  certificateForgeObject.validity.notBefore = new Date()
+  certificateForgeObject.validity.notAfter = new Date(Date.now() + validityDurationInMs)
 
   const attributeDescription = {
-    ...attributeDescriptionFromAttributeArray(rootForgeCertificate.subject.attributes),
+    ...attributeDescriptionFromAttributeArray(authorityCertificateForgeObject.subject.attributes),
     // commonName: serverCertificateCommonName,
     // organizationName: serverCertificateOrganizationName
   }
   const attributeArray = attributeArrayFromAttributeDescription(attributeDescription)
-  forgeCertificate.setSubject(attributeArray)
-  forgeCertificate.setIssuer(rootForgeCertificate.subject.attributes)
-  forgeCertificate.setExtensions(
+  certificateForgeObject.setSubject(attributeArray)
+  certificateForgeObject.setIssuer(authorityCertificateForgeObject.subject.attributes)
+  certificateForgeObject.setExtensions(
     extensionArrayFromExtensionDescription({
       basicConstraints: {
         critical: true,
@@ -139,19 +148,19 @@ export const requestCertificateFromAuthority = async ({
       },
       authorityKeyIdentifier: {
         critical: false,
-        keyIdentifier: rootForgeCertificate.generateSubjectKeyIdentifier().getBytes(),
+        keyIdentifier: authorityCertificateForgeObject.generateSubjectKeyIdentifier().getBytes(),
       },
       subjectAltName: {
         critical: false,
-        altNames: subjectAltNamesFromAltNames(serverCertificateAltNames),
+        altNames: subjectAltNamesFromAltNames(altNames),
       },
     }),
   )
-  forgeCertificate.sign(rootForgePrivateKey, forge.sha256.create())
+  certificateForgeObject.sign(authorityCertificatePrivateKey, forge.sha256.create())
 
   return {
-    forgeCertificate,
-    publicKey,
-    privateKey,
+    certificateForgeObject,
+    certificatePublicKeyForgeObject,
+    certificatePrivateKeyForgeObject,
   }
 }

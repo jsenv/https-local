@@ -1,15 +1,14 @@
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000
 const MILLISECONDS_PER_YEAR = MILLISECONDS_PER_DAY * 365
 
-export const verifyRootCertificateValidityDuration = (rootCertificateValidityDurationInMs) => {
-  const rootCertificateValidityDurationInYears =
-    rootCertificateValidityDurationInMs / MILLISECONDS_PER_YEAR
+export const verifyRootCertificateValidityDuration = (validityDurationInMs) => {
+  const durationInYears = validityDurationInMs / MILLISECONDS_PER_YEAR
 
-  if (rootCertificateValidityDurationInYears > 25) {
+  if (durationInYears > 25) {
     return {
       ok: false,
       maxAllowedValue: MILLISECONDS_PER_YEAR * 25,
-      message: `root certificate validity duration of ${rootCertificateValidityDurationInYears} years is too much, using the max recommended duration: 25 years`,
+      message: `root certificate validity duration of ${durationInYears} years is too much, using the max recommended duration: 25 years`,
       details:
         "https://serverfault.com/questions/847190/in-theory-could-a-ca-make-a-certificate-that-is-valid-for-arbitrarily-long",
     }

@@ -1,134 +1,236 @@
 /*
- * see https://github.com/davewasmer/devcert/blob/master/src/platforms/linux.ts
+ * see
+ * - https://github.com/davewasmer/devcert/blob/master/src/platforms/darwin.ts
+ * - https://www.unix.com/man-page/mojave/1/security/
  */
 
-import { existsSync } from "node:fs"
-import { createDetailedMessage } from "@jsenv/logger"
-import { readFile, urlToFileSystemPath } from "@jsenv/filesystem"
+import { infoSign, okSign } from "@jsenv/https-localhost/src/internal/logs.js"
 
-import { exec } from "../exec.js"
+import { detectFirefox } from "./mac/mac_utils.js"
+import { getTrustInfoAboutMacKeychain } from "./mac/getTrustInfoAboutMacKeychain.js"
+import { getTrustInfoAboutFirefox } from "./mac/getTrustInfoAboutFirefox.js"
+import { addCertificateAuthorityInMacKeychain } from "./mac/addCertificateAuthorityInMacKeychain.js"
+import { addCertificateAuthorityInFirefox } from "./mac/addCertificateAuthorityInFirefox.js"
+import { removeCertificateAuthorityFromMacKeychain } from "./mac/removeCertificateAuthorityFromMacKeychain.js"
+import { removeCertificateAuthorityFromFirefox } from "./mac/removeCertificateAuthorityFromFirefox.js"
 
-export { ensureHostnamesRegistration } from "./shared.js"
-
-export const ensureRootCertificateRegistration = async ({
+export const getCertificateAuthorityTrustInfo = async ({
   logger,
-  rootCertificateFileUrl,
-  rootCertificateSymlinkUrl,
-  rootCertificateStatus,
-  rootCertificatePEM,
-
-  tryToTrustRootCertificate,
+  rootCertificate,
+  rootCertificateCommonName,
 }) => {
-  const isInLinuxTrustStore = await detectRootCertificateInLinuxTrustStore({
+  const macTrustInfo = await getMacTrustInfo({
     logger,
-    rootCertificatePEM,
   })
 
-  if (!isInLinuxTrustStore) {
-    const copyRootCertificateCommand = `sudo cp "${urlToFileSystemPath(
-      rootCertificateFileUrl,
-    )}" /usr/local/share/ca-certificates/jsenv_root_certificate.crt`
-    const updateCertificateAuthoritiesCommand = `sudo update-ca-certificates`
+  // chrome use OS trust store
+  const chromeTrustInfo = { ...macTrustInfo }
 
-    if (tryToTrustRootCertificate) {
-      logger.info(`
-Adding root certificate to linux trust store
-> ${copyRootCertificateCommand}
-> ${updateCertificateAuthoritiesCommand}
-`)
-      try {
-        await exec(copyRootCertificateCommand)
-        await exec(updateCertificateAuthoritiesCommand)
-      } catch (e) {
-        logger.error(
-          createDetailedMessage(`Failed to add root certificate to linux trust store`, {
-            "error stack": e.stack,
-            "root certificate file url": rootCertificateFileUrl,
-          }),
-        )
-      }
-    } else {
-      logger.info(`
-${createDetailedMessage(`Root certificate must be added to linux trust store`, {
-  "root certificate file": urlToFileSystemPath(rootCertificateSymlinkUrl),
-  "suggested command": `> ${copyRootCertificateCommand}
-> ${updateCertificateAuthoritiesCommand}`,
-})}
-`)
-    }
+  // safari use OS trust store
+  const safariTrustInfo = { ...macTrustInfo }
+
+  const firefoxTrustInfo = await getFirefoxTrustInfo({
+    logger,
+    rootCertificate,
+    rootCertificateCommonName,
+  })
+
+  return {
+    mac: macTrustInfo,
+    chrome: chromeTrustInfo,
+    safari: safariTrustInfo,
+    firefox: firefoxTrustInfo,
   }
+}
 
-  const chromeDetected = detectChrome({ logger })
-  if (chromeDetected) {
-    if (rootCertificateStatus === "reused") {
-      logger.debug(`Root certificate reused, skip "how to trust for chrome" log`)
-    } else {
-      logger.info(`
-${createDetailedMessage(`Root certificate needs to be trusted in Chrome`, {
-  "root certificate file": urlToFileSystemPath(rootCertificateSymlinkUrl),
-  "suggested documentation":
-    "https://docs.vmware.com/en/VMware-Adapter-for-SAP-Landscape-Management/2.0.1/Installation-and-Administration-Guide-for-VLA-Administrators/GUID-D60F08AD-6E54-4959-A272-458D08B8B038.html",
-})}
-`)
-    }
+const getMacTrustInfo = async ({ logger }) => {
+  logger.info(`Check if certificate is trusted in mac OS...`)
+  const macTrustInfo = await getTrustInfoAboutMacKeychain({
+    logger,
+  })
+  if (macTrustInfo.status === "trusted") {
+    logger.info(`${okSign} certificate trusted by mac OS`)
+  } else {
+    logger.info(`${infoSign} certificate not trusted by mac OS`)
   }
+  return macTrustInfo
+}
 
+const getFirefoxTrustInfo = async ({ logger, rootCertificate, rootCertificateCommonName }) => {
   const firefoxDetected = detectFirefox({ logger })
-  if (firefoxDetected) {
-    if (rootCertificateStatus === "reused") {
-      logger.debug(`Root certificate reused, skip "how to trust for firefox" log`)
-    } else {
-      logger.info(`
-${createDetailedMessage(`Root certificate needs to be trusted in Firefox`, {
-  "root certificate file": urlToFileSystemPath(rootCertificateSymlinkUrl),
-  "suggested documentation": "https://wiki.mozilla.org/PSM:Changing_Trust_Settings",
-})}
-`)
+  if (!firefoxDetected) {
+    return {
+      status: "other",
+      reason: "Firefox not detected",
     }
   }
+
+  logger.info(`Check if certificate is trusted in Firefox...`)
+  const firefoxTrustInfo = await getTrustInfoAboutFirefox({
+    logger,
+    rootCertificate,
+    rootCertificateCommonName,
+  })
+  if (firefoxTrustInfo.status === "trusted") {
+    logger.info(`${okSign} certificate trusted by Firefox`)
+  } else if (firefoxTrustInfo.status === "not_trusted") {
+    logger.info(`${infoSign} certificate not trusted by Firefox`)
+  } else {
+    logger.info(
+      `${infoSign} unable to detect if certificate is trusted by Firefox (${firefoxTrustInfo.reason})`,
+    )
+  }
+  return firefoxTrustInfo
 }
 
-const detectRootCertificateInLinuxTrustStore = async ({ logger, rootCertificatePEM }) => {
-  logger.debug(`Searching root certificate in linux trust store`)
-  const rootCertificateInTrustStore = existsSync(
-    `/usr/local/share/ca-certificates/jsenv_root_certificate.crt`,
-  )
+export const addCertificateAuthority = async ({
+  logger,
+  rootCertificate,
+  rootCertificateFileUrl,
+  rootCertificateCommonName,
+  existingTrustInfo,
+  tryToTrust = false,
+  NSSDynamicInstall = true,
+}) => {
+  const macTrustInfo = await getMacTrustInfoTryingToTrust({
+    logger,
+    tryToTrust,
+    existingMacTrustInfo: existingTrustInfo ? existingTrustInfo.mac : null,
+    rootCertificate,
+    rootCertificateFileUrl,
+  })
 
-  if (!rootCertificateInTrustStore) {
-    logger.debug(`Root certificate is not in linux trust store`)
-    return false
+  // chrome use OS trust store
+  const chromeTrustInfo = { ...macTrustInfo }
+
+  // safari use OS trust store
+  const safariTrustInfo = { ...macTrustInfo }
+
+  const firefoxTrustInfo = await getFirefoxTrustInfoTryingToTrust({
+    logger,
+    tryToTrust,
+    existingFirefoxTrustInfo: existingTrustInfo ? existingTrustInfo.firefox : null,
+    rootCertificate,
+    rootCertificateFileUrl,
+    rootCertificateCommonName,
+    NSSDynamicInstall,
+  })
+
+  return {
+    mac: macTrustInfo,
+    chrome: chromeTrustInfo,
+    safari: safariTrustInfo,
+    firefox: firefoxTrustInfo,
   }
-
-  const rootCertificatePEMInLinuxStore = await readFile(
-    `/usr/local/share/ca-certificates/jsenv_root_certificate.crt`,
-  )
-  if (rootCertificatePEMInLinuxStore !== rootCertificatePEM) {
-    logger.debug(`Root certificate in linux store is different, it needs to be updated`)
-    return false
-  }
-
-  logger.debug(`Root certificate already in linux store`)
-  return true
 }
 
-const detectChrome = ({ logger }) => {
-  const chromeBinFileExists = existsSync("/usr/bin/google-chrome")
-  if (!chromeBinFileExists) {
-    logger.debug(`Chrome not detected`)
-    return false
+const getMacTrustInfoTryingToTrust = async ({
+  logger,
+  tryToTrust,
+  existingMacTrustInfo,
+  rootCertificate,
+  rootCertificateFileUrl,
+}) => {
+  if (!existingMacTrustInfo) {
+    if (tryToTrust) {
+      return await addCertificateAuthorityInMacKeychain({
+        logger,
+        rootCertificate,
+        rootCertificateFileUrl,
+      })
+    }
+    return {
+      status: "not_trusted",
+      reason: "tryToTrust disabled",
+    }
   }
 
-  logger.debug("Chrome detected")
-  return true
+  if (existingMacTrustInfo.status === "not_trusted") {
+    if (tryToTrust) {
+      return await addCertificateAuthorityInMacKeychain({
+        logger,
+        rootCertificate,
+        rootCertificateFileUrl,
+      })
+    }
+    return {
+      status: existingMacTrustInfo.status,
+      reason: `${existingMacTrustInfo.reason} and tryToTrust disabled`,
+    }
+  }
+
+  return existingMacTrustInfo
 }
 
-const detectFirefox = ({ logger }) => {
-  const firefoxBinFileExists = existsSync("/usr/bin/firefox")
-  if (!firefoxBinFileExists) {
-    logger.debug(`Firefox not detected`)
-    return false
+const getFirefoxTrustInfoTryingToTrust = async ({
+  logger,
+  tryToTrust,
+  existingFirefoxTrustInfo,
+  rootCertificate,
+  rootCertificateFileUrl,
+  rootCertificateCommonName,
+  NSSDynamicInstall,
+}) => {
+  if (!existingFirefoxTrustInfo) {
+    const firefoxDetected = detectFirefox({ logger })
+    if (!firefoxDetected) {
+      return {
+        status: "other",
+        reason: "Firefox not detected",
+      }
+    }
+
+    if (tryToTrust) {
+      return await addCertificateAuthorityInFirefox({
+        logger,
+        rootCertificate,
+        rootCertificateFileUrl,
+        rootCertificateCommonName,
+        NSSDynamicInstall,
+      })
+    }
+    return {
+      status: "not_trusted",
+      reason: "tryToTrust disabled",
+    }
   }
 
-  logger.debug("Firefox detected")
-  return true
+  if (existingFirefoxTrustInfo.status === "not_trusted") {
+    if (tryToTrust) {
+      return await addCertificateAuthorityInFirefox({
+        logger,
+        rootCertificate,
+        rootCertificateFileUrl,
+        rootCertificateCommonName,
+        NSSDynamicInstall,
+      })
+    }
+    return {
+      status: existingFirefoxTrustInfo.status,
+      reason: `${existingFirefoxTrustInfo.reason} and tryToTrust disabled`,
+    }
+  }
+
+  return existingFirefoxTrustInfo
+}
+
+export const removeCertificateAuthority = async ({
+  logger,
+  rootCertificate,
+  rootCertificateFileUrl,
+  rootCertificateCommonName,
+}) => {
+  await removeCertificateAuthorityFromMacKeychain({
+    logger,
+    rootCertificate,
+    rootCertificateFileUrl,
+  })
+
+  // no need for chrome and safari, they are handled by mac keychain
+
+  await removeCertificateAuthorityFromFirefox({
+    logger,
+    rootCertificate,
+    rootCertificateCommonName,
+  })
 }

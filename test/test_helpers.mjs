@@ -1,36 +1,7 @@
 import { createServer } from "node:https"
 import { createRequire } from "node:module"
-import { removeFileSystemNode } from "@jsenv/filesystem"
-
-import { getCertificateAuthorityFileUrls } from "@jsenv/https-localhost/src/internal/certificate_authority_file_urls.js"
 
 const require = createRequire(import.meta.url)
-
-export const TEST_PARAMS = {
-  serverCertificateFileUrl: new URL("./certificate/server.crt", import.meta.url),
-}
-
-export const resetAllCertificateFiles = async () => {
-  await resetCertificateAuthorityFiles()
-  await resetServerCertificateFiles()
-}
-
-export const resetCertificateAuthorityFiles = async () => {
-  const { certificateAuthorityJsonFileUrl, rootCertificateFileUrl, rootPrivateKeyFileUrl } =
-    getCertificateAuthorityFileUrls()
-
-  // maybe we could/should just use ensureEmptyDirectory on the certificate autorithy directory
-  await removeFileSystemNode(certificateAuthorityJsonFileUrl, { allowUseless: true })
-  await removeFileSystemNode(rootCertificateFileUrl, { allowUseless: true })
-  await removeFileSystemNode(rootPrivateKeyFileUrl, { allowUseless: true })
-}
-
-export const resetServerCertificateFiles = async () => {
-  const { serverCertificateFileUrl } = TEST_PARAMS
-  const serverPrivateKeyFileUrl = new URL("./certificate/server.key", import.meta.url)
-  await removeFileSystemNode(serverCertificateFileUrl, { allowUseless: true })
-  await removeFileSystemNode(serverPrivateKeyFileUrl, { allowUseless: true })
-}
 
 /*
  * Logs are an important part of this package
@@ -89,14 +60,14 @@ export const createLoggerForTest = ({ forwardToConsole = false } = {}) => {
 
 export const startServerForTest = async ({
   serverCertificate,
-  serverPrivateKey,
+  serverCertificatePrivateKey,
   keepAlive = false,
   port = 0,
 }) => {
   const server = createServer(
     {
       cert: serverCertificate,
-      key: serverPrivateKey,
+      key: serverCertificatePrivateKey,
     },
     (request, response) => {
       const body = "Hello world"

@@ -1,3 +1,5 @@
+// https://github.com/nccgroup/wssip/blob/56d0d2c15a7c0fd4c99be445ec8d6c16571e81a0/lib/mitmengine.js#L450
+
 import { writeSymbolicLink } from "@jsenv/filesystem"
 import {
   installCertificateAuthority,
@@ -20,7 +22,7 @@ const { serverCertificate, serverCertificatePrivateKey, rootCertificateFilePath 
 if (process.platform !== "win32") {
   // not on windows because symlink requires admin rights
   await writeSymbolicLink({
-    from: new URL("./jsenv_root_cert.pem", import.meta.url),
+    from: new URL("./jsenv_root_certificate.pem", import.meta.url),
     to: rootCertificateFilePath,
     type: "file",
     allowUseless: true,

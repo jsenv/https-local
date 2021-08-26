@@ -26,7 +26,7 @@ export const createAuthorityRootCertificate = async ({
   const forge = await importNodeForge()
   const { pki } = forge
   const rootCertificateForgeObject = pki.createCertificate()
-  const keyPair = pki.rsa.generateKeyPair(2048)
+  const keyPair = pki.rsa.generateKeyPair(2048) // TODO: use async version https://github.com/digitalbazaar/forge#rsa
   const rootCertificatePublicKeyForgeObject = keyPair.publicKey
   const rootCertificatePrivateKeyForgeObject = keyPair.privateKey
 
@@ -115,7 +115,7 @@ export const requestCertificateFromAuthority = async ({
   const forge = await importNodeForge()
   const { pki } = forge
   const certificateForgeObject = pki.createCertificate()
-  const keyPair = pki.rsa.generateKeyPair(2048)
+  const keyPair = pki.rsa.generateKeyPair(2048) // TODO: use async version https://github.com/digitalbazaar/forge#rsa
   const certificatePublicKeyForgeObject = keyPair.publicKey
   const certificatePrivateKeyForgeObject = keyPair.privateKey
 

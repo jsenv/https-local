@@ -1,12 +1,16 @@
 import { assert } from "@jsenv/assert"
 
 import {
-  createCertificateAuthority,
+  createAuthorityRootCertificate,
   requestCertificateFromAuthority,
 } from "@jsenv/https-localhost/src/internal/certificate_generator.js"
 import { createLoggerForTest } from "@jsenv/https-localhost/test/test_helpers.mjs"
 
-const jsenvCertificateAuthority = await createCertificateAuthority({
+const {
+  rootCertificateForgeObject,
+  rootCertificatePublicKeyForgeObject,
+  rootCertificatePrivateKeyForgeObject,
+} = await createAuthorityRootCertificate({
   logger: createLoggerForTest(),
   commonName: "https://github.com/jsenv/server",
   countryName: "FR",
@@ -19,27 +23,36 @@ const jsenvCertificateAuthority = await createCertificateAuthority({
 })
 
 {
-  const actual = jsenvCertificateAuthority
+  const actual = {
+    rootCertificateForgeObject,
+    rootCertificatePublicKeyForgeObject,
+    rootCertificatePrivateKeyForgeObject,
+  }
   const expected = {
-    forgeCertificate: assert.any(Object),
-    publicKey: assert.any(Object),
-    privateKey: assert.any(Object),
+    rootCertificateForgeObject: assert.any(Object),
+    rootCertificatePublicKeyForgeObject: assert.any(Object),
+    rootCertificatePrivateKeyForgeObject: assert.any(Object),
   }
   assert({ actual, expected })
 }
 
 {
-  const jsenvServerCertificate = await requestCertificateFromAuthority({
-    certificateAuthority: jsenvCertificateAuthority,
-    altNames: ["127.0.0.1", "localhost", "jsenv"],
-    validityDurationInMs: 100,
+  const certificate = await requestCertificateFromAuthority({
+    authorityCertificateForgeObject: rootCertificateForgeObject,
+    auhtorityCertificatePrivateKeyForgeObject: rootCertificatePrivateKeyForgeObject,
     serialNumber: 1,
+    altNames: ["localhost", "jsenv"],
+    validityDurationInMs: 100,
   })
-  const actual = jsenvServerCertificate
+  const actual = certificate
   const expected = {
-    forgeCertificate: assert.any(Object),
-    publicKey: assert.any(Object),
-    privateKey: assert.any(Object),
+    certificateForgeObject: assert.any(Object),
+    certificatePublicKeyForgeObject: assert.any(Object),
+    certificatePrivateKeyForgeObject: assert.any(Object),
   }
   assert({ actual, expected })
 }
+
+// ici ça serais bien de tester des truc de forge,
+// genre que le certificat issuer est bien l'authorité
+PEM

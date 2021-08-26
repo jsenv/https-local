@@ -33,7 +33,7 @@ export const installCertificateAuthority = async ({
   logLevel,
   logger = createLogger({ logLevel }),
 
-  certificateCommonName = jsenvParameters.commonName,
+  certificateCommonName = jsenvParameters.certificateCommonName,
   certificateValidityDurationInMs = jsenvParameters.certificateValidityDurationInMs,
 
   tryToTrust = false,
@@ -70,11 +70,11 @@ export const installCertificateAuthority = async ({
     )
   }
 
-  const { authorityJsonFileInfo, rootCertificateFileInfo, rootPrivateKeyFileInfo } =
+  const { authorityJsonFileInfo, rootCertificateFileInfo, rootCertificatePrivateKeyFileInfo } =
     getAuthorityFileInfos()
   const authorityJsonFileUrl = authorityJsonFileInfo.url
   const rootCertificateFileUrl = rootCertificateFileInfo.url
-  const rootPrivateKeyFileUrl = rootPrivateKeyFileInfo.url
+  const rootPrivateKeyFileUrl = rootCertificatePrivateKeyFileInfo.url
   const platformMethods = await importPlatformMethods()
 
   const generateRootCertificate = async () => {
@@ -150,18 +150,18 @@ export const installCertificateAuthority = async ({
     logger.debug(
       `Authority root certificate file is not on filesystem at ${rootCertificateFileInfo.path}`,
     )
-    logger.info(`${infoSign} no certificate authority on the filesystem`)
+    logger.info(`${infoSign} no certificate authority on filesystem`)
     return generate()
   }
-  if (!rootPrivateKeyFileInfo.exists) {
+  if (!rootCertificatePrivateKeyFileInfo.exists) {
     logger.debug(
-      `Authority root certificate private key file is not on filesystem at ${rootPrivateKeyFileInfo.path}`,
+      `Authority root certificate private key file is not on filesystem at ${rootCertificatePrivateKeyFileInfo.path}`,
     )
-    logger.info(`${infoSign} no certificate authority on the filesystem`)
+    logger.info(`${infoSign} no certificate authority on filesystem`)
     return generate()
   }
   logger.debug(
-    `found authority root certificate files at ${rootCertificateFileInfo.path} and ${rootPrivateKeyFileInfo.path}`,
+    `found authority root certificate files at ${rootCertificateFileInfo.path} and ${rootCertificatePrivateKeyFileInfo.path}`,
   )
   logger.info(`${okSign} certificate authority found on filesystem`)
 
@@ -206,7 +206,9 @@ export const installCertificateAuthority = async ({
   }
   logger.info(`${okSign} certificate attributes are the same`)
 
-  const rootCertificatePrivateKey = await readFile(rootPrivateKeyFileInfo.path, { as: "string" })
+  const rootCertificatePrivateKey = await readFile(rootCertificatePrivateKeyFileInfo.path, {
+    as: "string",
+  })
   const rootCertificatePrivateKeyForgeObject = pki.privateKeyFromPem(rootCertificatePrivateKey)
 
   const existingTrustInfo = await platformMethods.getCertificateTrustInfo({

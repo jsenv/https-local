@@ -31,7 +31,7 @@ export const getAuthorityFileInfos = () => {
       path: rootCertificateFilePath,
       exists: rootCertificateFileDetected,
     },
-    rootPrivateKeyFileInfo: {
+    rootCertificatePrivateKeyFileInfo: {
       url: rootCertificatePrivateKeyFileUrl,
       path: rootCertificatePrivateKeyFilePath,
       exists: rootCertificatePrivateKeyFileDetected,

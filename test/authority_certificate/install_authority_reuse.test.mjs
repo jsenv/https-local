@@ -33,7 +33,7 @@ const expected = {
     rootCertificatePrivateKeyForgeObject: assert.any(Object),
     rootCertificate: assert.any(String),
     rootCertificatePrivateKey: assert.any(String),
-    rootCertificatePath: assert.any(String),
+    rootCertificateFilePath: assert.any(String),
     trustInfo: {
       mac: {
         status: "not_trusted",

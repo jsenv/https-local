@@ -17,7 +17,7 @@ await new Promise((resolve) => {
 const loggerForSecondCall = createLoggerForTest({
   // forwardToConsole: true,
 })
-const { rootCertificatePath } = await installCertificateAuthority({
+const { rootCertificateFilePath } = await installCertificateAuthority({
   logger: loggerForSecondCall,
   certificateValidityDurationInMs: 6000,
   aboutToExpireRatio: 0.95,
@@ -37,7 +37,7 @@ const { rootCertificatePath } = await installCertificateAuthority({
       `Checking certificate validity...`,
       assert.matchesRegExp(/certificate will expire in \d seconds/),
       `Generating authority root certificate...`,
-      `${okSign} authority root certificate valid for 6 seconds written at ${rootCertificatePath}`,
+      `${okSign} authority root certificate valid for 6 seconds written at ${rootCertificateFilePath}`,
     ],
     warns: [],
     errors: [],

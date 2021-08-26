@@ -130,7 +130,7 @@ export const installCertificateAuthority = async ({
       rootCertificatePrivateKeyForgeObject,
       rootCertificate,
       rootCertificatePrivateKey,
-      rootCertificatePath: rootCertificateFileInfo.path,
+      rootCertificateFilePath: rootCertificateFileInfo.path,
       trustInfo,
     }
   }
@@ -235,7 +235,7 @@ export const installCertificateAuthority = async ({
     rootCertificatePrivateKeyForgeObject,
     rootCertificate,
     rootCertificatePrivateKey,
-    rootCertificatePath: rootCertificateFileInfo.path,
+    rootCertificateFilePath: rootCertificateFileInfo.path,
     trustInfo,
   }
 }

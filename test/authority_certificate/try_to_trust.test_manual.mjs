@@ -1,3 +1,4 @@
+import { writeSymbolicLink } from "@jsenv/filesystem"
 import {
   installCertificateAuthority,
   uninstallCertificateAuthority,
@@ -11,9 +12,21 @@ await uninstallCertificateAuthority({
 await installCertificateAuthority({
   tryToTrust: true,
 })
-const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateAltNames: ["localhost"],
-})
+const { serverCertificate, serverCertificatePrivateKey, rootCertificateFilePath } =
+  await requestCertificateForLocalhost({
+    serverCertificateAltNames: ["localhost", "*.localhost"],
+  })
+
+if (process.platform !== "win32") {
+  // not on windows because symlink requires admin rights
+  await writeSymbolicLink({
+    from: new URL("./jsenv_root_cert.pem", import.meta.url),
+    to: rootCertificateFilePath,
+    type: "file",
+    allowUseless: true,
+    allowOverwrite: true,
+  })
+}
 
 const serverOrigin = await startServerForTest({
   port: 4456,

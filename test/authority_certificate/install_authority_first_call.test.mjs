@@ -16,7 +16,7 @@ const {
   rootCertificatePrivateKeyForgeObject,
   rootCertificate,
   rootCertificatePrivateKey,
-  rootCertificatePath,
+  rootCertificateFilePath,
   trustInfo,
 } = await installCertificateAuthority({
   logger: loggerForTest,
@@ -33,7 +33,7 @@ const actual = {
   rootCertificatePrivateKeyForgeObject,
   rootCertificate,
   rootCertificatePrivateKey,
-  rootCertificatePath,
+  rootCertificateFilePath,
   trustInfo,
 }
 const expected = {
@@ -41,7 +41,7 @@ const expected = {
     `Search existing certificate authority on filesystem...`,
     `${infoSign} no certificate authority on filesystem`,
     `Generating authority root certificate...`,
-    `${okSign} authority root certificate valid for 20 years written at ${actual.returnValue.rootCertificatePath}`,
+    `${okSign} authority root certificate valid for 20 years written at ${actual.returnValue.rootCertificateFilePath}`,
   ],
   warns: [],
   errors: [],
@@ -49,7 +49,7 @@ const expected = {
   rootCertificatePrivateKeyForgeObject: assert.any(Object),
   rootCertificate: assert.any(String),
   rootCertificatePrivateKey: assert.any(String),
-  rootCertificatePath: assert.any(String),
+  rootCertificateFilePath: assert.any(String),
   trustInfo: {
     mac: {
       status: "not_trusted",

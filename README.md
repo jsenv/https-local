@@ -32,6 +32,7 @@ const { serverCertificate, serverPrivateKey } = await requestCertificateForLocal
 # installCertificateAuthority
 
 _installCertificateAuthority_ function generates a certificate authority valid for 20 years.
+This certificate authority is needed to generate local certificates that will be trusted by the operating system and web browsers.
 
 ```js
 import { installCertificateAuthority } from "@jsenv/https-localhost"
@@ -241,6 +242,47 @@ Check hosts file content...
 ```
 
 # requestCertificateForLocalhost
+
+_requestCertificateForLocalhost_ function returns a certificate and private key that can be used to start a server in HTTPS.
+
+```js
+import { createServer } from "node:https"
+import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
+
+const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost({
+  serverCertificateAltNames: ["localhost", "local.example.com"],
+})
+
+const server = createServer(
+  {
+    cert: serverCertificate,
+    key: serverCertificatePrivateKey,
+  },
+  (request, response) => {
+    const body = "Hello world"
+    response.writeHead(200, {
+      "content-type": "text/plain",
+      "content-length": Buffer.byteLength(body),
+    })
+    response.write(body)
+    response.end()
+  },
+)
+server.listen(8080)
+console.log(`Server listening at https://localhost:8080`)
+```
+
+[installCertificateAuthority](#installCertificateAuthority) must be called before this function.
+
+# Certificate expiration
+
+The server certificate expires after one year which is the maximum duration allowed by web browsers.
+
+In the unlikely scenario where your local server is running for more than a year without interruption, restart it and you're good to do for one more year.
+
+The authority root certificate expires after 20 years which is close to the maximum allowed duration.
+
+In the almost impossible scenario where you are using the same machine for more than 20 years, re-execute [installCertificateAuthority](#installCertificateAuthority) to update certificate authority and restart your server.
 
 # Installation
 

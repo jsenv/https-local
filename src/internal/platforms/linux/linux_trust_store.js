@@ -47,7 +47,7 @@ export const getCertificateTrustInfoFromLinux = async ({ logger, certificate }) 
 
 export const addCertificateInLinuxTrustStore = async ({ logger, certificateFileUrl }) => {
   const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
-  const copyCertificateCommand = `sudo cp "${certificateFilePath}" ${JSENV_CERTIFICATE_AUTHORITY_PATH}`
+  const copyCertificateCommand = `sudo /bin/cp -f "${certificateFilePath}" ${JSENV_CERTIFICATE_AUTHORITY_PATH}`
   const updateCertificateCommand = `sudo update-ca-certificates`
   logger.info(`Adding certificate to linux...`)
   try {

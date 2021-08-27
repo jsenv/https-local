@@ -4,7 +4,7 @@
 
 import { existsSync } from "node:fs"
 import { createDetailedMessage } from "@jsenv/logger"
-import { readFile, urlToFileSystemPath, removeFileSystemNode } from "@jsenv/filesystem"
+import { readFile, urlToFileSystemPath } from "@jsenv/filesystem"
 
 import {
   commandSign,
@@ -50,9 +50,10 @@ export const addCertificateInLinuxTrustStore = async ({ logger, certificateFileU
   const copyCertificateCommand = `sudo cp "${certificateFilePath}" ${JSENV_CERTIFICATE_AUTHORITY_PATH}`
   const updateCertificateCommand = `sudo update-ca-certificates`
   logger.info(`Adding certificate to linux...`)
-  logger.info(`${commandSign} ${copyCertificateCommand}`)
   try {
+    logger.info(`${commandSign} ${copyCertificateCommand}`)
     await exec(copyCertificateCommand)
+    logger.info(`${commandSign} ${updateCertificateCommand}`)
     await exec(updateCertificateCommand)
     logger.info(`${okSign} certificate added to linux`)
     return {
@@ -82,8 +83,13 @@ export const removeCertificateFromLinuxTrustStore = async ({ logger }) => {
   }
 
   logger.info(`Removing certificate from linux...`)
+  const removeCertificateCommand = `sudo rm ${JSENV_CERTIFICATE_AUTHORITY_PATH}`
+  const updateCertificateCommand = `sudo update-ca-certificates`
   try {
-    await removeFileSystemNode(JSENV_CERTIFICATE_AUTHORITY_PATH)
+    logger.info(`${commandSign} ${removeCertificateCommand}`)
+    await exec(removeCertificateCommand)
+    logger.info(`${commandSign} ${updateCertificateCommand}`)
+    await exec(updateCertificateCommand)
     logger.info(`${okSign} certificate removed from linux`)
     return {
       status: "not_trusted",

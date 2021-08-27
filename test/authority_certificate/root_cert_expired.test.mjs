@@ -31,8 +31,7 @@ const { rootCertificateFilePath } = await installCertificateAuthority({
   const actual = { infos, warns, errors }
   const expected = {
     infos: [
-      `Search existing certificate authority on filesystem...`,
-      `${okSign} certificate authority found on filesystem`,
+      `${okSign} authority root certificate found on filesystem`,
       `Checking certificate validity...`,
       assert.matchesRegExp(/certificate expired \d seconds ago/),
       `Generating authority root certificate...`,

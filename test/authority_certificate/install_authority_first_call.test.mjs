@@ -38,8 +38,7 @@ const actual = {
 }
 const expected = {
   infos: [
-    `Search existing certificate authority on filesystem...`,
-    `${infoSign} no certificate authority on filesystem`,
+    `${infoSign} no certificate authority in filesystem`,
     `Generating authority root certificate...`,
     `${okSign} authority root certificate valid for 20 years written at ${actual.rootCertificateFilePath}`,
   ],

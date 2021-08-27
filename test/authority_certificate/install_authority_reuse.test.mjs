@@ -55,7 +55,6 @@ const expected = {
   },
   secondCallLogs: {
     infos: [
-      `Search existing certificate authority on filesystem...`,
       `${okSign} certificate authority found on filesystem`,
       `Checking certificate validity...`,
       `${okSign} certificate valid for 20 years`,

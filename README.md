@@ -30,115 +30,93 @@ const { serverCertificate, serverPrivateKey } = await requestCertificateForLocal
 
 # How to use
 
-_installCertificateAuthority_ function will generate a root certificate authority valid for 20 years. This function is designed to be runned once per machine and same for _verifyHostsFile_.
+_installCertificateAuthority_ function generates a certificate authority valid for 20 years.
+It is compatible with mac, linux and windows.
 
 ```js
-import { installCertificateAuthority, verifyHostsFile } from "@jsenv/https-localhost"
+import { installCertificateAuthority } from "@jsenv/https-localhost"
 
 await installCertificateAuthority()
-await verifyHostsFile({
-  ipMappings: {
-    "127.0.0.1": ["localhost", "local.example.com"],
-  },
+```
+
+_1st run_
+
+<!--
+here maybe gather logs for mac, window, linux
+and put them into details
+-->
+
+```console
+> node ./install_certificate_authority.mjs
+
+ℹ authority root certificate not found in filesystem
+Generating authority root certificate valid for 20 years...
+✔ authority root certificate written at /Users/dmail/https_localhost/http_localhost_root_certificate.crt
+ℹ You should add root certificate to mac OS keychain
+ℹ You should add root certificate to Firefox
+```
+
+_2nd run_
+
+```console
+> node ./install_certificate_authority.mjs
+
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is trusted by mac OS...
+ℹ certificate not trusted by mac OS
+Check if certificate is trusted by Firefox...
+ℹ certificate not trusted by Firefox
+```
+
+By default it's up to you to add authority root certificate to trust store.
+
+## Auto trust
+
+It's possible to trust root certificate programmatically using _tryToTrust_.
+
+```js
+import { installCertificateAuthority } from "@jsenv/https-localhost"
+
+await installCertificateAuthority({
+  tryToTrust: true,
 })
 ```
 
 ```console
-Search existing certificate authority on filesystem...
-Authority root certificate file is not on filesystem at /Users/dmail/jsenv_root_certificate.crt
-ℹ no certificate authority on filesystem
-Generating authority root certificate...
-✔ authority root certificate valid for 20 years written at /Users/dmail/jsenv_https_localhost/jsenv_root_certificate.crt
+> node ./install_certificate_authority.mjs
+
+ℹ authority root certificate not found in filesystem
+Generating authority root certificate valid for 20 years...
+✔ authority root certificate written at /Users/dmail/https_localhost/https_localhost_root_certificate.crt
+Adding certificate to mac keychain...
+❯ sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "/Users/dmail/https_localhost/https_localhost_root_certificate.crt"
+Password:
+✔ certificate added to mac keychain
+Adding certificate in Firefox...
+✔ certificate added in Firefox
 ```
 
-# installCertificateAuthority
+As you can see you'll be prompted to enter your password.
 
-```js
-installCertificateAuthority({
-  certificateCommonName: "Jsenv localhost root certificate",
-  certificateValidityDurationInMs: 630720005000, // 20 years
-  tryToTrust: false,
-  NSSDynamicInstall: false,
-})
-```
-
-# verifyHostsFile
-
-# requestCertificateForLocalhost
-
-# Trusting certificate
-
-Every time _requestCertificateForLocalhost_ is executed it checks if the root certificate is trusted. When not, a log explains how to trust it on your OS.
-
-_Message when certificate is not trusted on macOS_
+Running funciton a second time would log the following:
 
 ```console
-Root certificate must be added to macOS keychain
---- root certificate file ---
-/Users/dmail/Library/Application Support/jsenv_https_localhost/jsenv_root_certificate.crt
---- suggested documentation ---
-https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac
---- suggested command ---
-sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic "/Users/dmail/Library/Application Support/jsenv_https_localhost/jsenv_root_certificate.crt"
+> node ./install_certificate_authority.mjs
+
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is trusted by mac OS...
+✔ certificate trusted by mac OS
+Check if certificate is trusted by Firefox...
+✔ certificate trusted by Firefox
 ```
-
-It is possible to automate the trusting of the root certificate using _tryToTrustRootCertificate_.
-
-```js
-import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
-
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateFileUrl: new URL("./certificates/server.crt", import.meta.url),
-  tryToTrustRootCertificate: true,
-})
-```
-
-# Mapping hosts
-
-Every time _requestCertificateForLocalhost_ is executed it checks if server hostnames are properly mapped to _127.0.0.1_ in your hosts file.
-
-_Message when hostnames are not mapped on macOS_
-
-```console
-2 hostnames(s) must be mapped to 127.0.0.1
---- hostnames ---
-localhost
-*.localhost
---- hosts file ---
-/etc/hosts
---- suggested hosts file content ---
-127.0.0.1 localhost
-127.0.0.1 *.localhost
-```
-
-It is possible to automate the update of hosts file using _tryToRegisterHostnames_.
-
-```js
-import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
-
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateFileUrl: new URL("./certificates/server.crt", import.meta.url),
-  tryToRegisterHostnames: true,
-})
-```
-
-On windows _tryToRegisterHostnames_ is ignored, you have to do it manually for now.
-
-# Add more alternative names
-
-When you need to make certificate works for other hosts than localhost use _serverCertificateAltNames_.
-
-```js
-import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
-
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateFileUrl: new URL("./certificates/server.crt", import.meta.url),
-  serverCertificateAltNames: ["whatever"], // makes certificate also valid for https://whatever
-})
-```
-
-All host passed in _serverCertificateAltNames_ must be mapped to 127.0.0.1 in your hosts file.
-This is done for you when _tryToRegisterHostnames_ is enabled.
 
 # Usage with node server
 

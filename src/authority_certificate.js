@@ -3,31 +3,15 @@
 import { createLogger, createDetailedMessage } from "@jsenv/logger"
 import { readFile, writeFile, removeFileSystemNode } from "@jsenv/filesystem"
 
-import {
-  createValidityDurationOfXYears,
-  verifyRootCertificateValidityDuration,
-} from "./validity_duration.js"
 import { infoSign, okSign } from "./internal/logs.js"
-
 import { getAuthorityFileInfos } from "./internal/authority_file_infos.js"
 import { attributeDescriptionFromAttributeArray } from "./internal/certificate_data_converter.js"
 import { formatTimeDelta, formatDuration } from "./internal/validity_formatting.js"
 import { importNodeForge } from "./internal/forge.js"
 import { createAuthorityRootCertificate } from "./internal/certificate_generator.js"
 import { importPlatformMethods } from "./internal/platform.js"
-
-const jsenvParameters = {
-  certificateCommonName: "Jsenv localhost root certificate",
-  certificateValidityDurationInMs: createValidityDurationOfXYears(20),
-}
-
-// const jsenvCertificateParams = {
-//   rootCertificateOrganizationName: "jsenv",
-//   rootCertificateOrganizationalUnitName: "https-localhost",
-//   rootCertificateCountryName: "FR",
-//   rootCertificateStateOrProvinceName: "Alpes Maritimes",
-//   rootCertificateLocalityName: "Valbonne",
-// }
+import { jsenvParameters } from "./jsenvParameters.js"
+import { verifyRootCertificateValidityDuration } from "./validity_duration.js"
 
 export const installCertificateAuthority = async ({
   logLevel,
@@ -78,7 +62,11 @@ export const installCertificateAuthority = async ({
   const platformMethods = await importPlatformMethods()
 
   const generateRootCertificate = async () => {
-    logger.info(`Generating authority root certificate...`)
+    logger.info(
+      `Generating authority root certificate valid for ${formatDuration(
+        certificateValidityDurationInMs,
+      )}...`,
+    )
     const { rootCertificateForgeObject, rootCertificatePrivateKeyForgeObject } =
       await createAuthorityRootCertificate({
         logger,
@@ -97,11 +85,7 @@ export const installCertificateAuthority = async ({
     await writeFile(rootPrivateKeyFileUrl, rootCertificatePrivateKey)
     await writeFile(authorityJsonFileUrl, JSON.stringify({ serialNumber: 0 }, null, "  "))
 
-    logger.info(
-      `${okSign} authority root certificate valid for ${formatDuration(
-        certificateValidityDurationInMs,
-      )} written at ${rootCertificateFileInfo.path}`,
-    )
+    logger.info(`${okSign} authority root certificate written at ${rootCertificateFileInfo.path}`)
     return {
       rootCertificateForgeObject,
       rootCertificatePrivateKeyForgeObject,
@@ -126,7 +110,9 @@ export const installCertificateAuthority = async ({
           certificateCommonName,
           NSSDynamicInstall,
         })
-      : await platformMethods.getNewCertificateTrustInfo()
+      : await platformMethods.getNewCertificateTrustInfo({
+          logger,
+        })
 
     return {
       rootCertificateForgeObject,
@@ -150,25 +136,25 @@ export const installCertificateAuthority = async ({
     return generate()
   }
 
-  logger.info(`Search existing certificate authority on filesystem...`)
+  logger.debug(`Search existing certificate authority on filesystem...`)
   if (!rootCertificateFileInfo.exists) {
     logger.debug(
-      `Authority root certificate file is not on filesystem at ${rootCertificateFileInfo.path}`,
+      `Authority root certificate is not on filesystem at ${rootCertificateFileInfo.path}`,
     )
-    logger.info(`${infoSign} no certificate authority on filesystem`)
+    logger.info(`${infoSign} authority root certificate not found in filesystem`)
     return generate()
   }
   if (!rootCertificatePrivateKeyFileInfo.exists) {
     logger.debug(
-      `Authority root certificate private key file is not on filesystem at ${rootCertificatePrivateKeyFileInfo.path}`,
+      `Authority root certificate private key is not on filesystem at ${rootCertificatePrivateKeyFileInfo.path}`,
     )
-    logger.info(`${infoSign} no certificate authority on filesystem`)
+    logger.info(`${infoSign} authority root certificate not found in filesystem`)
     return generate()
   }
   logger.debug(
     `found authority root certificate files at ${rootCertificateFileInfo.path} and ${rootCertificatePrivateKeyFileInfo.path}`,
   )
-  logger.info(`${okSign} certificate authority found on filesystem`)
+  logger.info(`${okSign} authority root certificate found in filesystem`)
 
   const rootCertificate = await readFile(rootCertificateFileInfo.path, { as: "string" })
   const { pki } = await importNodeForge()

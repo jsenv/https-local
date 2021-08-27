@@ -1,13 +1,16 @@
 import { createLogger } from "@jsenv/logger"
 import { readFile } from "@jsenv/filesystem"
 
-import { addCertificateInMacTrustStore } from "@jsenv/https-localhost/src/internal/platforms/mac/mac_trust_store.js"
+import { jsenvParameters } from "@jsenv/https-localhost/src/jsenvParameters.js"
+import { importPlatformMethods } from "@jsenv/https-localhost/src/internal/platform.js"
 import { getCertificateAuthorityFileUrls } from "@jsenv/https-localhost/src/internal/certificate_authority_file_urls.js"
 
 const { rootCertificateFileUrl } = getCertificateAuthorityFileUrls()
-await addCertificateInMacTrustStore({
+const { getCertificateTrustInfo } = await importPlatformMethods()
+const trustInfo = await getCertificateTrustInfo({
   logger: createLogger({ logLevel: "debug" }),
   certificate: await readFile(rootCertificateFileUrl),
   certificateFileUrl: rootCertificateFileUrl,
-  certificateCommonName: "Jsenv localhost root certificate",
+  certificateCommonName: jsenvParameters.certificateCommonName,
 })
+console.log(trustInfo)

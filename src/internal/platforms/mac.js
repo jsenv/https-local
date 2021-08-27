@@ -18,6 +18,42 @@ import {
   removeCertificateFromFirefoxTrustStore,
 } from "./mac/firefox_trust_store.js"
 
+export const getNewCertificateTrustInfo = ({ logger }) => {
+  const macTrustInfo = {
+    status: "not_trusted",
+    reason: "tryToTrust disabled",
+  }
+  logger.info(`${infoSign} You should add certificate to mac OS keychain`)
+
+  // chrome use OS trust store
+  const chromeTrustInfo = { ...macTrustInfo }
+
+  // safari use OS trust store
+  const safariTrustInfo = { ...macTrustInfo }
+
+  const firefoxDetected = detectFirefox({ logger })
+  let firefoxTrustInfo
+  if (firefoxDetected) {
+    logger.info(`${infoSign} You should add certificate to Firefox`)
+    firefoxTrustInfo = {
+      status: "not_trusted",
+      reason: "tryToTrust disabled",
+    }
+  } else {
+    firefoxTrustInfo = {
+      status: "other",
+      reason: "Firefox not detected",
+    }
+  }
+
+  return {
+    mac: macTrustInfo,
+    chrome: chromeTrustInfo,
+    safari: safariTrustInfo,
+    firefox: firefoxTrustInfo,
+  }
+}
+
 export const getCertificateTrustInfo = async ({ logger, certificate, certificateCommonName }) => {
   const macTrustInfo = await getMacTrustInfo({
     logger,
@@ -35,31 +71,6 @@ export const getCertificateTrustInfo = async ({ logger, certificate, certificate
     certificate,
     certificateCommonName,
   })
-
-  return {
-    mac: macTrustInfo,
-    chrome: chromeTrustInfo,
-    safari: safariTrustInfo,
-    firefox: firefoxTrustInfo,
-  }
-}
-
-export const getNewCertificateTrustInfo = () => {
-  const macTrustInfo = {
-    status: "not_trusted",
-    reason: "tryToTrust disabled",
-  }
-
-  // chrome use OS trust store
-  const chromeTrustInfo = { ...macTrustInfo }
-
-  // safari use OS trust store
-  const safariTrustInfo = { ...macTrustInfo }
-
-  const firefoxTrustInfo = {
-    status: "not_trusted",
-    reason: "tryToTrust disabled",
-  }
 
   return {
     mac: macTrustInfo,
@@ -116,7 +127,7 @@ export const addCertificateToTrustStores = async ({
   certificate,
   certificateFileUrl,
   certificateCommonName,
-  NSSDynamicInstall = true,
+  NSSDynamicInstall,
   existingTrustInfo,
 }) => {
   const macTrustInfo = await putInMacTrustStoreIfNeeded({

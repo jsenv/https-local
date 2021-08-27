@@ -1,75 +1,92 @@
 /*
- * see https://github.com/davewasmer/devcert/blob/master/src/platforms/win32.ts
+ * Missing things that would be nice to have:
+ * - A way to detect firefox on windows
+ * - A way to install and use NSS command on windows to update firefox NSS dabatase file
+ *
+ * see
+ * - https://github.com/davewasmer/devcert/blob/master/src/platforms/darwin.ts
+ * - https://www.unix.com/man-page/mojave/1/security/
  */
 
-import { createDetailedMessage } from "@jsenv/logger"
-import { urlToFileSystemPath } from "@jsenv/filesystem"
+import { okSign, infoSign } from "@jsenv/https-localhost/src/internal/logs.js"
 
-import { exec } from "../exec.js"
+import {
+  getCertificateTrustInfoFromWindows,
+  addCertificateInWindowsTrustStore,
+  removeCertificateFromWindowsTrustStore,
+} from "./windows/windows_trust_store.js"
 
-export const ensureRootCertificateRegistration = async ({
-  logger,
-  rootCertificateFileUrl,
-  rootCertificatePEM,
+export const getNewCertificateTrustInfo = ({ logger }) => {
+  const windowsTrustInfo = {
+    status: "not_trusted",
+    reason: "tryToTrust disabled",
+  }
+  logger.info(`${infoSign} You should add certificate to windows`)
 
-  tryToTrustRootCertificate,
-}) => {
-  const isInWindowsTrustStore = await detectRootCertificateInWindowsTrustStore({
-    logger,
-    rootCertificatePEM,
-  })
-
-  if (!isInWindowsTrustStore) {
-    // https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil
-    const certUtilCommand = `certutil -addstore -user root "${urlToFileSystemPath(
-      rootCertificateFileUrl,
-    )}"`
-
-    if (tryToTrustRootCertificate) {
-      logger.info(`
-Adding root certificate to windows trust store
-> ${certUtilCommand}
-`)
-      try {
-        await exec(certUtilCommand)
-      } catch (e) {
-        logger.error(
-          createDetailedMessage(`Failed to add root certificate to windows trust store`, {
-            "error stack": e.stack,
-            "root certificate file url": rootCertificateFileUrl,
-          }),
-        )
-      }
-    } else {
-      logger.info(`
-${createDetailedMessage(`Root certificate must be added to windows trust store`, {
-  "root certificate file": urlToFileSystemPath(rootCertificateFileUrl),
-  "suggested command": `> ${certUtilCommand}`,
-})}
-`)
-    }
+  return {
+    windows: windowsTrustInfo,
   }
 }
 
-const detectRootCertificateInWindowsTrustStore = async ({ logger }) => {
-  // https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil#-viewstore
-  const certutilStoreCommand = `certutil -store -user root`
-  logger.debug(`
-Searching root certificate in windows trust store
-> ${certutilStoreCommand}
-`)
-  const certutilStoreCommandOutput = await exec(certutilStoreCommand)
-
-  // it's not super accurate and do not take into account if the cert is different
-  // but it's the best I could do with certutil command on windows
-  const rootCertificateInStore = certutilStoreCommandOutput.includes(
-    "Jsenv localhost root certificate",
-  )
-  if (!rootCertificateInStore) {
-    logger.debug(`Root certificate is not in windows trust store`)
-    return false
+export const getCertificateTrustInfo = async ({ logger, certificate, certificateCommonName }) => {
+  logger.info(`Check if certificate is trusted by windows...`)
+  const windowsTrustInfo = await getCertificateTrustInfoFromWindows({
+    logger,
+    certificate,
+    certificateCommonName,
+  })
+  if (windowsTrustInfo.status === "trusted") {
+    logger.info(`${okSign} certificate trusted by windows`)
+  } else {
+    logger.info(`${infoSign} certificate not trusted by windows`)
   }
 
-  logger.debug(`Root certificate found in windows trust store`)
-  return true
+  return {
+    windows: windowsTrustInfo,
+  }
+}
+
+export const addCertificateToTrustStores = async ({
+  logger,
+  certificateFileUrl,
+  existingTrustInfo,
+}) => {
+  const windowsTrustInfo = await putInWindowsTrustStoreIfNeeded({
+    logger,
+    certificateFileUrl,
+    existingWindowsTrustInfo: existingTrustInfo ? existingTrustInfo.windows : null,
+  })
+
+  return {
+    windows: windowsTrustInfo,
+  }
+}
+
+export const removeCertificateFromTrustStores = async ({
+  logger,
+  certificate,
+  certificateFileUrl,
+  certificateCommonName,
+}) => {
+  await removeCertificateFromWindowsTrustStore({
+    logger,
+    certificate,
+    certificateFileUrl,
+    certificateCommonName,
+  })
+}
+
+const putInWindowsTrustStoreIfNeeded = async ({
+  logger,
+  certificateFileUrl,
+  existingWindowsTrustInfo,
+}) => {
+  if (existingWindowsTrustInfo && existingWindowsTrustInfo.status !== "not_trusted") {
+    return existingWindowsTrustInfo
+  }
+
+  return await addCertificateInWindowsTrustStore({
+    logger,
+    certificateFileUrl,
+  })
 }

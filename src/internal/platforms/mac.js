@@ -55,10 +55,17 @@ export const getNewCertificateTrustInfo = ({ logger }) => {
 }
 
 export const getCertificateTrustInfo = async ({ logger, certificate, certificateCommonName }) => {
-  const macTrustInfo = await getMacTrustInfo({
+  logger.info(`Check if certificate is trusted by mac OS...`)
+  const macTrustInfo = await getCertificateTrustInfoFromMac({
     logger,
     certificate,
+    certificateCommonName,
   })
+  if (macTrustInfo.status === "trusted") {
+    logger.info(`${okSign} certificate trusted by mac OS`)
+  } else {
+    logger.info(`${infoSign} certificate not trusted by mac OS`)
+  }
 
   // chrome use OS trust store
   const chromeTrustInfo = { ...macTrustInfo }
@@ -66,11 +73,30 @@ export const getCertificateTrustInfo = async ({ logger, certificate, certificate
   // safari use OS trust store
   const safariTrustInfo = { ...macTrustInfo }
 
-  const firefoxTrustInfo = await getFirefoxTrustInfo({
-    logger,
-    certificate,
-    certificateCommonName,
-  })
+  const firefoxDetected = detectFirefox({ logger })
+  let firefoxTrustInfo
+  if (firefoxDetected) {
+    logger.info(`Check if certificate is trusted by Firefox...`)
+    firefoxTrustInfo = await getCertificateTrustInfoFromFirefox({
+      logger,
+      certificate,
+      certificateCommonName,
+    })
+    if (firefoxTrustInfo.status === "trusted") {
+      logger.info(`${okSign} certificate trusted by Firefox`)
+    } else if (firefoxTrustInfo.status === "not_trusted") {
+      logger.info(`${infoSign} certificate not trusted by Firefox`)
+    } else {
+      logger.info(
+        `${infoSign} unable to detect if certificate is trusted by Firefox (${firefoxTrustInfo.reason})`,
+      )
+    }
+  } else {
+    firefoxTrustInfo = {
+      status: "other",
+      reason: "Firefox not detected",
+    }
+  }
 
   return {
     mac: macTrustInfo,
@@ -138,48 +164,6 @@ export const removeCertificateFromTrustStores = async ({
     certificateFileUrl,
     certificateCommonName,
   })
-}
-
-const getMacTrustInfo = async ({ logger, certificate, certificateCommonName }) => {
-  logger.info(`Check if certificate is trusted by mac OS...`)
-  const macTrustInfo = await getCertificateTrustInfoFromMac({
-    logger,
-    certificate,
-    certificateCommonName,
-  })
-  if (macTrustInfo.status === "trusted") {
-    logger.info(`${okSign} certificate trusted by mac OS`)
-  } else {
-    logger.info(`${infoSign} certificate not trusted by mac OS`)
-  }
-  return macTrustInfo
-}
-
-const getFirefoxTrustInfo = async ({ logger, certificate, certificateCommonName }) => {
-  const firefoxDetected = detectFirefox({ logger })
-  if (!firefoxDetected) {
-    return {
-      status: "other",
-      reason: "Firefox not detected",
-    }
-  }
-
-  logger.info(`Check if certificate is trusted by Firefox...`)
-  const firefoxTrustInfo = await getCertificateTrustInfoFromFirefox({
-    logger,
-    certificate,
-    certificateCommonName,
-  })
-  if (firefoxTrustInfo.status === "trusted") {
-    logger.info(`${okSign} certificate trusted by Firefox`)
-  } else if (firefoxTrustInfo.status === "not_trusted") {
-    logger.info(`${infoSign} certificate not trusted by Firefox`)
-  } else {
-    logger.info(
-      `${infoSign} unable to detect if certificate is trusted by Firefox (${firefoxTrustInfo.reason})`,
-    )
-  }
-  return firefoxTrustInfo
 }
 
 const putInMacTrustStoreIfNeeded = async ({ logger, certificateFileUrl, existingMacTrustInfo }) => {

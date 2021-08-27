@@ -17,10 +17,8 @@ const systemKeychainPath = "/Library/Keychains/System.keychain"
 export const getCertificateTrustInfoFromMac = async ({ logger, certificate }) => {
   // https://ss64.com/osx/security-find-cert.html
   const findCertificateCommand = `security find-certificate -a -p ${systemKeychainPath}`
-
   logger.debug(`Searching certificate in mac keychain...`)
   logger.debug(`${commandSign} ${findCertificateCommand}`)
-
   const findCertificateCommandOutput = await exec(findCertificateCommand)
   const certificateFoundInCommandOutput = searchCertificateInCommandOutput(
     findCertificateCommandOutput,
@@ -63,7 +61,7 @@ export const addCertificateInMacTrustStore = async ({ logger, certificateFileUrl
     logger.error(
       createDetailedMessage(`${failureSign} Failed to add certificate to mac keychain`, {
         "error stack": e.stack,
-        "root certificate file url": certificateFileUrl,
+        "certificate file": certificateFilePath,
       }),
     )
     return {

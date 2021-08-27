@@ -291,7 +291,7 @@ console.log(`Server listening at https://localhost:8080`)
 
 The server certificate expires after one year which is the maximum duration allowed by web browsers.
 
-In the unlikely scenario where your local server is running for more than a year without interruption, restart it and you're good to do for one more year.
+In the unlikely scenario where your local server is running for more than a year without interruption, restart it and you're good for one more year.
 
 The authority root certificate expires after 20 years which is close to the maximum allowed duration.
 

@@ -1,6 +1,6 @@
 # Https localhost
 
-Generate https certificate to use for a server running on localhost.
+Generate trusted certificates to start a local server in HTTPS.
 
 [![npm package](https://img.shields.io/npm/v/@jsenv/https-localhost.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/https-localhost)
 [![github main](https://github.com/jsenv/https-localhost/workflows/main/badge.svg)](https://github.com/jsenv/https-localhost/actions?workflow=main)
@@ -8,7 +8,7 @@ Generate https certificate to use for a server running on localhost.
 
 # Presentation
 
-`@jsenv/https-localhost` helps you to get certificates for your local server running in HTTPS.
+A programmatic way to generate trusted certificates during 20 years.
 Works on mac, linux and windows.
 
 ```js
@@ -282,7 +282,7 @@ In the unlikely scenario where your local server is running for more than a year
 
 The authority root certificate expires after 20 years which is close to the maximum allowed duration.
 
-In the almost impossible scenario where you are using the same machine for more than 20 years, re-execute [installCertificateAuthority](#installCertificateAuthority) to update certificate authority and restart your server.
+In the very unlikely scenario where you are using the same machine for more than 20 years, re-execute [installCertificateAuthority](#installCertificateAuthority) to update certificate authority and restart your server.
 
 # Installation
 

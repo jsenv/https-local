@@ -38,9 +38,17 @@ const actual = {
 }
 const expected = {
   infos: [
-    `${infoSign} no certificate authority in filesystem`,
-    `Generating authority root certificate...`,
-    `${okSign} authority root certificate valid for 20 years written at ${actual.rootCertificateFilePath}`,
+    `${infoSign} authority root certificate not found in filesystem`,
+    `Generating authority root certificate with a validity of 20 years...`,
+    `${okSign} authority root certificate written at ${actual.rootCertificateFilePath}`,
+    ...{
+      darwin: [
+        `${infoSign} You should add certificate to mac OS keychain`,
+        `${infoSign} You should add certificate to Firefox`,
+      ],
+      windows: [],
+      linux: [],
+    }[process.platform],
   ],
   warns: [],
   errors: [],

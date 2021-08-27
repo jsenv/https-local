@@ -55,9 +55,9 @@ const expected = {
   },
   secondCallLogs: {
     infos: [
-      `${okSign} certificate authority found on filesystem`,
+      `${okSign} authority root certificate found in filesystem`,
       `Checking certificate validity...`,
-      `${okSign} certificate valid for 20 years`,
+      `${okSign} certificate still valid for 20 years`,
       `Detect if certificate attributes have changed...`,
       `${okSign} certificate attributes are the same`,
       "Check if certificate is trusted by mac OS...",

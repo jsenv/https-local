@@ -63,7 +63,7 @@ export const installCertificateAuthority = async ({
 
   const generateRootCertificate = async () => {
     logger.info(
-      `Generating authority root certificate valid for ${formatDuration(
+      `Generating authority root certificate with a validity of ${formatDuration(
         certificateValidityDurationInMs,
       )}...`,
     )
@@ -180,7 +180,7 @@ export const installCertificateAuthority = async ({
     return regenerate()
   }
   logger.info(
-    `${okSign} certificate valid for ${formatDuration(rootCertificateValidityRemainingMs)}`,
+    `${okSign} certificate still valid for ${formatDuration(rootCertificateValidityRemainingMs)}`,
   )
 
   logger.info(`Detect if certificate attributes have changed...`)

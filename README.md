@@ -8,7 +8,7 @@ Generate trusted certificates to start a local server in HTTPS.
 
 # Presentation
 
-A programmatic way to generate trusted certificates during 20 years.
+A programmatic way to generate locally trusted certificates.
 Works on mac, linux and windows.
 
 ```js
@@ -47,7 +47,7 @@ await installCertificateAuthority()
 > node ./install_certificate_authority.mjs
 
 ℹ authority root certificate not found in filesystem
-Generating authority root certificate valid for 20 years...
+Generating authority root certificate with a validity of 20 years...
 ✔ authority root certificate written at /Users/dmail/https_localhost/http_localhost_root_certificate.crt
 ℹ You should add root certificate to mac OS keychain
 ℹ You should add root certificate to Firefox
@@ -65,7 +65,7 @@ A second call to the function output different logs.
 
 ✔ authority root certificate found in filesystem
 Checking certificate validity...
-✔ certificate valid for 19 years
+✔ certificate still valid for 19 years
 Detect if certificate attributes have changed...
 ✔ certificate attributes are the same
 Check if certificate is trusted by mac OS...
@@ -98,7 +98,7 @@ await installCertificateAuthority({
 > node ./install_certificate_authority.mjs
 
 ℹ authority root certificate not found in filesystem
-Generating authority root certificate valid for 20 years...
+Generating authority root certificate with a validity of 20 years...
 ✔ authority root certificate written at /Users/dmail/https_localhost/https_localhost_root_certificate.crt
 Adding certificate to mac keychain...
 ❯ sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "/Users/dmail/https_localhost/https_localhost_root_certificate.crt"
@@ -120,7 +120,7 @@ After that re-executing the function gives different logs.
 
 ✔ authority root certificate found in filesystem
 Checking certificate validity...
-✔ certificate valid for 19 years
+✔ certificate still valid for 19 years
 Detect if certificate attributes have changed...
 ✔ certificate attributes are the same
 Check if certificate is trusted by mac OS...

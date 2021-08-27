@@ -1,7 +1,7 @@
 import { assert } from "@jsenv/assert"
 
 import { installCertificateAuthority, uninstallCertificateAuthority } from "@jsenv/https-localhost"
-import { okSign } from "@jsenv/https-localhost/src/internal/logs.js"
+import { okSign, infoSign } from "@jsenv/https-localhost/src/internal/logs.js"
 import { createLoggerForTest } from "@jsenv/https-localhost/test/test_helpers.mjs"
 
 await uninstallCertificateAuthority({
@@ -31,11 +31,19 @@ const { rootCertificateFilePath } = await installCertificateAuthority({
   const actual = { infos, warns, errors }
   const expected = {
     infos: [
-      `${okSign} authority root certificate found on filesystem`,
+      `${okSign} authority root certificate found in filesystem`,
       `Checking certificate validity...`,
       assert.matchesRegExp(/certificate expired \d seconds ago/),
-      `Generating authority root certificate...`,
-      `${okSign} authority root certificate valid for 1 second written at ${rootCertificateFilePath}`,
+      `Generating authority root certificate with a validity of 1 second...`,
+      `${okSign} authority root certificate written at ${rootCertificateFilePath}`,
+      ...{
+        darwin: [
+          `${infoSign} You should add certificate to mac OS keychain`,
+          `${infoSign} You should add certificate to Firefox`,
+        ],
+        windows: [],
+        linux: [],
+      }[process.platform],
     ],
     warns: [],
     errors: [],

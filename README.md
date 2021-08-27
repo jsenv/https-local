@@ -40,6 +40,8 @@ import { installCertificateAuthority } from "@jsenv/https-localhost"
 await installCertificateAuthority()
 ```
 
+Find below logs written in terminal when this function is executed.
+
 <details>
   <summary>mac</summary>
 
@@ -53,12 +55,7 @@ Generating authority root certificate with a validity of 20 years...
 ℹ You should add root certificate to Firefox
 ```
 
-</details>
-
-A second call to the function output different logs.
-
-<details>
-  <summary>mac</summary>
+_second execution logs_
 
 ```console
 > node ./install_certificate_authority.mjs
@@ -108,12 +105,7 @@ Adding certificate in Firefox...
 ✔ certificate added in Firefox
 ```
 
-</details>
-
-After that re-executing the function gives different logs.
-
-<details>
-  <summary>mac</summary>
+_second execution logs_
 
 ```console
 > node ./install_certificate_authority.mjs
@@ -144,6 +136,8 @@ await verifyHostsFile({
   },
 })
 ```
+
+Find below logs written in terminal when this function is executed.
 
 <details>
   <summary>mac</summary>
@@ -249,12 +243,7 @@ Password:
 ✔ mappings added to hosts file
 ```
 
-</details>
-
-After that re-executing the function gives different logs.
-
-<details>
-  <summary>mac</summary>
+_Second execution logs_
 
 ```console
 > node ./verify_hosts.mjs

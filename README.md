@@ -40,12 +40,8 @@ import { installCertificateAuthority } from "@jsenv/https-localhost"
 await installCertificateAuthority()
 ```
 
-_1st run_
-
-<!--
-here maybe gather logs for mac, window, linux
-and put them into details
--->
+<details>
+  <summary>mac</summary>
 
 ```console
 > node ./install_certificate_authority.mjs
@@ -57,7 +53,12 @@ Generating authority root certificate valid for 20 years...
 ℹ You should add root certificate to Firefox
 ```
 
-_2nd run_
+</details>
+
+A second call to the function output different logs.
+
+<details>
+  <summary>mac</summary>
 
 ```console
 > node ./install_certificate_authority.mjs
@@ -73,11 +74,14 @@ Check if certificate is trusted by Firefox...
 ℹ certificate not trusted by Firefox
 ```
 
-By default it's up to you to add authority root certificate to trust store.
+</details>
+
+By default it's up to you to trust authority root certificate.
+It can also be done programmatically as explained the next part.
 
 ## Auto trust
 
-It's possible to trust root certificate programmatically using _tryToTrust_.
+It's possible to trust root certificate programmatically using _tryToTrust_
 
 ```js
 import { installCertificateAuthority } from "@jsenv/https-localhost"
@@ -86,6 +90,9 @@ await installCertificateAuthority({
   tryToTrust: true,
 })
 ```
+
+<details>
+  <summary>mac</summary>
 
 ```console
 > node ./install_certificate_authority.mjs
@@ -101,7 +108,12 @@ Adding certificate in Firefox...
 ✔ certificate added in Firefox
 ```
 
+</details>
+
 After that re-executing the function gives different logs.
+
+<details>
+  <summary>mac</summary>
 
 ```console
 > node ./install_certificate_authority.mjs
@@ -116,6 +128,8 @@ Check if certificate is trusted by mac OS...
 Check if certificate is trusted by Firefox...
 ✔ certificate trusted by Firefox
 ```
+
+</details>
 
 # verifyHostsFile
 
@@ -211,6 +225,9 @@ await verifyHostsFile({
 })
 ```
 
+<details>
+  <summary>mac</summary>
+
 ```console
 Check hosts file content...
 ℹ 1 mapping is missing in hosts file
@@ -232,7 +249,12 @@ Password:
 ✔ mappings added to hosts file
 ```
 
+</details>
+
 After that re-executing the function gives different logs.
+
+<details>
+  <summary>mac</summary>
 
 ```console
 > node ./verify_hosts.mjs
@@ -240,6 +262,8 @@ After that re-executing the function gives different logs.
 Check hosts file content...
 ✔ all ip mappings found in hosts file
 ```
+
+</details>
 
 # requestCertificateForLocalhost
 

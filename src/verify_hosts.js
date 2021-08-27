@@ -11,7 +11,7 @@ export const verifyHostsFile = async ({
   // for unit test
   hostsFilePath = HOSTS_FILE_PATH,
 }) => {
-  logger.info(`Check hosts files content...`)
+  logger.info(`Check hosts file content...`)
 
   const hostsFileContent = await readHostsFile(hostsFilePath)
   const hostnames = parseHosts(hostsFileContent)

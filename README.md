@@ -9,6 +9,7 @@ Generate https certificate to use for a server running on localhost.
 # Presentation
 
 `@jsenv/https-localhost` helps you to get certificates for your local server running in HTTPS.
+Works on mac, linux and windows.
 
 ```js
 import {
@@ -28,10 +29,9 @@ const { serverCertificate, serverPrivateKey } = await requestCertificateForLocal
 })
 ```
 
-# How to use
+# installCertificateAuthority
 
 _installCertificateAuthority_ function generates a certificate authority valid for 20 years.
-It is compatible with mac, linux and windows.
 
 ```js
 import { installCertificateAuthority } from "@jsenv/https-localhost"
@@ -100,9 +100,7 @@ Adding certificate in Firefox...
 ✔ certificate added in Firefox
 ```
 
-As you can see you'll be prompted to enter your password.
-
-Running funciton a second time would log the following:
+After that re-executing the function gives different logs.
 
 ```console
 > node ./install_certificate_authority.mjs
@@ -118,44 +116,92 @@ Check if certificate is trusted by Firefox...
 ✔ certificate trusted by Firefox
 ```
 
-# Usage with node server
+# verifyHostsFile
+
+_verifyHostsFile_ function check your hosts file content to see if ip mappings are present.
 
 ```js
-import { createServer } from "node:https"
-import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
+import { verifyHostsFile } from "@jsenv/https-localhost"
 
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateFileUrl: new URL("./certificates/server.crt", import.meta.url),
-  tryToTrustRootCertificate: true,
-  tryToRegisterHostnames: true,
+await verifyHostsFile({
+  ipMappings: {
+    "127.0.0.1": ["localhost", "local.example.com"],
+  },
 })
-
-const server = createServer(
-  {
-    cert: serverCertificate,
-    key: serverPrivateKey,
-  },
-  (request, response) => {
-    const body = "Hello world"
-    response.writeHead(200, {
-      "content-type": "text/plain",
-      "content-length": Buffer.byteLength(body),
-    })
-    response.write(body)
-    response.end()
-  },
-)
-server.listen(8080)
-
-console.log(`Server listening at https://localhost:8080`)
 ```
+
+```console
+> node ./verify_hosts.mjs
+
+Check hosts file content...
+⚠ 1 mapping is missing in hosts file
+--- hosts file path ---
+/etc/hosts
+--- suggested hosts file content ---
+##
+# Host Database
+#
+#
+# localhost is used to configure the loopback interface
+# when the system is booting. Do not change this entry.
+##
+127.0.0.1	      localhost
+255.255.255.255 broadcasthost
+::1             localhost
+127.0.0.1	      local.example.com
+```
+
+## Auto update hosts
+
+It's possible to update hosts file programmatically using _tryToUpdateHostsFile_.
+
+```js
+import { verifyHostsFile } from "@jsenv/https-localhost"
+
+await verifyHostsFile({
+  ipMappings: {
+    "127.0.0.1": ["localhost", "local.example.com"],
+  },
+  tryToUpdateHostsFile: true,
+})
+```
+
+```console
+Check hosts file content...
+ℹ 1 mapping is missing in hosts file
+Adding 2 mapping(s) in hosts file...
+❯ echo "##
+# Host Database
+#
+#
+# localhost is used to configure the loopback interface
+# when the system is booting. Do not change this entry.
+##
+127.0.0.1	      localhost
+255.255.255.255 broadcasthost
+::1             localhost
+127.0.0.1	      local.example.com
+127.0.0.1       local.example.com
+" | sudo tee /etc/hosts
+Password:
+✔ mappings added to hosts file
+```
+
+After that re-executing the function gives different logs.
+
+```console
+> node ./verify_hosts.mjs
+
+Check hosts file content...
+✔ all ip mappings found in hosts file
+```
+
+# requestCertificateForLocalhost
+
+
 
 # Installation
 
 ```console
 npm install --save-dev @jsenv/https-localhost
 ```
-
-# Development
-
-If you are part or want to be part of the developpers of this package, check [development.md](./docs/development.md)

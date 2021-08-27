@@ -14,6 +14,6 @@ export {
   createValidityDurationOfXDays,
 } from "./src/validity_duration.js"
 
-export { verifyHostsFile } from "./src/hosts_file.js"
+export { verifyHostsFile } from "./src/verify_hosts.js"
 
 export { requestCertificateForLocalhost } from "./src/localhost_certificate.js"

@@ -1,7 +1,6 @@
-// https://github.com/feross/hostile/blob/master/index.js
-
 const IS_WINDOWS = process.platform === "win32"
 
+// https://github.com/feross/hostile/blob/master/index.js
 export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => {
   const lines = []
   hosts.split(/\r?\n/).forEach((line) => {

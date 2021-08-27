@@ -1,28 +1,28 @@
-const platform = { status: "unknown", reason: "unsupported platform" }
+import { warningSign } from "@jsenv/https-localhost/src/internal/logs.js"
 
-const chrome = { status: "unknown", reason: "unsupported platform" }
+const platformTrustInfo = { status: "unknown", reason: "unsupported platform" }
 
-const safari = { status: "unknown", reason: "unsupported platform" }
-
-const firefox = { status: "unknown", reason: "unsupported platform" }
-
-const trustInfo = {
-  platform,
-  chrome,
-  safari,
-  firefox,
+export const getNewCertificateTrustInfo = ({ logger }) => {
+  logger.warn(`${warningSign} platform not supported, cannot get certificate trust info`)
+  return {
+    platform: platformTrustInfo,
+  }
 }
 
-export const getCertificateAuthorityTrustInfo = () => {
-  return trustInfo
+export const getCertificateTrustInfo = () => {
+  return {
+    platform: platformTrustInfo,
+  }
 }
 
-export const addCertificateAuthority = ({ logger }) => {
-  logger.warn(`platform is not supported, cannot add certificate authority to OS and browsers`)
-  return trustInfo
+export const addCertificateToTrustStores = ({ logger }) => {
+  logger.warn(`${warningSign} platform not supported, cannot add certificate to trust stores`)
+  return {
+    platform: platformTrustInfo,
+  }
 }
 
-export const removeCertificateAuthority = ({ logger }) => {
-  logger.warn(`platform is not supported, cannot remove certificate authority from OS and browsers`)
+export const removeCertificateFromTrustStores = ({ logger }) => {
+  logger.warn(`${warningSign} platform not supported, cannot remove certificate from trust stores`)
   return undefined
 }

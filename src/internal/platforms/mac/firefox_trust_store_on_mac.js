@@ -43,7 +43,7 @@ const FIREFOX_NSSDB_DIRECTORY_URL = resolveUrl(
   assertAndNormalizeDirectoryUrl(process.env.HOME),
 )
 
-export const getCertificateTrustInfoFromFirefox = async ({
+const getCertificateTrustInfoFromFirefox = async ({
   logger,
   newAndTryToTrustDisabled,
   certificate,
@@ -170,7 +170,7 @@ export const getCertificateTrustInfoFromFirefox = async ({
 //   certificateCommonName: "Jsenv localhost root certificate",
 // })
 
-export const addCertificateInFirefoxTrustStore = async ({
+const addCertificateInFirefoxTrustStore = async ({
   logger,
   certificateFileUrl,
   certificateCommonName,
@@ -283,7 +283,7 @@ export const addCertificateInFirefoxTrustStore = async ({
   }
 }
 
-export const removeCertificateFromFirefoxTrustStore = async ({
+const removeCertificateFromFirefoxTrustStore = async ({
   logger,
   // certificate,
   certificateCommonName,
@@ -359,6 +359,12 @@ export const removeCertificateFromFirefoxTrustStore = async ({
     status: "not_trusted",
     reason: REASON_REMOVED_FROM_ALL_FIREFOX_NSSDB,
   }
+}
+
+export const firefoxTrustStoreOnMac = {
+  getCertificateTrustInfo: getCertificateTrustInfoFromFirefox,
+  addCertificate: addCertificateInFirefoxTrustStore,
+  removeCertificate: removeCertificateFromFirefoxTrustStore,
 }
 
 const detectFirefox = memoize(({ logger }) => {

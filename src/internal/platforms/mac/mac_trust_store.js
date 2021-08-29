@@ -14,7 +14,7 @@ import { searchCertificateInCommandOutput } from "@jsenv/https-localhost/src/int
 
 const systemKeychainPath = "/Library/Keychains/System.keychain"
 
-export const getCertificateTrustInfoFromMac = async ({
+const getCertificateTrustInfoFromMac = async ({
   logger,
   newAndTryToTrustDisabled,
   certificate,
@@ -59,7 +59,7 @@ export const getCertificateTrustInfoFromMac = async ({
   }
 }
 
-export const addCertificateInMacTrustStore = async ({ logger, certificateFileUrl }) => {
+const addCertificateInMacTrustStore = async ({ logger, certificateFileUrl }) => {
   const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
   // https://ss64.com/osx/security-cert.html
   const addTrustedCertCommand = `sudo security add-trusted-cert -d -r trustRoot -k ${systemKeychainPath} "${certificateFilePath}"`
@@ -86,7 +86,7 @@ export const addCertificateInMacTrustStore = async ({ logger, certificateFileUrl
   }
 }
 
-export const removeCertificateFromMacTrustStore = async ({
+const removeCertificateFromMacTrustStore = async ({
   logger,
   // certificate,
   certificateCommonName,
@@ -126,4 +126,10 @@ export const removeCertificateFromMacTrustStore = async ({
       reason: "delete cert command failed",
     }
   }
+}
+
+export const macTrustStore = {
+  getCertificateTrustInfo: getCertificateTrustInfoFromMac,
+  addCertificate: addCertificateInMacTrustStore,
+  removeCertificate: removeCertificateFromMacTrustStore,
 }

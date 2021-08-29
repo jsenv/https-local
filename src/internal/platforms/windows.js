@@ -10,6 +10,11 @@ import {
   removeCertificateFromWindowsTrustStore,
 } from "./windows/windows_trust_store.js"
 import {
+  getCertificateTrustInfoFromChrome,
+  addCertificateInChromeTrustStore,
+  removeCertificateFromChromeTrustStore,
+} from "./windows/chrome_trust_store.js"
+import {
   getCertificateTrustInfoFromFirefox,
   addCertificateInFirefoxTrustStore,
   removeCertificateFromFirefoxTrustStore,
@@ -28,13 +33,16 @@ export const getCertificateTrustInfo = async ({
     certificateCommonName,
   })
 
+  const chromeTrustInfo = await getCertificateTrustInfoFromChrome({
+    logger,
+    // chrome needs windowsTrustInfo because it uses OS trust store
+    windowsTrustInfo,
+  })
+
   const firefoxTrustInfo = await getCertificateTrustInfoFromFirefox({
     logger,
     newAndTryToTrustDisabled,
   })
-
-  // chrome use OS trust store
-  const chromeTrustInfo = { ...windowsTrustInfo }
 
   return {
     windows: windowsTrustInfo,
@@ -54,8 +62,12 @@ export const addCertificateToTrustStores = async ({
     existingWindowsTrustInfo: existingTrustInfo ? existingTrustInfo.windows : null,
   })
 
-  // chrome use OS trust store
-  const chromeTrustInfo = { ...windowsTrustInfo }
+  const chromeTrustInfo = await putInChromeTrustStoreIfNeeded({
+    logger,
+    // chrome needs windowsTrustInfo because it uses OS trust store
+    windowsTrustInfo,
+    existingChromeTrustInfo: existingTrustInfo ? existingTrustInfo.chrome : null,
+  })
 
   const firefoxTrustInfo = await putInFirefoxTrustStoreIfNeeded({
     logger,
@@ -76,14 +88,18 @@ export const removeCertificateFromTrustStores = async ({
   certificateFileUrl,
   certificateCommonName,
 }) => {
-  await removeCertificateFromWindowsTrustStore({
+  const windowsTrustInfo = await removeCertificateFromWindowsTrustStore({
     logger,
     certificate,
     certificateFileUrl,
     certificateCommonName,
   })
 
-  // no need for chrome, it uses OS trust stores
+  await removeCertificateFromChromeTrustStore({
+    logger,
+    // chrome needs windowsTrustInfo because it uses OS trust store
+    windowsTrustInfo,
+  })
 
   await removeCertificateFromFirefoxTrustStore({
     logger,
@@ -103,6 +119,21 @@ const putInWindowsTrustStoreIfNeeded = async ({
   return await addCertificateInWindowsTrustStore({
     logger,
     certificateFileUrl,
+  })
+}
+
+const putInChromeTrustStoreIfNeeded = async ({
+  logger,
+  windowsTrustInfo,
+  existingChromeTrustInfo,
+}) => {
+  if (existingChromeTrustInfo && existingChromeTrustInfo.status !== "not_trusted") {
+    return existingChromeTrustInfo
+  }
+
+  return await addCertificateInChromeTrustStore({
+    logger,
+    windowsTrustInfo,
   })
 }
 

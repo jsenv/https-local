@@ -8,29 +8,31 @@ import {
   removeCertificateFromLinuxTrustStore,
 } from "./linux/linux_trust_store.js"
 
-export const getNewCertificateTrustInfo = ({ logger }) => {
-  const linuxTrustInfo = {
-    status: "not_trusted",
-    reason: "tryToTrust disabled",
-  }
-  logger.info(`${infoSign} You should add certificate to linux`)
-
-  return {
-    linux: linuxTrustInfo,
-  }
-}
-
-export const getCertificateTrustInfo = async ({ logger, certificate, certificateCommonName }) => {
-  logger.info(`Check if certificate is trusted by linux...`)
-  const linuxTrustInfo = await getCertificateTrustInfoFromLinux({
-    logger,
-    certificate,
-    certificateCommonName,
-  })
-  if (linuxTrustInfo.status === "trusted") {
-    logger.info(`${okSign} certificate trusted by linux`)
+export const getCertificateTrustInfo = async ({
+  logger,
+  newAndTryToTrustDisabled,
+  certificate,
+  certificateCommonName,
+}) => {
+  let linuxTrustInfo
+  if (newAndTryToTrustDisabled) {
+    linuxTrustInfo = {
+      status: "not_trusted",
+      reason: "tryToTrust disabled",
+    }
+    logger.info(`${infoSign} You should add certificate to linux`)
   } else {
-    logger.info(`${infoSign} certificate not trusted by linux`)
+    logger.info(`Check if certificate is trusted by linux...`)
+    linuxTrustInfo = await getCertificateTrustInfoFromLinux({
+      logger,
+      certificate,
+      certificateCommonName,
+    })
+    if (linuxTrustInfo.status === "trusted") {
+      logger.info(`${okSign} certificate trusted by linux`)
+    } else {
+      logger.info(`${infoSign} certificate not trusted by linux`)
+    }
   }
 
   return {

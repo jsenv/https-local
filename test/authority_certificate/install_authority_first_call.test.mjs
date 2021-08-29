@@ -60,19 +60,19 @@ const expected = {
   trustInfo: {
     mac: {
       status: "not_trusted",
-      reason: "tryToTrust disabled",
+      reason: "certificate is new and tryToTrust is disabled",
     },
     chrome: {
       status: "not_trusted",
-      reason: "tryToTrust disabled",
+      reason: "certificate is new and tryToTrust is disabled",
     },
     safari: {
       status: "not_trusted",
-      reason: "tryToTrust disabled",
+      reason: "certificate is new and tryToTrust is disabled",
     },
     firefox: {
       status: "not_trusted",
-      reason: "tryToTrust disabled",
+      reason: "certificate is new and tryToTrust is disabled",
     },
   },
 }

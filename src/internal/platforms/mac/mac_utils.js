@@ -1,5 +1,3 @@
-import { existsSync } from "node:fs"
-
 import { assertAndNormalizeDirectoryUrl, resolveUrl, urlToFileSystemPath } from "@jsenv/filesystem"
 
 import { memoize } from "@jsenv/https-localhost/src/internal/memoize.js"
@@ -29,21 +27,3 @@ export const getCertutilBinPath = memoize(async () => {
   const certutilBinPath = urlToFileSystemPath(certutilBinUrl)
   return certutilBinPath
 })
-
-export const detectFirefox = memoize(({ logger }) => {
-  logger.debug(`Detecting Firefox...`)
-
-  const firefoxDetected = existsSync("/Applications/Firefox.app")
-  if (firefoxDetected) {
-    logger.debug(`${okSign} Firefox detected`)
-    return true
-  }
-
-  logger.debug(`${infoSign} Firefox not detected`)
-  return false
-})
-
-export const firefoxNSSDBDirectoryUrl = resolveUrl(
-  `./Library/Application Support/Firefox/Profiles/`,
-  assertAndNormalizeDirectoryUrl(process.env.HOME),
-)

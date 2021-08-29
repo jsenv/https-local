@@ -1,7 +1,10 @@
+/* eslint-disable import/max-dependencies */
+import { existsSync } from "node:fs"
 import { execSync } from "node:child_process"
 import { createDetailedMessage } from "@jsenv/logger"
-import { urlToFileSystemPath } from "@jsenv/filesystem"
+import { urlToFileSystemPath, resolveUrl, assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
 
+import { memoize } from "@jsenv/https-localhost/src/internal/memoize.js"
 import {
   findNSSDBFiles,
   getDirectoryArgFromNSSDBFileUrl,
@@ -16,23 +19,18 @@ import {
 } from "@jsenv/https-localhost/src/internal/logs.js"
 import { commandExists } from "@jsenv/https-localhost/src/internal/command.js"
 import { searchCertificateInCommandOutput } from "@jsenv/https-localhost/src/internal/search_certificate_in_command_output.js"
-import {
-  detectNSSCommand,
-  detectFirefox,
-  firefoxNSSDBDirectoryUrl,
-  getCertutilBinPath,
-} from "./mac_utils.js"
+import { detectNSSCommand, getCertutilBinPath } from "./mac_utils.js"
 
 // get status reasons
 const REASON_FIREFOX_NOT_DETECTED = "Firefox not detected"
-const REASON_MISSING_NSS = `"nss" is not installed`
+const REASON_NSS_MISSING = `"nss" is not installed`
 const REASON_FIREFOX_NSSDB_NOT_FOUND = "could not find Firefox nss database file"
 const REASON_NSSDB_LIST_COMMAND_FAILURE = `error while listing nss database certificates`
 const REASON_MISSING_IN_SOME_FIREFOX_NSSDB = `missing in some firefox nss database file`
 const REASON_OUTDATED_IN_SOME_FIREFOX_NSSDB = `outdated in some firefox nss database file`
 const REASON_FOUND_IN_ALL_FIREFOX_NSSDB = `found in all firefox nss database file`
 // add status reasons
-const REASON_MISSING_NSS_AND_BREW = `"nss" and "brew" are not installed`
+const REASON_NSS_AND_BREW_MISSING = `"nss" and "brew" are not installed`
 const REASON_NSS_MISSING_AND_DYNAMIC_INSTALL_DISABLED = `"nss" is not installed and NSSDynamicInstall is false`
 const REASON_NSSDB_ADD_COMMAND_FAILURE = `nss add command failure`
 const REASON_ADDED_IN_ALL_FIREFOX_NSSDB = `added in all firefox nss database file`
@@ -40,24 +38,54 @@ const REASON_ADDED_IN_ALL_FIREFOX_NSSDB = `added in all firefox nss database fil
 const REASON_NSSDB_REMOVE_COMMAND_FAILURE = `nss remove command failure`
 const REASON_REMOVED_FROM_ALL_FIREFOX_NSSDB = `removed from all firefox nss database file`
 
+const FIREFOX_NSSDB_DIRECTORY_URL = resolveUrl(
+  `./Library/Application Support/Firefox/Profiles/`,
+  assertAndNormalizeDirectoryUrl(process.env.HOME),
+)
+
 export const getCertificateTrustInfoFromFirefox = async ({
   logger,
+  newAndTryToTrustDisabled,
   certificate,
   certificateCommonName,
 } = {}) => {
-  const criticalFirefoxTrustInfo = await getCriticalTrustInfo({ logger })
-  if (criticalFirefoxTrustInfo) {
-    return criticalFirefoxTrustInfo
+  const firefoxDetected = detectFirefox({ logger })
+  if (!firefoxDetected) {
+    return {
+      status: "other",
+      reason: REASON_FIREFOX_NOT_DETECTED,
+    }
   }
 
+  if (newAndTryToTrustDisabled) {
+    logger.info(`${infoSign} You should add certificate to Firefox`)
+    return {
+      status: "not_trusted",
+      reason: "certificate is new and tryToTrust is disabled",
+    }
+  }
+
+  const nssAvailable = await detectNSSCommand({ logger })
+  if (!nssAvailable) {
+    logger.info(
+      `${infoSign} Unable to detect if certificate is trusted by Firefox (${REASON_NSS_MISSING})`,
+    )
+    return {
+      status: "unknown",
+      reason: REASON_NSS_MISSING,
+    }
+  }
+
+  logger.info(`Check if certificate is trusted by Firefox...`)
   logger.debug(`Search Firefox nss database files...`)
   const NSSDBFiles = await findNSSDBFiles({
-    NSSDBDirectoryUrl: firefoxNSSDBDirectoryUrl,
+    NSSDBDirectoryUrl: FIREFOX_NSSDB_DIRECTORY_URL,
   })
+
   const fileCount = NSSDBFiles.length
   if (fileCount === 0) {
     logger.warn(
-      `${warningSign} could not find Firefox nss database file in ${firefoxNSSDBDirectoryUrl}`,
+      `${warningSign} could not find Firefox nss database file in ${FIREFOX_NSSDB_DIRECTORY_URL}`,
     )
     return {
       status: "unknown",
@@ -112,6 +140,7 @@ export const getCertificateTrustInfoFromFirefox = async ({
   const missingCount = missings.length
   if (missingCount > 0) {
     logger.debug(`${infoSign} certificate missing in ${missingCount} nss database file`)
+    logger.info(`${infoSign} certificate not trusted by Firefox`)
     return {
       status: "not_trusted",
       reason: REASON_MISSING_IN_SOME_FIREFOX_NSSDB,
@@ -121,6 +150,7 @@ export const getCertificateTrustInfoFromFirefox = async ({
   const outdatedCount = outdateds.length
   if (outdatedCount > 0) {
     logger.debug(`${infoSign} certificate outdated in ${outdatedCount} nss database file`)
+    logger.info(`${infoSign} certificate not trusted by Firefox`)
     return {
       status: "not_trusted",
       reason: REASON_OUTDATED_IN_SOME_FIREFOX_NSSDB,
@@ -128,6 +158,7 @@ export const getCertificateTrustInfoFromFirefox = async ({
   }
 
   logger.debug(`${okSign} certificate found in ${founds.length} nss database file`)
+  logger.info(`${okSign} certificate trusted by Firefox`)
   return {
     status: "trusted",
     reason: REASON_FOUND_IN_ALL_FIREFOX_NSSDB,
@@ -145,6 +176,14 @@ export const addCertificateInFirefoxTrustStore = async ({
   certificateCommonName,
   NSSDynamicInstall,
 }) => {
+  const firefoxDetected = detectFirefox({ logger })
+  if (!firefoxDetected) {
+    return {
+      status: "other",
+      reason: "Firefox not detected",
+    }
+  }
+
   logger.info(`Adding certificate in Firefox...`)
   const failureMessage = `${failureSign} failed to add certificate in Firefox`
   const manualInstallSuggestionMessage = `Ensure ${urlToFileSystemPath(
@@ -170,14 +209,14 @@ export const addCertificateInFirefoxTrustStore = async ({
     if (!commandExists("brew")) {
       logger.warn(
         createDetailedMessage(failureMessage, {
-          "reason": REASON_MISSING_NSS_AND_BREW,
+          "reason": REASON_NSS_AND_BREW_MISSING,
           "suggested solution": `install "brew" on this mac`,
           "an other suggested solution": manualInstallSuggestionMessage,
         }),
       )
       return {
         status: "unknown",
-        reason: REASON_MISSING_NSS_AND_BREW,
+        reason: REASON_NSS_AND_BREW_MISSING,
       }
     }
 
@@ -195,7 +234,7 @@ export const addCertificateInFirefoxTrustStore = async ({
 
   logger.debug(`Search Firefox nss database files...`)
   const NSSDBFiles = await findNSSDBFiles({
-    NSSDBDirectoryUrl: firefoxNSSDBDirectoryUrl,
+    NSSDBDirectoryUrl: FIREFOX_NSSDB_DIRECTORY_URL,
   })
   const fileCount = NSSDBFiles.length
   if (fileCount === 0) {
@@ -250,20 +289,32 @@ export const removeCertificateFromFirefoxTrustStore = async ({
   certificateCommonName,
   certificateFileUrl,
 }) => {
-  const criticalFirefoxTrustInfo = await getCriticalTrustInfo({ logger })
-  if (criticalFirefoxTrustInfo) {
-    logger.debug(`No certificate to remove from firefox because ${criticalFirefoxTrustInfo.reason}`)
-    return criticalFirefoxTrustInfo
+  const firefoxDetected = detectFirefox({ logger })
+  if (!firefoxDetected) {
+    logger.debug(`No certificate to remove from firefox because ${REASON_FIREFOX_NOT_DETECTED}`)
+    return {
+      status: "other",
+      reason: REASON_FIREFOX_NOT_DETECTED,
+    }
+  }
+
+  const nssAvailable = await detectNSSCommand({ logger })
+  if (!nssAvailable) {
+    logger.debug(`Cannot remove certificate from firefox because ${REASON_NSS_MISSING}`)
+    return {
+      status: "unknown",
+      reason: REASON_NSS_MISSING,
+    }
   }
 
   logger.debug(`Search Firefox nss database files...`)
   const NSSDBFiles = await findNSSDBFiles({
-    NSSDBDirectoryUrl: firefoxNSSDBDirectoryUrl,
+    NSSDBDirectoryUrl: FIREFOX_NSSDB_DIRECTORY_URL,
   })
   const fileCount = NSSDBFiles.length
   if (fileCount === 0) {
     logger.warn(
-      `${warningSign} could not find Firefox nss database file in ${firefoxNSSDBDirectoryUrl}`,
+      `${warningSign} could not find Firefox nss database file in ${FIREFOX_NSSDB_DIRECTORY_URL}`,
     )
     return {
       status: "unknown",
@@ -310,6 +361,19 @@ export const removeCertificateFromFirefoxTrustStore = async ({
   }
 }
 
+const detectFirefox = memoize(({ logger }) => {
+  logger.debug(`Detecting Firefox...`)
+  const firefoxDetected = existsSync("/Applications/Firefox.app")
+
+  if (firefoxDetected) {
+    logger.debug(`${okSign} Firefox detected`)
+    return true
+  }
+
+  logger.debug(`${infoSign} Firefox not detected`)
+  return false
+})
+
 const execCertutilCommmand = async (command) => {
   try {
     const output = await exec(command)
@@ -317,26 +381,6 @@ const execCertutilCommmand = async (command) => {
   } catch (error) {
     return { error, output: null }
   }
-}
-
-const getCriticalTrustInfo = async ({ logger }) => {
-  const firefoxDetected = detectFirefox({ logger })
-  if (!firefoxDetected) {
-    return {
-      status: "other",
-      reason: REASON_FIREFOX_NOT_DETECTED,
-    }
-  }
-
-  const nssAvailable = await detectNSSCommand({ logger })
-  if (!nssAvailable) {
-    return {
-      status: "unknown",
-      reason: REASON_MISSING_NSS,
-    }
-  }
-
-  return null
 }
 
 const getFirefoxClosedPromise = async ({ logger }) => {

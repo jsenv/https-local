@@ -4,9 +4,6 @@
  * - https://www.unix.com/man-page/mojave/1/security/
  */
 
-import { infoSign, okSign } from "@jsenv/https-localhost/src/internal/logs.js"
-
-import { detectFirefox } from "./mac/mac_utils.js"
 import {
   getCertificateTrustInfoFromMac,
   addCertificateInMacTrustStore,
@@ -24,26 +21,12 @@ export const getCertificateTrustInfo = async ({
   certificate,
   certificateCommonName,
 }) => {
-  let macTrustInfo
-  if (newAndTryToTrustDisabled) {
-    macTrustInfo = {
-      status: "not_trusted",
-      reason: "certificate is new and tryToTrust is disabled",
-    }
-    logger.info(`${infoSign} You should add certificate to mac OS keychain`)
-  } else {
-    logger.info(`Check if certificate is trusted by mac OS...`)
-    macTrustInfo = await getCertificateTrustInfoFromMac({
-      logger,
-      certificate,
-      certificateCommonName,
-    })
-    if (macTrustInfo.status === "trusted") {
-      logger.info(`${okSign} certificate trusted by mac OS`)
-    } else {
-      logger.info(`${infoSign} certificate not trusted by mac OS`)
-    }
-  }
+  const macTrustInfo = await getCertificateTrustInfoFromMac({
+    logger,
+    newAndTryToTrustDisabled,
+    certificate,
+    certificateCommonName,
+  })
 
   // chrome use OS trust store
   const chromeTrustInfo = { ...macTrustInfo }
@@ -51,38 +34,12 @@ export const getCertificateTrustInfo = async ({
   // safari use OS trust store
   const safariTrustInfo = { ...macTrustInfo }
 
-  const firefoxDetected = detectFirefox({ logger })
-  let firefoxTrustInfo
-  if (firefoxDetected) {
-    if (newAndTryToTrustDisabled) {
-      logger.info(`${infoSign} You should add certificate to Firefox`)
-      firefoxTrustInfo = {
-        status: "not_trusted",
-        reason: "certificate is new and tryToTrust is disabled",
-      }
-    } else {
-      logger.info(`Check if certificate is trusted by Firefox...`)
-      firefoxTrustInfo = await getCertificateTrustInfoFromFirefox({
-        logger,
-        certificate,
-        certificateCommonName,
-      })
-      if (firefoxTrustInfo.status === "trusted") {
-        logger.info(`${okSign} certificate trusted by Firefox`)
-      } else if (firefoxTrustInfo.status === "not_trusted") {
-        logger.info(`${infoSign} certificate not trusted by Firefox`)
-      } else {
-        logger.info(
-          `${infoSign} unable to detect if certificate is trusted by Firefox (${firefoxTrustInfo.reason})`,
-        )
-      }
-    }
-  } else {
-    firefoxTrustInfo = {
-      status: "other",
-      reason: "Firefox not detected",
-    }
-  }
+  const firefoxTrustInfo = await getCertificateTrustInfoFromFirefox({
+    logger,
+    newAndTryToTrustDisabled,
+    certificate,
+    certificateCommonName,
+  })
 
   return {
     mac: macTrustInfo,
@@ -173,14 +130,6 @@ const putInFirefoxTrustStoreIfNeeded = async ({
 }) => {
   if (existingFirefoxTrustInfo && existingFirefoxTrustInfo.status !== "not_trusted") {
     return existingFirefoxTrustInfo
-  }
-
-  const firefoxDetected = detectFirefox({ logger })
-  if (!firefoxDetected) {
-    return {
-      status: "other",
-      reason: "Firefox not detected",
-    }
   }
 
   return await addCertificateInFirefoxTrustStore({

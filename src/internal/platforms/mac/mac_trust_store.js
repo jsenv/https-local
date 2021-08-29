@@ -14,7 +14,20 @@ import { searchCertificateInCommandOutput } from "@jsenv/https-localhost/src/int
 
 const systemKeychainPath = "/Library/Keychains/System.keychain"
 
-export const getCertificateTrustInfoFromMac = async ({ logger, certificate }) => {
+export const getCertificateTrustInfoFromMac = async ({
+  logger,
+  newAndTryToTrustDisabled,
+  certificate,
+}) => {
+  if (newAndTryToTrustDisabled) {
+    logger.info(`${infoSign} You should add certificate to mac OS keychain`)
+    return {
+      status: "not_trusted",
+      reason: "certificate is new and tryToTrust is disabled",
+    }
+  }
+
+  logger.info(`Check if certificate is trusted by mac OS...`)
   // https://ss64.com/osx/security-find-cert.html
   const findCertificateCommand = `security find-certificate -a -p ${systemKeychainPath}`
   logger.debug(`Searching certificate in mac keychain...`)
@@ -27,6 +40,7 @@ export const getCertificateTrustInfoFromMac = async ({ logger, certificate }) =>
 
   if (!certificateFoundInCommandOutput) {
     logger.debug(`${infoSign} certificate is not in keychain`)
+    logger.info(`${infoSign} certificate not trusted by mac OS`)
     return {
       status: "not_trusted",
       reason: `not found in mac keychain`,
@@ -38,6 +52,7 @@ export const getCertificateTrustInfoFromMac = async ({ logger, certificate }) =>
   // but they shouldn't and I couldn't find an API to know if the cert is trusted or not
   // just if it's in the keychain
   logger.debug(`${okSign} certificate found in keychain`)
+  logger.info(`${okSign} certificate trusted by mac OS`)
   return {
     status: "trusted",
     reason: "found in mac keychain",
@@ -73,19 +88,19 @@ export const addCertificateInMacTrustStore = async ({ logger, certificateFileUrl
 
 export const removeCertificateFromMacTrustStore = async ({
   logger,
-  certificate,
+  // certificate,
   certificateCommonName,
   certificateFileUrl,
 }) => {
   // ensure it's in mac keychain or the command to remove would fail
-  const trustInfo = await getCertificateTrustInfoFromMac({
-    logger,
-    certificate,
-    certificateCommonName,
-  })
-  if (trustInfo.status === "not_trusted") {
-    return trustInfo
-  }
+  // const trustInfo = await getCertificateTrustInfoFromMac({
+  //   logger,
+  //   certificate,
+  //   certificateCommonName,
+  // })
+  // if (trustInfo.status === "not_trusted") {
+  //   return trustInfo
+  // }
 
   // https://ss64.com/osx/security-cert.html
   // https://ss64.com/osx/security-delete-cert.html

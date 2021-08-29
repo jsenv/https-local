@@ -14,7 +14,20 @@ import {
 } from "@jsenv/https-localhost/src/internal/logs.js"
 import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
 
-export const getCertificateTrustInfoFromWindows = async ({ logger, certificateCommonName }) => {
+export const getCertificateTrustInfoFromWindows = async ({
+  logger,
+  newAndTryToTrustDisabled,
+  certificateCommonName,
+}) => {
+  if (newAndTryToTrustDisabled) {
+    logger.info(`${infoSign} You should add certificate to windows`)
+    return {
+      status: "not_trusted",
+      reason: "certificate is new and tryToTrust is disabled",
+    }
+  }
+
+  logger.info(`Check if certificate is trusted by windows...`)
   // https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil#-viewstore
   // TODO: check if -viewstore works better than -store
   const certutilListCommand = `certutil -store -user root`
@@ -27,6 +40,7 @@ export const getCertificateTrustInfoFromWindows = async ({ logger, certificateCo
   const certificateInStore = certutilListCommandOutput.includes(certificateCommonName)
   if (!certificateInStore) {
     logger.debug(`${infoSign} certificate is not in windows trust store`)
+    logger.info(`${infoSign} certificate not trusted by windows`)
     return {
       status: "not_trusted",
       reason: `not found in windows`,
@@ -34,6 +48,7 @@ export const getCertificateTrustInfoFromWindows = async ({ logger, certificateCo
   }
 
   logger.debug(`${okSign} certificate found in windows trust store`)
+  logger.info(`${okSign} certificate trusted by windows`)
   return {
     status: "trusted",
     reason: "found in windows",

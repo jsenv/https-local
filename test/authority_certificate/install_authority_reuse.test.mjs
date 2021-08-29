@@ -43,13 +43,13 @@ const expected = {
         status: "not_trusted",
         reason: "not found in mac keychain",
       },
-      safari: {
-        status: "not_trusted",
-        reason: "not found in mac keychain",
-      },
       firefox: {
         status: "not_trusted",
         reason: "missing in some firefox nss database file",
+      },
+      safari: {
+        status: "not_trusted",
+        reason: "not found in mac keychain",
       },
     },
   },

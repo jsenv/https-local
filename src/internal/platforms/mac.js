@@ -24,12 +24,14 @@ export const getCertificateTrustInfo = async ({
 
   const chromeTrustInfo = await chromeTrustStoreOnMac.getCertificateTrustInfo({
     logger,
+    newAndTryToTrustDisabled,
     // chrome needs macTrustInfo because it uses OS trust store
     macTrustInfo,
   })
 
   const safariTrustInfo = await safariTrustStore.getCertificateTrustInfo({
     logger,
+    newAndTryToTrustDisabled,
     // safari needs macTrustInfo because it uses OS trust store
     macTrustInfo,
   })

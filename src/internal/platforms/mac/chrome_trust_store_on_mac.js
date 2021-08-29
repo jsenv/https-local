@@ -4,7 +4,6 @@ import { okSign, infoSign } from "@jsenv/https-localhost/src/internal/logs.js"
 import { memoize } from "@jsenv/https-localhost/src/internal/memoize.js"
 
 const REASON_CHROME_NOT_DETECTED = `Chrome not detected`
-const REASON_CHROME_USES_MAC_KEYCHAIN = `Chrome uses mac keychain`
 
 const getCertificateTrustInfoFromChrome = ({ logger, macTrustInfo }) => {
   const chromeDetected = detectChrome({ logger })
@@ -15,14 +14,9 @@ const getCertificateTrustInfoFromChrome = ({ logger, macTrustInfo }) => {
     }
   }
 
-  if (macTrustInfo.status === "trusted") {
-    logger.info(`${okSign} certificate is trusted by Chrome...`)
-  } else {
-    logger.info(`${infoSign} certificate not trusted by Chrome`)
-  }
   return {
     status: macTrustInfo.status,
-    reason: REASON_CHROME_USES_MAC_KEYCHAIN,
+    reason: macTrustInfo.reason,
   }
 }
 
@@ -37,7 +31,7 @@ const addCertificateInChromeTrustStore = ({ logger, macTrustInfo }) => {
 
   return {
     status: macTrustInfo.status,
-    reason: REASON_CHROME_USES_MAC_KEYCHAIN,
+    reason: macTrustInfo.reason,
   }
 }
 
@@ -52,7 +46,7 @@ const removeCertificateFromChromeTrustStore = ({ logger, macTrustInfo }) => {
 
   return {
     status: macTrustInfo.status,
-    reason: REASON_CHROME_USES_MAC_KEYCHAIN,
+    reason: macTrustInfo.reason,
   }
 }
 

@@ -66,11 +66,11 @@ const expected = {
       status: "not_trusted",
       reason: "certificate is new and tryToTrust is disabled",
     },
-    safari: {
+    firefox: {
       status: "not_trusted",
       reason: "certificate is new and tryToTrust is disabled",
     },
-    firefox: {
+    safari: {
       status: "not_trusted",
       reason: "certificate is new and tryToTrust is disabled",
     },

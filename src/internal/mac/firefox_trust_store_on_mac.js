@@ -16,12 +16,12 @@ import {
   warningSign,
 } from "@jsenv/local-https-certificates/src/internal/logs.js"
 import { commandExists } from "@jsenv/local-https-certificates/src/internal/command.js"
+import { exec } from "@jsenv/local-https-certificates/src/internal/exec.js"
 import { detectNSSCommand, getCertutilBinPath } from "./mac_utils.js"
 
-// get status reasons
 const REASON_FIREFOX_NOT_DETECTED = "Firefox not detected"
 const REASON_NSS_MISSING = `"nss" is not installed`
-// add status reasons
+const REASON_NSS_INSTALLATION_FAILED = `"nss" installation failed`
 const REASON_NSS_AND_BREW_MISSING = `"nss" and "brew" are not installed`
 const REASON_NSS_MISSING_AND_DYNAMIC_INSTALL_DISABLED = `"nss" is not installed and NSSDynamicInstall is false`
 
@@ -32,9 +32,9 @@ const FIREFOX_NSSDB_DIRECTORY_URL = resolveUrl(
 
 const getCertificateTrustInfoFromFirefox = async ({
   logger,
-  newAndTryToTrustDisabled,
   certificate,
   certificateCommonName,
+  newAndTryToTrustDisabled,
 } = {}) => {
   const firefoxDetected = detectFirefox({ logger })
   if (!firefoxDetected) {
@@ -143,7 +143,7 @@ const addCertificateInFirefoxTrustStore = async ({
   if (!nssCommandAvailable) {
     if (!NSSDynamicInstall) {
       logger.warn(
-        createDetailedMessage(`${failureSign} failed to add certificate in Firefox`, {
+        createDetailedMessage(`${failureSign} cannot add certificate in Firefox`, {
           "reason": REASON_NSS_MISSING_AND_DYNAMIC_INSTALL_DISABLED,
           // "suggested solution": manualInstallSuggestionMessage,
           "suggested solution": `Allow "nss" dynamic install with NSSDynamicInstall: true`,
@@ -157,7 +157,7 @@ const addCertificateInFirefoxTrustStore = async ({
 
     if (!commandExists("brew")) {
       logger.warn(
-        createDetailedMessage(`${failureSign} failed to add certificate in Firefox`, {
+        createDetailedMessage(`${failureSign} cannot add certificate in Firefox`, {
           "reason": REASON_NSS_AND_BREW_MISSING,
           "suggested solution": `install "brew" on this mac`,
           // "an other suggested solution": manualInstallSuggestionMessage,
@@ -169,16 +169,23 @@ const addCertificateInFirefoxTrustStore = async ({
       }
     }
 
-    throw new Error(`To test properly`)
-    // const brewInstallCommand = `brew install nss`
-    // logger.info(`certutil is not installed, trying to install certutil via Homebrew`)
-    // logger.info(`> ${brewInstallCommand}`)
-    // try {
-    //   await exec(brewInstallCommand)
-    // } catch (e) {
-    //   logger.error(createDetailedMessage(`brew install nss error`, { "error stack": e.stack }))
-    //   return false
-    // }
+    const brewInstallCommand = `brew install nss`
+    logger.info(`"nss" is not installed, trying to install "nss" via Homebrew`)
+    logger.info(`> ${brewInstallCommand}`)
+    try {
+      await exec(brewInstallCommand)
+    } catch (e) {
+      logger.error(
+        createDetailedMessage(`${failureSign} cannot add certificate in Firefox`, {
+          "reason": REASON_NSS_INSTALLATION_FAILED,
+          "error stack": e.stack,
+        }),
+      )
+      return {
+        status: "unknown",
+        reason: REASON_NSS_INSTALLATION_FAILED,
+      }
+    }
   }
 
   const { failed, reason } = await addCertificateToNSSDB({
@@ -195,7 +202,6 @@ const addCertificateInFirefoxTrustStore = async ({
     logger.warn(
       createDetailedMessage(`${failureSign} failed to add certificate in Firefox`, {
         reason,
-        // "suggested solution": manualInstallSuggestionMessage,
       }),
     )
     return {
@@ -228,6 +234,8 @@ const removeCertificateFromFirefoxTrustStore = async ({
 
   const nssAvailable = await detectNSSCommand({ logger })
   if (!nssAvailable) {
+    // when nss is not installed we couldn't trust certificate so there is likely
+    // no certificate to remove -> log level is debug
     logger.debug(`Cannot remove certificate from firefox because ${REASON_NSS_MISSING}`)
     return {
       status: "unknown",

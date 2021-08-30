@@ -40,19 +40,19 @@ const expected = {
     trustInfo: {
       mac: {
         status: "not_trusted",
-        reason: "not found in mac keychain",
+        reason: "certificate not found in mac keychain",
       },
       chrome: {
         status: "not_trusted",
-        reason: "not found in mac keychain",
+        reason: "certificate not found in mac keychain",
       },
       firefox: {
         status: "not_trusted",
-        reason: "missing in some firefox nss database file",
+        reason: "missing in some Firefox nss database file",
       },
       safari: {
         status: "not_trusted",
-        reason: "not found in mac keychain",
+        reason: "certificate not found in mac keychain",
       },
     },
   },

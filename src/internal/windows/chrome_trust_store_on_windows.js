@@ -85,13 +85,9 @@ const detectChrome = memoize(({ logger }) => {
       return true
     }
     try {
-      const ret = which.sync(chromeExecutablePathCandidate)
-      debugger
+      which.sync(chromeExecutablePathCandidate)
       return true
-    }
-    catch(e) {
-      
-    }
+    } catch (e) {}
     return false
   })
   if (someExecutableFound) {

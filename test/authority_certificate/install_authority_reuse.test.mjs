@@ -38,23 +38,43 @@ const expected = {
     rootCertificatePrivateKey: assert.any(String),
     rootCertificateFilePath: assert.any(String),
     trustInfo: {
-      mac: {
-        status: "not_trusted",
-        reason: "certificate not found in mac keychain",
+      darwin: {
+        mac: {
+          status: "not_trusted",
+          reason: "certificate not found in mac keychain",
+        },
+        chrome: {
+          status: "not_trusted",
+          reason: "certificate not found in mac keychain",
+        },
+        firefox: {
+          status: "not_trusted",
+          reason: "missing in some firefox nss database file",
+        },
+        safari: {
+          status: "not_trusted",
+          reason: "certificate not found in mac keychain",
+        },
       },
-      chrome: {
-        status: "not_trusted",
-        reason: "certificate not found in mac keychain",
+      win32: {
+        windows: {
+          status: "not_trusted",
+          reason: "not found in windows store",
+        },
+        chrome: {
+          status: "not_trusted",
+          reason: "not found in windows store",
+        },
+        edge: {
+          status: "not_trusted",
+          reason: "not found in windows store",
+        },
+        firefox: {
+          status: "unknown",
+          reason: "not implemented on windows",
+        },
       },
-      firefox: {
-        status: "not_trusted",
-        reason: "missing in some firefox nss database file",
-      },
-      safari: {
-        status: "not_trusted",
-        reason: "certificate not found in mac keychain",
-      },
-    },
+    }[process.platform],
   },
   secondCallLogs: {
     infos: [
@@ -63,10 +83,21 @@ const expected = {
       `${okSign} certificate still valid for 20 years`,
       `Detect if certificate attributes have changed...`,
       `${okSign} certificate attributes are the same`,
-      "Check if certificate is trusted by mac OS...",
-      `${infoSign} certificate not trusted by mac OS`,
-      "Check if certificate is trusted by firefox...",
-      `${infoSign} certificate not trusted by firefox`,
+      ...{
+        darwin: [
+          "Check if certificate is trusted by mac OS...",
+          `${infoSign} certificate not trusted by mac OS`,
+          "Check if certificate is trusted by firefox...",
+          `${infoSign} certificate not trusted by firefox`,
+        ],
+        win32: [
+          "Check if certificate is trusted by windows...",
+          `${infoSign} certificate not trusted by windows`,
+          "Check if certificate is trusted by firefox...",
+          `${infoSign} unable to detect if certificate is trusted by firefox (not implemented on windows)`,
+        ],
+        linux: [],
+      }[process.platform],
     ],
     warns: [],
     errors: [],

@@ -16,7 +16,7 @@ const which = require("which")
 const REASON_FIREFOX_NOT_DETECTED = "Firefox not detected"
 const REASON_NOT_IMPLEMENTED_ON_WINDOWS = "not implemented on windows"
 
-const getCertificateTrustInfoFromFirefox = ({ logger }) => {
+const getCertificateTrustInfoFromFirefox = ({ logger, newAndTryToTrustDisabled }) => {
   const firefoxDetected = detectFirefox({ logger })
   if (!firefoxDetected) {
     return {
@@ -25,8 +25,17 @@ const getCertificateTrustInfoFromFirefox = ({ logger }) => {
     }
   }
 
+  if (newAndTryToTrustDisabled) {
+    logger.info(`${infoSign} You should add certificate to firefox`)
+    return {
+      status: "not_trusted",
+      reason: "certificate is new and tryToTrust is disabled",
+    }
+  }
+
+  logger.info(`Check if certificate is trusted by firefox...`)
   logger.info(
-    `${infoSign} unable to detect if certificate is trusted by Firefox (${REASON_NOT_IMPLEMENTED_ON_WINDOWS})`,
+    `${infoSign} unable to detect if certificate is trusted by firefox (${REASON_NOT_IMPLEMENTED_ON_WINDOWS})`,
   )
   return {
     status: "unknown",
@@ -100,13 +109,9 @@ const detectFirefox = memoize(({ logger }) => {
       return true
     }
     try {
-      const ret = which.sync(firefoxExecutablePathCandidate)
-      debugger
+      which.sync(firefoxExecutablePathCandidate)
       return true
-    }
-    catch(e) {
-      
-    }
+    } catch (e) {}
     return false
   })
   if (someExecutableFound) {

@@ -51,7 +51,7 @@ const expected = {
       ],
       win32: [
         `${infoSign} You should add certificate to windows`,
-        `${infoSign} unable to detect if certificate is trusted by Firefox (not implemented on windows)`,
+        `${infoSign} You should add certificate to firefox`,
       ],
       linux: [],
     }[process.platform],
@@ -96,8 +96,8 @@ const expected = {
         reason: "certificate is new and tryToTrust is disabled",
       },
       firefox: {
-        status: "unknown",
-        reason: "not implemented on windows",
+        status: "not_trusted",
+        reason: "certificate is new and tryToTrust is disabled",
       },
     },
   }[process.platform],

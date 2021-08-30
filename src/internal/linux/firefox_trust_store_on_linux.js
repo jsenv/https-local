@@ -17,7 +17,7 @@ import {
   removeCertificateFromBrowserNSSDB,
 } from "../nssdb_browser.js"
 
-export const firefoxTrustStoreOnMac = {
+export const firefoxTrustStoreOnLinux = {
   getCertificateTrustInfo: ({
     logger,
     certificate,

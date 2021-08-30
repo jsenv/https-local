@@ -107,8 +107,8 @@ export const installCertificateAuthority = async ({
           logger,
           certificate: rootCertificate,
           certificateFileUrl: rootCertificateFileUrl,
-          certificateCommonName,
           NSSDynamicInstall,
+          certificateCommonName,
         })
       : await platformMethods.getCertificateTrustInfo({
           logger,
@@ -214,7 +214,6 @@ export const installCertificateAuthority = async ({
   const trustInfo = tryToTrust
     ? await platformMethods.addCertificateToTrustStores({
         logger,
-        newAndTryToTrustDisabled: false,
         certificate: rootCertificate,
         certificateFileUrl: rootCertificateFileInfo.url,
         certificateCommonName,

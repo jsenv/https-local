@@ -44,7 +44,10 @@ const { rootCertificateFilePath } = await installCertificateAuthority({
           `${infoSign} You should add certificate to mac OS keychain`,
           `${infoSign} You should add certificate to firefox`,
         ],
-        windows: [],
+        win32: [
+          `${infoSign} You should add certificate to windows`,
+          `${infoSign} You should add certificate to firefox`,
+        ],
         linux: [],
       }[process.platform],
     ],

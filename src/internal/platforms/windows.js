@@ -6,6 +6,7 @@
 
 import { windowsTrustStore } from "./windows/windows_trust_store.js"
 import { chromeTrustStoreOnWindows } from "./windows/chrome_trust_store_on_windows.js"
+import { edgeTrustStore } from "./windows/edge_trust_store.js"
 import { firefoxTrustStoreOnWindows } from "./windows/firefox_trust_store_on_windows.js"
 
 export const getCertificateTrustInfo = async ({
@@ -27,6 +28,12 @@ export const getCertificateTrustInfo = async ({
     windowsTrustInfo,
   })
 
+  const edgeTrustInfo = await edgeTrustStore.getCertificate({
+    logger,
+    // edge needs windowsTrustInfo because it uses OS trust store
+    windowsTrustInfo,
+  })
+
   const firefoxTrustInfo = await firefoxTrustStoreOnWindows.getCertificateTrustInfo({
     logger,
     newAndTryToTrustDisabled,
@@ -35,6 +42,7 @@ export const getCertificateTrustInfo = async ({
   return {
     windows: windowsTrustInfo,
     chrome: chromeTrustInfo,
+    edge: edgeTrustInfo,
     firefox: firefoxTrustInfo,
   }
 }
@@ -57,6 +65,12 @@ export const addCertificateToTrustStores = async ({
     existingTrustInfo,
   })
 
+  const edgeTrustInfo = await edgeTrustStore.addCertificate({
+    logger,
+    // edge needs windowsTrustInfo because it uses OS trust store
+    windowsTrustInfo,
+  })
+
   const firefoxTrustInfo = await firefoxTrustStoreOnWindows.addCertificate({
     logger,
     certificateFileUrl,
@@ -66,6 +80,7 @@ export const addCertificateToTrustStores = async ({
   return {
     windows: windowsTrustInfo,
     chrome: chromeTrustInfo,
+    edge: edgeTrustInfo,
     firefox: firefoxTrustInfo,
   }
 }
@@ -86,6 +101,12 @@ export const removeCertificateFromTrustStores = async ({
   await chromeTrustStoreOnWindows.removeCertificate({
     logger,
     // chrome needs windowsTrustInfo because it uses OS trust store
+    windowsTrustInfo,
+  })
+
+  await edgeTrustStore.removeCertificate({
+    logger,
+    // edge needs windowsTrustInfo because it uses OS trust store
     windowsTrustInfo,
   })
 

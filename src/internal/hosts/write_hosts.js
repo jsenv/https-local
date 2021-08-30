@@ -25,7 +25,6 @@ const writeHostsFileOnLinuxOrMac = async ({
     ? `echo "${hostsFileContent}" | sudo tee ${hostsFilePath}`
     : `echo "${hostsFileContent}" | tee ${hostsFilePath}`
   onBeforeExecCommand(updateHostsFileCommand)
-
   await exec(updateHostsFileCommand)
 }
 
@@ -35,14 +34,15 @@ const writeHostsFileOnWindows = async ({
   onBeforeExecCommand,
 }) => {
   const needsSudo = hostsFilePath === HOSTS_FILE_PATH
-  const updateHostsFileCommand = `echo ${hostsFileContent} | tree -filepath ${hostsFilePath}`
+  const echoCommand = echoWithLinesToSingleCommand(hostsFileContent)
+  const updateHostsFileCommand = `${echoCommand} > ${hostsFilePath}`
 
   if (needsSudo) {
     const require = createRequire(import.meta.url)
     const sudoPrompt = require("sudo-prompt")
     onBeforeExecCommand(updateHostsFileCommand)
     await new Promise((resolve, reject) => {
-      sudoPrompt.exec(updateHostsFileCommand, (error, stdout, stderr) => {
+      sudoPrompt.exec(updateHostsFileCommand, { name: "write hosts" }, (error, stdout, stderr) => {
         if (error) {
           reject(error)
         } else if (typeof stderr === "string" && stderr.trim().length > 0) {
@@ -55,5 +55,21 @@ const writeHostsFileOnWindows = async ({
     return
   }
 
+  onBeforeExecCommand(updateHostsFileCommand)
   await exec(updateHostsFileCommand)
 }
+
+const echoWithLinesToSingleCommand = (value) => {
+  const command = value
+    .split(/\r\n/g)
+    .map((value) => `echo ${value}`)
+    .join(`& `)
+  return `(${command})`
+}
+
+// https://github.com/xxorax/node-shell-escape
+// https://github.com/nodejs/node/issues/34840#issuecomment-677402567
+// const escapeCommandArgument = (value) => {
+//   return `'${value.replace(/'/g, `'"'`)}'`
+//   // return String(value).replace(/([A-z]:)?([#!"$&'()*,:;<=>?@\[\\\]^`{|}])/g, "$1\\$2")
+// }

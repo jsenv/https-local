@@ -14,7 +14,14 @@ import {
 } from "@jsenv/https-localhost/src/internal/logs.js"
 import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
 
-export const getCertificateTrustInfoFromWindows = async ({
+const REASON_NOT_FOUND = "not found in windows store"
+const REASON_FOUND = "found in windows store"
+const REASON_ADD_COMMAND_FAILED = "command to add certificate to windows store failed"
+const REASON_ADD_COMMAND_COMPLETED = "command to add certificate to windows store completed"
+const REASON_DELETE_COMMAND_FAILED = "command to remove certificate from windows store failed"
+const REASON_DELETE_COMMAND_COMPLETED = "command to remove certificate from windows store completed"
+
+const getCertificateTrustInfoFromWindows = async ({
   logger,
   newAndTryToTrustDisabled,
   certificateCommonName,
@@ -43,7 +50,7 @@ export const getCertificateTrustInfoFromWindows = async ({
     logger.info(`${infoSign} certificate not trusted by windows`)
     return {
       status: "not_trusted",
-      reason: `not found in windows`,
+      reason: REASON_NOT_FOUND,
     }
   }
 
@@ -51,11 +58,11 @@ export const getCertificateTrustInfoFromWindows = async ({
   logger.info(`${okSign} certificate trusted by windows`)
   return {
     status: "trusted",
-    reason: "found in windows",
+    reason: REASON_FOUND,
   }
 }
 
-export const addCertificateInWindowsTrustStore = async ({ logger, certificateFileUrl }) => {
+const addCertificateInWindowsTrustStore = async ({ logger, certificateFileUrl }) => {
   const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
   // https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil#-addstore
   const certutilAddCommand = `certutil -addstore -user root "${certificateFilePath}"`
@@ -66,7 +73,7 @@ export const addCertificateInWindowsTrustStore = async ({ logger, certificateFil
     logger.info(`${okSign} certificate added to windows`)
     return {
       status: "trusted",
-      reason: "command to add certificate completed",
+      reason: REASON_ADD_COMMAND_COMPLETED,
     }
   } catch (e) {
     logger.error(
@@ -77,12 +84,12 @@ export const addCertificateInWindowsTrustStore = async ({ logger, certificateFil
     )
     return {
       status: "not_trusted",
-      reason: "command to add certificate failed",
+      reason: REASON_ADD_COMMAND_FAILED,
     }
   }
 }
 
-export const removeCertificateFromWindowsTrustStore = async ({ logger, certificateFileUrl }) => {
+const removeCertificateFromWindowsTrustStore = async ({ logger, certificateFileUrl }) => {
   const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
   // https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil#-delstore
   const certutilRemoveCommand = `certutil -delstore -user root "${certificateFilePath}"`
@@ -93,7 +100,7 @@ export const removeCertificateFromWindowsTrustStore = async ({ logger, certifica
     logger.info(`${okSign} certificate removed from windows`)
     return {
       status: "not_trusted",
-      reason: "command to delete certificate completed",
+      reason: REASON_DELETE_COMMAND_COMPLETED,
     }
   } catch (e) {
     logger.error(
@@ -104,7 +111,13 @@ export const removeCertificateFromWindowsTrustStore = async ({ logger, certifica
     )
     return {
       status: "unknown", // maybe it was not trusted?
-      reason: "command to delete certificate failed",
+      reason: REASON_DELETE_COMMAND_FAILED,
     }
   }
+}
+
+export const windowsTrustStore = {
+  getCertificateTrustInfo: getCertificateTrustInfoFromWindows,
+  addCertificate: addCertificateInWindowsTrustStore,
+  removeCertificate: removeCertificateFromWindowsTrustStore,
 }

@@ -16,7 +16,7 @@ const which = require("which")
 const REASON_FIREFOX_NOT_DETECTED = "Firefox not detected"
 const REASON_NOT_IMPLEMENTED_ON_WINDOWS = "not implemented on windows"
 
-export const getCertificateTrustInfoFromFirefox = ({ logger }) => {
+const getCertificateTrustInfoFromFirefox = ({ logger }) => {
   const firefoxDetected = detectFirefox({ logger })
   if (!firefoxDetected) {
     return {
@@ -34,7 +34,11 @@ export const getCertificateTrustInfoFromFirefox = ({ logger }) => {
   }
 }
 
-export const addCertificateInFirefoxTrustStore = ([logger]) => {
+const addCertificateInFirefoxTrustStore = ({ logger, existingTrustInfo }) => {
+  if (existingTrustInfo && existingTrustInfo.firefox.status === "other") {
+    return existingTrustInfo
+  }
+
   const firefoxDetected = detectFirefox({ logger })
   if (!firefoxDetected) {
     return {
@@ -52,7 +56,7 @@ export const addCertificateInFirefoxTrustStore = ([logger]) => {
   }
 }
 
-export const removeCertificateFromFirefoxTrustStore = ({ logger }) => {
+const removeCertificateFromFirefoxTrustStore = ({ logger }) => {
   const firefoxDetected = detectFirefox({ logger })
   if (!firefoxDetected) {
     return {
@@ -64,11 +68,16 @@ export const removeCertificateFromFirefoxTrustStore = ({ logger }) => {
   logger.warn(
     `${warningSign} cannot remove certificate from firefox (${REASON_NOT_IMPLEMENTED_ON_WINDOWS})`,
   )
-
   return {
     status: "unknown",
     reason: REASON_NOT_IMPLEMENTED_ON_WINDOWS,
   }
+}
+
+export const firefoxTrustStoreOnWindows = {
+  getCertificateTrustInfo: getCertificateTrustInfoFromFirefox,
+  addCertificate: addCertificateInFirefoxTrustStore,
+  removeCertificate: removeCertificateFromFirefoxTrustStore,
 }
 
 // https://github.com/litixsoft/karma-detect-browsers

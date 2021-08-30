@@ -9,9 +9,8 @@ const require = createRequire(import.meta.url)
 const which = require("which")
 
 const REASON_CHROME_NOT_DETECTED = `Chrome not detected`
-const REASON_CHROME_USES_WINDOWS_TRUST_STORE = `Chrome uses windows trust store`
 
-export const getCertificateTrustInfoFromChrome = ({ logger, windowsTrustInfo }) => {
+const getCertificateTrustInfoFromChrome = ({ logger, windowsTrustInfo }) => {
   const chromeDetected = detectChrome({ logger })
   if (!chromeDetected) {
     return {
@@ -20,18 +19,17 @@ export const getCertificateTrustInfoFromChrome = ({ logger, windowsTrustInfo }) 
     }
   }
 
-  if (windowsTrustInfo.status === "trusted") {
-    logger.info(`${okSign} certificate is trusted by Chrome...`)
-  } else {
-    logger.info(`${infoSign} certificate not trusted by Chrome`)
-  }
   return {
     status: windowsTrustInfo.status,
-    reason: REASON_CHROME_USES_WINDOWS_TRUST_STORE,
+    reason: windowsTrustInfo.reason,
   }
 }
 
-export const addCertificateInChromeTrustStore = ({ logger, windowsTrustInfo }) => {
+const addCertificateInChromeTrustStore = ({ logger, windowsTrustInfo, existingTrustInfo }) => {
+  if (existingTrustInfo && existingTrustInfo.chrome.status === "other") {
+    return existingTrustInfo.chrome
+  }
+
   const chromeDetected = detectChrome({ logger })
   if (!chromeDetected) {
     return {
@@ -42,11 +40,11 @@ export const addCertificateInChromeTrustStore = ({ logger, windowsTrustInfo }) =
 
   return {
     status: windowsTrustInfo.status,
-    reason: REASON_CHROME_USES_WINDOWS_TRUST_STORE,
+    reason: windowsTrustInfo.reason,
   }
 }
 
-export const removeCertificateFromChromeTrustStore = ({ logger, windowsTrustInfo }) => {
+const removeCertificateFromChromeTrustStore = ({ logger, windowsTrustInfo }) => {
   const chromeDetected = detectChrome({ logger })
   if (!chromeDetected) {
     return {
@@ -57,8 +55,14 @@ export const removeCertificateFromChromeTrustStore = ({ logger, windowsTrustInfo
 
   return {
     status: windowsTrustInfo.status,
-    reason: REASON_CHROME_USES_WINDOWS_TRUST_STORE,
+    reason: windowsTrustInfo.reason,
   }
+}
+
+export const chromeTrustStoreOnWindows = {
+  getCertificateTrustInfo: getCertificateTrustInfoFromChrome,
+  addCertificate: addCertificateInChromeTrustStore,
+  removeCertificate: removeCertificateFromChromeTrustStore,
 }
 
 // https://github.com/litixsoft/karma-detect-browsers/blob/332b4bdb2ab3db7c6a1a6d3ec5a1c6ccf2332c4d/browsers/Chrome.js#L1

@@ -43,7 +43,7 @@ const { rootCertificateFilePath } = await installCertificateAuthority({
       ...{
         darwin: [
           `${infoSign} You should add certificate to mac OS keychain`,
-          `${infoSign} You should add certificate to Firefox`,
+          `${infoSign} You should add certificate to firefox`,
         ],
         windows: [],
         linux: [],

@@ -1,32 +1,36 @@
+/*
+ * NSS DB stands for Network Security Service DataBase
+ * Certutil command documentation: https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/tools/NSS_Tools_certutil
+ */
+
 import { createDetailedMessage } from "@jsenv/logger"
+import { collectFiles, resolveUrl, urlToFilename, urlToFileSystemPath } from "@jsenv/filesystem"
 
 import {
+  commandSign,
   okSign,
   infoSign,
   warningSign,
   failureSign,
 } from "@jsenv/local-https-certificates/src/internal/logs.js"
-import {
-  getCertificateInfoFromNSSDB,
-  addCertificateToNSSDB,
-  removeCertificateFromNSSDB,
-} from "@jsenv/local-https-certificates/src/internal/nssdb.js"
+import { exec } from "@jsenv/local-https-certificates/src/internal/exec.js"
+import { searchCertificateInCommandOutput } from "@jsenv/local-https-certificates/src/internal/search_certificate_in_command_output.js"
 
 export const getCertificateTrustInfoFromBrowserNSSDB = async ({
   logger,
+  certificate,
+  certificateCommonName,
+  newAndTryToTrustDisabled,
 
-  getBrowserInfo,
+  browserName,
+  detectBrowser,
+  browserNSSDBDirectoryUrl,
 
   nssCommandName,
   detectIfNSSIsInstalled,
   getCertutilBinPath,
-
-  certificate,
-  certificateCommonName,
-  newAndTryToTrustDisabled,
 }) => {
-  const { browserName, browserDetected, browserNSSDBDirectoryUrl } = getBrowserInfo({ logger })
-
+  const browserDetected = detectBrowser({ logger })
   if (!browserDetected) {
     return {
       status: "other",
@@ -48,7 +52,7 @@ export const getCertificateTrustInfoFromBrowserNSSDB = async ({
     const reason = `"${nssCommandName}" is not installed`
     logger.info(
       createDetailedMessage(
-        `${infoSign} Unable to detect if certificate is trusted by ${browserName}`,
+        `${failureSign} Unable to detect if certificate is trusted by ${browserName}`,
         {
           reason,
         },
@@ -60,20 +64,16 @@ export const getCertificateTrustInfoFromBrowserNSSDB = async ({
     }
   }
 
-  const { failed, reason, missingCount, outdatedCount, foundCount } =
-    await getCertificateInfoFromNSSDB({
-      logger,
-      browserNSSDBDirectoryUrl,
-      getCertutilBinPath,
-
-      certificate,
-      certificateCommonName,
-    })
-
-  if (failed) {
+  const NSSDBFiles = await findNSSDBFiles({
+    logger,
+    NSSDBDirectoryUrl: browserNSSDBDirectoryUrl,
+  })
+  const fileCount = NSSDBFiles.length
+  if (fileCount === 0) {
+    const reason = `could not find nss database file`
     logger.warn(
       createDetailedMessage(
-        `${warningSign} Unable to detect if certificate is trusted by ${browserName}`,
+        `${failureSign} Unable to detect if certificate is trusted by ${browserName}`,
       ),
       { reason },
     )
@@ -82,6 +82,56 @@ export const getCertificateTrustInfoFromBrowserNSSDB = async ({
       reason,
     }
   }
+
+  const missings = []
+  const outdateds = []
+  const founds = []
+  const certutilBinPath = await getCertutilBinPath()
+  for (const NSSDBFileUrl of NSSDBFiles) {
+    const directoryArg = getDirectoryArgFromNSSDBFileUrl(NSSDBFileUrl)
+    const certutilListCommand = `${certutilBinPath} -L -a -d ${directoryArg} -n "${certificateCommonName}"`
+    logger.debug(`Checking if certificate is in nss database...`)
+    logger.debug(`${commandSign} ${certutilListCommand}`)
+    const { error, output } = await execCertutilCommmand(certutilListCommand)
+    if (error) {
+      if (error.message.includes("PR_FILE_NOT_FOUND_ERROR")) {
+        logger.debug(`${infoSign} certificate not found in nss database`)
+        missings.push(NSSDBFileUrl)
+        continue
+      }
+      if (error.message.includes("could not find certificate named")) {
+        logger.debug(`${infoSign} certificate not found in nss database`)
+        missings.push(NSSDBFileUrl)
+        continue
+      }
+      console.error(error)
+      const reason = `error while listing nss database certificates`
+      logger.warn(
+        createDetailedMessage(
+          `${failureSign} Unable to detect if certificate is trusted by ${browserName}`,
+        ),
+        { reason },
+      )
+      return {
+        status: "unknown",
+        reason,
+      }
+    }
+
+    const isInDatabase = searchCertificateInCommandOutput(output, certificate)
+    if (isInDatabase) {
+      logger.debug(`${okSign} certificate found in nss database`)
+      founds.push(NSSDBFileUrl)
+      continue
+    }
+
+    logger.debug(`${infoSign} certificate in nss database is outdated`)
+    outdateds.push(NSSDBFileUrl)
+  }
+
+  const missingCount = missings.length
+  const outdatedCount = outdateds.length
+  const foundCount = founds.length
 
   if (missingCount > 0) {
     logger.debug(`${infoSign} certificate missing in ${missingCount} nss database file`)
@@ -111,27 +161,26 @@ export const getCertificateTrustInfoFromBrowserNSSDB = async ({
 
 export const addCertificateInBrowserNSSDB = async ({
   logger,
+  certificateFileUrl,
+  certificateCommonName,
+  NSSDynamicInstall,
+  existingTrustInfo,
 
-  getBrowserInfo,
+  browserName,
+  detectBrowser,
+  browserNSSDBDirectoryUrl,
+  getBrowserClosedPromise,
 
   nssCommandName,
   detectIfNSSIsInstalled,
   getNSSDynamicInstallInfo,
   getCertutilBinPath,
-
-  certificateFileUrl,
-  certificateCommonName,
-
-  NSSDynamicInstall,
-  existingTrustInfo,
 }) => {
-  const { browserName, browserDetected, NSSDBDirectoryUrl, getBrowserClosedPromise } =
-    getBrowserInfo({ logger })
-
   if (existingTrustInfo && existingTrustInfo[browserName].status === "other") {
     return existingTrustInfo[browserName]
   }
 
+  const browserDetected = detectBrowser({ logger })
   if (!browserDetected) {
     return {
       status: "other",
@@ -191,19 +240,15 @@ export const addCertificateInBrowserNSSDB = async ({
     }
   }
 
-  const { failed, reason } = await addCertificateToNSSDB({
+  const NSSDBFiles = await findNSSDBFiles({
     logger,
-    NSSDBDirectoryUrl,
-    getCertutilBinPath,
-    getBrowserClosedPromise,
-
-    certificateCommonName,
-    certificateFileUrl,
+    NSSDBDirectoryUrl: browserNSSDBDirectoryUrl,
   })
-
-  if (failed) {
+  const fileCount = NSSDBFiles.length
+  if (fileCount === 0) {
+    const reason = `could not find nss database file`
     logger.warn(
-      createDetailedMessage(`${failureSign} failed to add certificate in Firefox`, {
+      createDetailedMessage(`${failureSign} failed to add certificate in ${browserName}`, {
         reason,
       }),
     )
@@ -213,10 +258,36 @@ export const addCertificateInBrowserNSSDB = async ({
     }
   }
 
+  await getBrowserClosedPromise()
+  const certutilBinPath = await getCertutilBinPath()
+  for (const NSSDBFileUrl of NSSDBFiles) {
+    const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
+    const directoryArg = getDirectoryArgFromNSSDBFileUrl(NSSDBFileUrl)
+    const certutilAddCommand = `${certutilBinPath} -A -d ${directoryArg} -t C,, -i "${certificateFilePath}" -n "${certificateCommonName}"`
+
+    logger.debug(`Adding certificate to nss database...`)
+    logger.debug(`${commandSign} ${certutilAddCommand}`)
+    const { error } = await execCertutilCommmand(certutilAddCommand)
+    if (error) {
+      console.error(error)
+      const reason = `error while adding certificate in nss database file`
+      logger.warn(
+        createDetailedMessage(`${failureSign} Unable to add certificate in ${browserName}`),
+        { reason },
+      )
+      return {
+        status: "not_trusted",
+        reason,
+      }
+    }
+    logger.debug(`${okSign} certificate added`)
+  }
+
+  logger.debug(`${okSign} certificate added in ${fileCount} nss database file`)
   logger.info(`${okSign} certificate added in Firefox`)
   return {
     status: "trusted",
-    reason,
+    reason: `added in all nss database file`,
   }
 }
 
@@ -226,12 +297,16 @@ export const removeCertificateFromBrowserNSSDB = async ({
   certificateCommonName,
   certificateFileUrl,
 
-  getBrowserInfo,
-  getNSSCommandInfo,
-}) => {
-  const { browserName, browserDetected, browserNSSDBDirectoryUrl, getBrowserClosedPromise } =
-    getBrowserInfo({ logger })
+  browserName,
+  detectBrowser,
+  browserNSSDBDirectoryUrl,
+  getBrowserClosedPromise,
 
+  nssCommandName,
+  detectIfNSSIsInstalled,
+  getCertutilBinPath,
+}) => {
+  const browserDetected = detectBrowser({ logger })
   if (!browserDetected) {
     logger.debug(`No certificate to remove from ${browserName} because it is not detected`)
     return {
@@ -240,7 +315,7 @@ export const removeCertificateFromBrowserNSSDB = async ({
     }
   }
 
-  const { nssCommandName, nssIsInstalled, getCertutilBinPath } = await getNSSCommandInfo({ logger })
+  const nssIsInstalled = await detectIfNSSIsInstalled({ logger })
   if (!nssIsInstalled) {
     // when nss is not installed we couldn't trust certificate so there is likely
     // no certificate to remove -> log level is debug
@@ -255,20 +330,14 @@ export const removeCertificateFromBrowserNSSDB = async ({
 
   logger.info(`Removing certificate from ${browserName}...`)
 
-  const { failed, reason } = await removeCertificateFromNSSDB({
-    logger,
-    browserNSSDBDirectoryUrl,
-    getBrowserClosedPromise,
-
-    getCertutilBinPath,
-
-    certificateCommonName,
-    certificateFileUrl,
+  const NSSDBFiles = await findNSSDBFiles({
+    NSSDBDirectoryUrl: browserNSSDBDirectoryUrl,
   })
-
-  if (failed) {
+  const fileCount = NSSDBFiles.length
+  if (fileCount === 0) {
+    const reason = `could not find nss database file`
     logger.warn(
-      createDetailedMessage(`${warningSign} failed to remove certificate from ${browserName}`, {
+      createDetailedMessage(`${failureSign} failed to remove certificate from ${browserName}`, {
         reason,
       }),
     )
@@ -278,9 +347,88 @@ export const removeCertificateFromBrowserNSSDB = async ({
     }
   }
 
+  await getBrowserClosedPromise()
+  const certutilBinPath = await getCertutilBinPath()
+  for (const NSSDBFileUrl of NSSDBFiles) {
+    const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
+    const directoryArg = getDirectoryArgFromNSSDBFileUrl(NSSDBFileUrl)
+    const certutilRemoveCommand = `${certutilBinPath} -D -d ${directoryArg} -t C,, -i "${certificateFilePath}" -n "${certificateCommonName}"`
+
+    logger.debug(`Removing certificate from nss database...`)
+    logger.debug(`${commandSign} ${certutilRemoveCommand}`)
+    const { error } = await execCertutilCommmand(certutilRemoveCommand)
+    if (error) {
+      if (error.message.includes("could not find certificate named")) {
+        logger.debug(`${okSign} certificate was not in the nss database`)
+        continue
+      }
+      console.error(error)
+      const reason = `error while removing certificate from nss database file`
+      logger.warn(
+        createDetailedMessage(`${failureSign} failed to remove certificate from ${browserName}`, {
+          reason,
+        }),
+      )
+      return {
+        status: "unknown",
+        reason,
+      }
+    }
+    logger.debug(`${okSign} certificate removed`)
+  }
+
   logger.info(`${okSign} certificate removed from ${browserName}`)
   return {
     status: "not_trusted",
-    reason,
+    reason: `removed from all nss database file`,
+  }
+}
+
+const NSSDirectoryCache = {}
+const findNSSDBFiles = async ({ logger, NSSDBDirectoryUrl }) => {
+  const resultFromCache = NSSDirectoryCache[NSSDBDirectoryUrl]
+  if (resultFromCache) {
+    return resultFromCache
+  }
+
+  logger.debug(`Searching nss database files in directory...`)
+  const NSSDBFiles = await collectFiles({
+    directoryUrl: NSSDBDirectoryUrl,
+    structuredMetaMap: {
+      isLegacyNSSDB: {
+        "./**/*/cert8.db": true,
+      },
+      isModernNSSDB: {
+        "./**/*/cert9.db": true,
+      },
+    },
+    predicate: ({ isLegacyNSSDB, isModernNSSDB }) => isLegacyNSSDB || isModernNSSDB,
+  })
+  const fileCount = NSSDBFiles.length
+  if (fileCount === 0) {
+    logger.warn(`${warningSign} could not find nss database file in ${NSSDBDirectoryUrl}`)
+    NSSDirectoryCache[NSSDBDirectoryUrl] = []
+    return []
+  }
+
+  logger.debug(`${okSign} found ${fileCount} nss database file in ${NSSDBDirectoryUrl}`)
+  const files = NSSDBFiles.map((file) => resolveUrl(file.relativeUrl, NSSDBDirectoryUrl))
+  NSSDirectoryCache[NSSDBDirectoryUrl] = files
+  return files
+}
+
+const getDirectoryArgFromNSSDBFileUrl = (NSSDBFileUrl) => {
+  const nssDBFilename = urlToFilename(NSSDBFileUrl)
+  const nssDBDirectoryUrl = resolveUrl("./", NSSDBFileUrl)
+  const nssDBDirectoryPath = urlToFileSystemPath(nssDBDirectoryUrl)
+  return nssDBFilename === "cert8.db" ? `"${nssDBDirectoryPath}"` : `sql:"${nssDBDirectoryPath}"`
+}
+
+const execCertutilCommmand = async (command) => {
+  try {
+    const output = await exec(command)
+    return { error: null, output }
+  } catch (error) {
+    return { error, output: null }
   }
 }

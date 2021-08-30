@@ -30,7 +30,9 @@ export const firefoxTrustStoreOnMac = {
       certificateCommonName,
       newAndTryToTrustDisabled,
 
-      getBrowserInfo,
+      browserName: firefoxBrowserName,
+      detectBrowser: detectFirefox,
+      browserNSSDBDirectoryUrl: firefoxNSSDBDirectoryUrl,
 
       nssCommandName,
       detectIfNSSIsInstalled,
@@ -51,7 +53,10 @@ export const firefoxTrustStoreOnMac = {
       NSSDynamicInstall,
       existingTrustInfo,
 
-      getBrowserInfo,
+      browserName: firefoxBrowserName,
+      detectBrowser: detectFirefox,
+      browserNSSDBDirectoryUrl: firefoxNSSDBDirectoryUrl,
+      getBrowserClosedPromise: () => getFirefoxClosedPromise({ logger }),
 
       nssCommandName,
       detectIfNSSIsInstalled,
@@ -65,7 +70,10 @@ export const firefoxTrustStoreOnMac = {
       certificateCommonName,
       certificateFileUrl,
 
-      getBrowserInfo,
+      browserName: firefoxBrowserName,
+      detectBrowser: detectFirefox,
+      browserNSSDBDirectoryUrl: firefoxNSSDBDirectoryUrl,
+      getBrowserClosedPromise: () => getFirefoxClosedPromise({ logger }),
 
       nssCommandName,
       detectIfNSSIsInstalled,
@@ -74,21 +82,12 @@ export const firefoxTrustStoreOnMac = {
   },
 }
 
-const getBrowserInfo = ({ logger }) => {
-  const browserDetected = detectFirefox({ logger })
+const firefoxBrowserName = "firefox"
 
-  const browserNSSDBDirectoryUrl = resolveUrl(
-    `./Library/Application Support/Firefox/Profiles/`,
-    assertAndNormalizeDirectoryUrl(process.env.HOME),
-  )
-
-  return {
-    browserName: "firefox",
-    browserDetected,
-    browserNSSDBDirectoryUrl,
-    getBrowserClosedPromise: () => getFirefoxClosedPromise({ logger }),
-  }
-}
+const firefoxNSSDBDirectoryUrl = resolveUrl(
+  `./Library/Application Support/Firefox/Profiles/`,
+  assertAndNormalizeDirectoryUrl(process.env.HOME),
+)
 
 const detectFirefox = memoize(({ logger }) => {
   logger.debug(`Detecting Firefox...`)

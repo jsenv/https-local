@@ -102,20 +102,15 @@ export const installCertificateAuthority = async ({
       rootCertificatePrivateKey,
     } = await generateRootCertificate()
 
-    const trustInfo = tryToTrust
-      ? await platformMethods.addCertificateToTrustStores({
-          logger,
-          certificate: rootCertificate,
-          certificateFileUrl: rootCertificateFileUrl,
-          NSSDynamicInstall,
-          certificateCommonName,
-        })
-      : await platformMethods.getCertificateTrustInfo({
-          logger,
-          newAndTryToTrustDisabled: true,
-          certificate: rootCertificate,
-          certificateCommonName,
-        })
+    const trustInfo = await platformMethods.executeTrustQuery({
+      logger,
+      certificateCommonName,
+      certificateFileUrl: rootCertificateFileUrl,
+      certificateIsNew: true,
+      certificate: rootCertificate,
+      verb: tryToTrust ? "ADD_TRUST" : "CHECK_TRUST",
+      NSSDynamicInstall,
+    })
 
     return {
       rootCertificateForgeObject,
@@ -129,11 +124,12 @@ export const installCertificateAuthority = async ({
 
   const regenerate = async () => {
     if (tryToTrust) {
-      await platformMethods.removeCertificateFromTrustStores({
+      await platformMethods.executeTrustQuery({
         logger,
-        certificate: rootCertificate,
-        certificateFileUrl: rootCertificateFileUrl,
         certificateCommonName,
+        certificateFileUrl: rootCertificateFileUrl,
+        certificate: rootCertificate,
+        verb: "REMOVE_TRUST",
       })
     }
     return generate()
@@ -203,24 +199,14 @@ export const installCertificateAuthority = async ({
   })
   const rootCertificatePrivateKeyForgeObject = pki.privateKeyFromPem(rootCertificatePrivateKey)
 
-  const existingTrustInfo = await platformMethods.getCertificateTrustInfo({
+  const trustInfo = await platformMethods.executeTrustQuery({
     logger,
+    certificateCommonName,
+    certificateFileUrl: rootCertificateFileInfo.url,
     certificate: rootCertificate,
-    certificateCommonName: attributeDescriptionFromAttributeArray(
-      rootCertificateForgeObject.subject.attributes,
-    ).commonName,
+    verb: tryToTrust ? "ADD_TRUST" : "CHECK_TRUST",
+    NSSDynamicInstall,
   })
-
-  const trustInfo = tryToTrust
-    ? await platformMethods.addCertificateToTrustStores({
-        logger,
-        certificate: rootCertificate,
-        certificateFileUrl: rootCertificateFileInfo.url,
-        certificateCommonName,
-        NSSDynamicInstall,
-        existingTrustInfo,
-      })
-    : existingTrustInfo
 
   return {
     rootCertificateForgeObject,

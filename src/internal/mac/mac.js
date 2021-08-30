@@ -4,88 +4,49 @@
  * - https://www.unix.com/man-page/mojave/1/security/
  */
 
-import { macTrustStore } from "./mac_trust_store.js"
-import { chromeTrustStoreOnMac } from "./chrome_trust_store_on_mac.js"
-import { firefoxTrustStoreOnMac } from "./firefox_trust_store_on_mac.js"
-import { safariTrustStore } from "./safari_trust_store.js"
+import { executeTrustQueryOnMacKeychain } from "./mac_trust_store.js"
+import { executeTrustQueryOnChrome } from "./chrome_trust_store_on_mac.js"
+import { executeTrustQueryOnFirefox } from "./firefox_trust_store_on_mac.js"
+import { executeTrustQueryOnSafari } from "./safari_trust_store.js"
 
-export const getCertificateTrustInfo = async ({
+export const executeTrustQuery = async ({
   logger,
-  newAndTryToTrustDisabled,
-  certificate,
   certificateCommonName,
-}) => {
-  const macTrustInfo = await macTrustStore.getCertificateTrustInfo({
-    logger,
-    newAndTryToTrustDisabled,
-    certificate,
-    certificateCommonName,
-  })
-
-  const chromeTrustInfo = await chromeTrustStoreOnMac.getCertificateTrustInfo({
-    logger,
-    newAndTryToTrustDisabled,
-    // chrome needs macTrustInfo because it uses OS trust store
-    macTrustInfo,
-  })
-
-  const safariTrustInfo = await safariTrustStore.getCertificateTrustInfo({
-    logger,
-    newAndTryToTrustDisabled,
-    // safari needs macTrustInfo because it uses OS trust store
-    macTrustInfo,
-  })
-
-  const firefoxTrustInfo = await firefoxTrustStoreOnMac.getCertificateTrustInfo({
-    logger,
-    newAndTryToTrustDisabled,
-    certificate,
-    certificateCommonName,
-  })
-
-  return {
-    mac: macTrustInfo,
-    chrome: chromeTrustInfo,
-    firefox: firefoxTrustInfo,
-    safari: safariTrustInfo,
-  }
-}
-
-export const addCertificateToTrustStores = async ({
-  logger,
-  certificate,
   certificateFileUrl,
-  certificateCommonName,
+  certificateIsNew,
+  certificate,
+  verb,
   NSSDynamicInstall,
-  existingTrustInfo,
 }) => {
-  const macTrustInfo = await macTrustStore.addCertificate({
+  const macTrustInfo = await executeTrustQueryOnMacKeychain({
     logger,
+    certificateCommonName,
     certificateFileUrl,
-    existingTrustInfo,
+    certificateIsNew,
+    certificate,
+    verb,
   })
 
-  const chromeTrustInfo = await chromeTrustStoreOnMac.addCertificate({
+  const chromeTrustInfo = await executeTrustQueryOnChrome({
     logger,
     // chrome needs macTrustInfo because it uses OS trust store
     macTrustInfo,
-    existingTrustInfo,
   })
 
-  const firefoxTrustInfo = await firefoxTrustStoreOnMac.addCertificate({
+  const firefoxTrustInfo = await executeTrustQueryOnFirefox({
     logger,
-    certificate,
-    certificateFileUrl,
     certificateCommonName,
+    certificateFileUrl,
+    certificateIsNew,
+    certificate,
+    verb,
     NSSDynamicInstall,
-    existingTrustInfo,
   })
 
-  const safariTrustInfo = await safariTrustStore.addCertificate({
+  const safariTrustInfo = await executeTrustQueryOnSafari({
     logger,
     // safari needs macTrustInfo because it uses OS trust store
     macTrustInfo,
-    existingTrustInfo,
   })
 
   return {
@@ -94,37 +55,4 @@ export const addCertificateToTrustStores = async ({
     firefox: firefoxTrustInfo,
     safari: safariTrustInfo,
   }
-}
-
-export const removeCertificateFromTrustStores = async ({
-  logger,
-  certificate,
-  certificateFileUrl,
-  certificateCommonName,
-}) => {
-  const macTrustInfo = await macTrustStore.removeCertificate({
-    logger,
-    certificate,
-    certificateFileUrl,
-    certificateCommonName,
-  })
-
-  await chromeTrustStoreOnMac.removeCertificate({
-    logger,
-    // chrome needs macTrustInfo because it uses OS trust store
-    macTrustInfo,
-  })
-
-  await safariTrustStore.removeCertificate({
-    logger,
-    // safari needs macTrustInfo because it uses OS trust store
-    macTrustInfo,
-  })
-
-  await firefoxTrustStoreOnMac.removeCertificate({
-    logger,
-    certificate,
-    certificateFileUrl,
-    certificateCommonName,
-  })
 }

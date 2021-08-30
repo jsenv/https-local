@@ -5,7 +5,7 @@ import { memoize } from "@jsenv/local-https-certificates/src/internal/memoize.js
 
 const REASON_CHROME_NOT_DETECTED = `Chrome not detected`
 
-const getCertificateTrustInfoFromChrome = ({ logger, macTrustInfo }) => {
+export const executeTrustQueryOnChrome = ({ logger, macTrustInfo }) => {
   const chromeDetected = detectChrome({ logger })
   if (!chromeDetected) {
     return {
@@ -18,46 +18,6 @@ const getCertificateTrustInfoFromChrome = ({ logger, macTrustInfo }) => {
     status: macTrustInfo.status,
     reason: macTrustInfo.reason,
   }
-}
-
-const addCertificateInChromeTrustStore = ({ logger, macTrustInfo, existingTrustInfo }) => {
-  if (existingTrustInfo && existingTrustInfo.chrome.status === "other") {
-    return existingTrustInfo.chrome
-  }
-
-  const chromeDetected = detectChrome({ logger })
-  if (!chromeDetected) {
-    return {
-      status: "other",
-      reason: REASON_CHROME_NOT_DETECTED,
-    }
-  }
-
-  return {
-    status: macTrustInfo.status,
-    reason: macTrustInfo.reason,
-  }
-}
-
-const removeCertificateFromChromeTrustStore = ({ logger, macTrustInfo }) => {
-  const chromeDetected = detectChrome({ logger })
-  if (!chromeDetected) {
-    return {
-      status: "other",
-      reason: REASON_CHROME_NOT_DETECTED,
-    }
-  }
-
-  return {
-    status: macTrustInfo.status,
-    reason: macTrustInfo.reason,
-  }
-}
-
-export const chromeTrustStoreOnMac = {
-  getCertificateTrustInfo: getCertificateTrustInfoFromChrome,
-  addCertificate: addCertificateInChromeTrustStore,
-  removeCertificate: removeCertificateFromChromeTrustStore,
 }
 
 const detectChrome = memoize(({ logger }) => {

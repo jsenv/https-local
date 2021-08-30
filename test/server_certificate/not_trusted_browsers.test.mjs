@@ -55,13 +55,14 @@ const serverOrigin = await startServerForTest({
     throw new Error("should throw")
   } catch (e) {
     const actual = e.errorText
-    const expected = process.platform === "win32" ? undefined : "SEC_ERROR_UNKNOWN_ISSUER"
+    const expected = "SEC_ERROR_UNKNOWN_ISSUER"
     assert({ actual, expected })
   } finally {
     browser.close()
   }
 }
 
+// if (process.platform === "darwin") {
 {
   const browser = await launchWebkit()
   try {

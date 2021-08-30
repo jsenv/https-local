@@ -74,6 +74,37 @@ Check if certificate is trusted by Firefox...
 
 </details>
 
+<details>
+  <summary>windows</summary>
+
+```console
+> node ./install_certificate_authority.mjs
+
+ℹ authority root certificate not found in filesystem
+Generating authority root certificate with a validity of 20 years...
+✔ authority root certificate written at C:\Users\Dmail\AppData\Local\https_localhost\https_localhost_root_certificate.crt
+ℹ You should add certificate to windows
+ℹ You should add certificate to firefox
+```
+
+_second execution logs_
+
+```console
+> node ./install_certificate_authority.mjs
+
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate still valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is trusted by windows...
+ℹ certificate is not trusted by windows
+Check if certificate is trusted by firefox...
+ℹ unable to detect if certificate is trusted by firefox (not implemented on windows)
+```
+
+</details>
+
 By default it's up to you to trust authority root certificate.
 It can also be done programmatically as explained the next part.
 
@@ -120,6 +151,44 @@ Check if certificate is trusted by mac OS...
 ✔ certificate trusted by mac OS
 Check if certificate is trusted by Firefox...
 ✔ certificate trusted by Firefox
+```
+
+</details>
+
+<details>
+  <summary>windows</summary>
+
+```console
+> node ./install_certificate_authority.mjs
+
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate still valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is trusted by windows...
+ℹ certificate not trusted by windows
+Check if certificate is trusted by firefox...
+ℹ unable to detect if certificate is trusted by firefox (not implemented on windows)
+Adding certificate to windows...
+❯ certutil -addstore -user root C:\Users\Dmail\AppData\Local\https_localhost\https_localhost_root_certificate.crt
+✔ certificate added to windows
+```
+
+_second execution logs_
+
+```console
+> node ./install_certificate_authority.mjs
+
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate still valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is trusted by windows...
+✔ certificate trusted by windows
+Check if certificate is trusted by firefox...
+ℹ unable to detect if certificate is trusted by firefox (not implemented on windows)
 ```
 
 </details>

@@ -45,7 +45,10 @@ const getCertificateTrustInfoFromFirefox = ({ logger, newAndTryToTrustDisabled }
 
 const addCertificateInFirefoxTrustStore = ({ logger, existingTrustInfo }) => {
   if (existingTrustInfo && existingTrustInfo.firefox.status === "other") {
-    return existingTrustInfo
+    return existingTrustInfo.firefox
+  }
+  if (existingTrustInfo && existingTrustInfo.firefox.status === "unknown") {
+    return existingTrustInfo.firefox
   }
 
   const firefoxDetected = detectFirefox({ logger })

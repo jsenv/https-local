@@ -61,11 +61,25 @@ const getCertificateTrustInfoFromWindows = async ({
     reason: REASON_FOUND,
   }
 }
+// getCertificateTrustInfoFromWindows({
+//   logger: {
+//     debug: () => {},
+//     info: () => {},
+//   },
+// })
 
-const addCertificateInWindowsTrustStore = async ({ logger, certificateFileUrl }) => {
+const addCertificateInWindowsTrustStore = async ({
+  logger,
+  certificateFileUrl,
+  existingTrustInfo,
+}) => {
+  if (existingTrustInfo && existingTrustInfo.windows.status === "trusted") {
+    return existingTrustInfo.windows
+  }
+
   const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
   // https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil#-addstore
-  const certutilAddCommand = `certutil -addstore -user root "${certificateFilePath}"`
+  const certutilAddCommand = `certutil -addstore -user root ${certificateFilePath}`
   logger.info(`Adding certificate to windows...`)
   logger.info(`${commandSign} ${certutilAddCommand}`)
   try {
@@ -89,10 +103,14 @@ const addCertificateInWindowsTrustStore = async ({ logger, certificateFileUrl })
   }
 }
 
-const removeCertificateFromWindowsTrustStore = async ({ logger, certificateFileUrl }) => {
+const removeCertificateFromWindowsTrustStore = async ({
+  logger,
+  certificateCommonName,
+  certificateFileUrl,
+}) => {
   const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
   // https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil#-delstore
-  const certutilRemoveCommand = `certutil -delstore -user root "${certificateFilePath}"`
+  const certutilRemoveCommand = `certutil -delstore -user root "${certificateCommonName}"`
   logger.info(`Removing certificate from windows...`)
   logger.info(`${commandSign} ${certutilRemoveCommand}`)
   try {
@@ -106,7 +124,7 @@ const removeCertificateFromWindowsTrustStore = async ({ logger, certificateFileU
     logger.error(
       createDetailedMessage(`${failureSign} Failed to remove certificate from windows`, {
         "error stack": e.stack,
-        "certificate file url": certificateFileUrl,
+        "certificate file": certificateFilePath,
       }),
     )
     return {

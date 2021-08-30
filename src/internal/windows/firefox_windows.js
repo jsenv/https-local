@@ -6,7 +6,7 @@
 import { createRequire } from "node:module"
 import { existsSync } from "node:fs"
 
-import { okSign, infoSign, warningSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
+import { okSign, infoSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
 import { memoize } from "@jsenv/local-https-certificates/src/internal/memoize.js"
 
 const require = createRequire(import.meta.url)
@@ -16,7 +16,7 @@ const which = require("which")
 const REASON_FIREFOX_NOT_DETECTED = "Firefox not detected"
 const REASON_NOT_IMPLEMENTED_ON_WINDOWS = "not implemented on windows"
 
-const getCertificateTrustInfoFromFirefox = ({ logger, newAndTryToTrustDisabled }) => {
+export const executeTrustQueryOnFirefox = ({ logger, certificateIsNew }) => {
   const firefoxDetected = detectFirefox({ logger })
   if (!firefoxDetected) {
     return {
@@ -25,7 +25,7 @@ const getCertificateTrustInfoFromFirefox = ({ logger, newAndTryToTrustDisabled }
     }
   }
 
-  if (newAndTryToTrustDisabled) {
+  if (certificateIsNew) {
     logger.info(`${infoSign} You should add certificate to firefox`)
     return {
       status: "not_trusted",
@@ -35,61 +35,12 @@ const getCertificateTrustInfoFromFirefox = ({ logger, newAndTryToTrustDisabled }
 
   logger.info(`Check if certificate is trusted by firefox...`)
   logger.info(
-    `${infoSign} unable to detect if certificate is trusted by firefox (${REASON_NOT_IMPLEMENTED_ON_WINDOWS})`,
+    `${infoSign} cannot check if certificate is in firefox (${REASON_NOT_IMPLEMENTED_ON_WINDOWS})`,
   )
   return {
     status: "unknown",
     reason: REASON_NOT_IMPLEMENTED_ON_WINDOWS,
   }
-}
-
-const addCertificateInFirefoxTrustStore = ({ logger, existingTrustInfo }) => {
-  if (existingTrustInfo && existingTrustInfo.firefox.status === "other") {
-    return existingTrustInfo.firefox
-  }
-  if (existingTrustInfo && existingTrustInfo.firefox.status === "unknown") {
-    return existingTrustInfo.firefox
-  }
-
-  const firefoxDetected = detectFirefox({ logger })
-  if (!firefoxDetected) {
-    return {
-      status: "other",
-      reason: REASON_FIREFOX_NOT_DETECTED,
-    }
-  }
-
-  logger.warn(
-    `${warningSign} cannot add certificate to firefox (${REASON_NOT_IMPLEMENTED_ON_WINDOWS})`,
-  )
-  return {
-    status: "unknown",
-    reason: REASON_NOT_IMPLEMENTED_ON_WINDOWS,
-  }
-}
-
-const removeCertificateFromFirefoxTrustStore = ({ logger }) => {
-  const firefoxDetected = detectFirefox({ logger })
-  if (!firefoxDetected) {
-    return {
-      status: "other",
-      reason: REASON_FIREFOX_NOT_DETECTED,
-    }
-  }
-
-  logger.warn(
-    `${warningSign} cannot remove certificate from firefox (${REASON_NOT_IMPLEMENTED_ON_WINDOWS})`,
-  )
-  return {
-    status: "unknown",
-    reason: REASON_NOT_IMPLEMENTED_ON_WINDOWS,
-  }
-}
-
-export const firefoxTrustStoreOnWindows = {
-  getCertificateTrustInfo: getCertificateTrustInfoFromFirefox,
-  addCertificate: addCertificateInFirefoxTrustStore,
-  removeCertificate: removeCertificateFromFirefoxTrustStore,
 }
 
 // https://github.com/litixsoft/karma-detect-browsers

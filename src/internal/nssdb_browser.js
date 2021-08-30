@@ -16,7 +16,10 @@ export const getCertificateTrustInfoFromBrowserNSSDB = async ({
   logger,
 
   getBrowserInfo,
-  getNSSCommandInfo,
+
+  nssCommandName,
+  detectIfNSSIsInstalled,
+  getCertutilBinPath,
 
   certificate,
   certificateCommonName,
@@ -40,7 +43,7 @@ export const getCertificateTrustInfoFromBrowserNSSDB = async ({
   }
 
   logger.info(`Check if certificate is trusted by ${browserName}...`)
-  const { nssCommandName, nssIsInstalled, getCertutilBinPath } = await getNSSCommandInfo({ logger })
+  const nssIsInstalled = await detectIfNSSIsInstalled({ logger })
   if (!nssIsInstalled) {
     const reason = `"${nssCommandName}" is not installed`
     logger.info(
@@ -110,7 +113,11 @@ export const addCertificateInBrowserNSSDB = async ({
   logger,
 
   getBrowserInfo,
-  getNSSCommandInfo,
+
+  nssCommandName,
+  detectIfNSSIsInstalled,
+  getNSSDynamicInstallInfo,
+  getCertutilBinPath,
 
   certificateFileUrl,
   certificateCommonName,
@@ -133,18 +140,12 @@ export const addCertificateInBrowserNSSDB = async ({
   }
 
   logger.info(`Adding certificate in ${browserName}...`)
-  const {
-    nssCommandName,
-    nssIsInstalled,
-    nssIsInstallable,
-    nssNotInstallableReason,
-    nssInstallFixSuggestion,
-    nssInstall,
-    getCertutilBinPath,
-  } = await getNSSCommandInfo({
+  const nssIsInstalled = await detectIfNSSIsInstalled({
     logger,
   })
   if (!nssIsInstalled) {
+    const { nssIsInstallable, nssNotInstallableReason, nssInstallFixSuggestion, nssInstall } =
+      await getNSSDynamicInstallInfo({ logger })
     if (!nssIsInstallable) {
       const reason = `"${nssCommandName}" is not installed and not cannot be installed`
       logger.warn(
@@ -257,8 +258,9 @@ export const removeCertificateFromBrowserNSSDB = async ({
   const { failed, reason } = await removeCertificateFromNSSDB({
     logger,
     browserNSSDBDirectoryUrl,
-    getCertutilBinPath,
     getBrowserClosedPromise,
+
+    getCertutilBinPath,
 
     certificateCommonName,
     certificateFileUrl,

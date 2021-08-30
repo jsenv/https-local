@@ -4,13 +4,18 @@ import { resolveUrl, assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
 
 import { memoize } from "@jsenv/local-https-certificates/src/internal/memoize.js"
 import { okSign, infoSign, warningSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
-import { getNSSCommandInfo } from "./mac_utils.js"
 
 import {
   getCertificateTrustInfoFromBrowserNSSDB,
   addCertificateInBrowserNSSDB,
   removeCertificateFromBrowserNSSDB,
 } from "../nssdb_browser.js"
+import {
+  nssCommandName,
+  detectIfNSSIsInstalled,
+  getCertutilBinPath,
+  getNSSDynamicInstallInfo,
+} from "./nss_info_on_mac.js"
 
 export const firefoxTrustStoreOnMac = {
   getCertificateTrustInfo: ({
@@ -26,7 +31,10 @@ export const firefoxTrustStoreOnMac = {
       newAndTryToTrustDisabled,
 
       getBrowserInfo,
-      getNSSCommandInfo,
+
+      nssCommandName,
+      detectIfNSSIsInstalled,
+      getCertutilBinPath,
     })
   },
   addCertificate: ({
@@ -44,7 +52,11 @@ export const firefoxTrustStoreOnMac = {
       existingTrustInfo,
 
       getBrowserInfo,
-      getNSSCommandInfo,
+
+      nssCommandName,
+      detectIfNSSIsInstalled,
+      getCertutilBinPath,
+      getNSSDynamicInstallInfo,
     })
   },
   removeCertificate: ({ logger, certificateCommonName, certificateFileUrl }) => {
@@ -54,7 +66,10 @@ export const firefoxTrustStoreOnMac = {
       certificateFileUrl,
 
       getBrowserInfo,
-      getNSSCommandInfo,
+
+      nssCommandName,
+      detectIfNSSIsInstalled,
+      getCertutilBinPath,
     })
   },
 }
@@ -112,18 +127,3 @@ const getFirefoxClosedPromise = async ({ logger }) => {
 const isFirefoxOpen = () => {
   return execSync("ps aux").includes("firefox")
 }
-
-// for test
-// {
-//   const { createLogger } = await import("@jsenv/logger")
-//   const { getCertificateAuthorityFileUrls } = await import(
-//     "../../certificate_authority_file_urls.js"
-//   )
-//   const { rootCertificateFileUrl } = getCertificateAuthorityFileUrls()
-//   await removeCertificateFromFirefoxTrustStore({
-//     logger: createLogger({ logLevel: "debug" }),
-//     certificate: "",
-//     certificateCommonName: "Jsenv localhost root certificate",
-//     certificateFileUrl: rootCertificateFileUrl,
-//   })
-// }

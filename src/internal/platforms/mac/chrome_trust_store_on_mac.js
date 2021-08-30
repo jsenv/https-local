@@ -20,7 +20,11 @@ const getCertificateTrustInfoFromChrome = ({ logger, macTrustInfo }) => {
   }
 }
 
-const addCertificateInChromeTrustStore = ({ logger, macTrustInfo }) => {
+const addCertificateInChromeTrustStore = ({ logger, macTrustInfo, existingTrustInfo }) => {
+  if (existingTrustInfo && existingTrustInfo.chrome.status === "other") {
+    return existingTrustInfo.chrome
+  }
+
   const chromeDetected = detectChrome({ logger })
   if (!chromeDetected) {
     return {

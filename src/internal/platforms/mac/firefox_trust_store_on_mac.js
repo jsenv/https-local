@@ -175,12 +175,17 @@ const addCertificateInFirefoxTrustStore = async ({
   certificateFileUrl,
   certificateCommonName,
   NSSDynamicInstall,
+  existingTrustInfo,
 }) => {
+  if (existingTrustInfo && existingTrustInfo.firefox.status === "other") {
+    return existingTrustInfo.firefox
+  }
+
   const firefoxDetected = detectFirefox({ logger })
   if (!firefoxDetected) {
     return {
       status: "other",
-      reason: "Firefox not detected",
+      reason: REASON_FIREFOX_NOT_DETECTED,
     }
   }
 

@@ -59,33 +59,33 @@ export const addCertificateToTrustStores = async ({
   NSSDynamicInstall,
   existingTrustInfo,
 }) => {
-  const macTrustInfo = await putInMacTrustStoreIfNeeded({
+  const macTrustInfo = await macTrustStore.addCertificate({
     logger,
     certificateFileUrl,
-    existingMacTrustInfo: existingTrustInfo ? existingTrustInfo.mac : null,
+    existingTrustInfo,
   })
 
-  const chromeTrustInfo = await putInChromeTrustStoreIfNeeded({
+  const chromeTrustInfo = await chromeTrustStoreOnMac.addCertificate({
     logger,
     // chrome needs macTrustInfo because it uses OS trust store
     macTrustInfo,
-    existingChromeTrustInfo: existingTrustInfo ? existingTrustInfo.chrome : null,
+    existingTrustInfo,
   })
 
-  const firefoxTrustInfo = await putInFirefoxTrustStoreIfNeeded({
+  const firefoxTrustInfo = await firefoxTrustStoreOnMac.addCertificate({
     logger,
     certificate,
     certificateFileUrl,
     certificateCommonName,
     NSSDynamicInstall,
-    existingFirefoxTrustInfo: existingTrustInfo ? existingTrustInfo.firefox : null,
+    existingTrustInfo,
   })
 
-  const safariTrustInfo = await putInSafariTrustStoreIfNeeded({
+  const safariTrustInfo = await safariTrustStore.addCertificate({
     logger,
     // safari needs macTrustInfo because it uses OS trust store
     macTrustInfo,
-    existingSafariTrustInfo: existingTrustInfo ? existingTrustInfo.safari : null,
+    existingTrustInfo,
   })
 
   return {
@@ -126,59 +126,5 @@ export const removeCertificateFromTrustStores = async ({
     certificate,
     certificateFileUrl,
     certificateCommonName,
-  })
-}
-
-const putInMacTrustStoreIfNeeded = async ({ logger, certificateFileUrl, existingMacTrustInfo }) => {
-  if (existingMacTrustInfo && existingMacTrustInfo.status !== "not_trusted") {
-    return existingMacTrustInfo
-  }
-
-  return await macTrustStore.addCertificate({
-    logger,
-    certificateFileUrl,
-  })
-}
-
-const putInChromeTrustStoreIfNeeded = async ({ logger, macTrustInfo, existingChromeTrustInfo }) => {
-  if (existingChromeTrustInfo && existingChromeTrustInfo.status !== "not_trusted") {
-    return existingChromeTrustInfo
-  }
-
-  return await chromeTrustStoreOnMac.addCertificate({
-    logger,
-    macTrustInfo,
-  })
-}
-
-const putInFirefoxTrustStoreIfNeeded = async ({
-  logger,
-  certificate,
-  certificateFileUrl,
-  certificateCommonName,
-  NSSDynamicInstall,
-  existingFirefoxTrustInfo,
-}) => {
-  if (existingFirefoxTrustInfo && existingFirefoxTrustInfo.status !== "not_trusted") {
-    return existingFirefoxTrustInfo
-  }
-
-  return await firefoxTrustStoreOnMac.addCertificate({
-    logger,
-    certificate,
-    certificateFileUrl,
-    certificateCommonName,
-    NSSDynamicInstall,
-  })
-}
-
-const putInSafariTrustStoreIfNeeded = async ({ logger, macTrustInfo, existingSafariTrustInfo }) => {
-  if (existingSafariTrustInfo && existingSafariTrustInfo.status !== "not_trusted") {
-    return existingSafariTrustInfo
-  }
-
-  return await safariTrustStore.addCertificate({
-    logger,
-    macTrustInfo,
   })
 }

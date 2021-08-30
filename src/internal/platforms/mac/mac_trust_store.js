@@ -59,7 +59,11 @@ const getCertificateTrustInfoFromMac = async ({
   }
 }
 
-const addCertificateInMacTrustStore = async ({ logger, certificateFileUrl }) => {
+const addCertificateInMacTrustStore = async ({ logger, certificateFileUrl, existingTrustInfo }) => {
+  if (existingTrustInfo && existingTrustInfo.mac.status === "trusted") {
+    return existingTrustInfo.mac
+  }
+
   const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
   // https://ss64.com/osx/security-cert.html
   const addTrustedCertCommand = `sudo security add-trusted-cert -d -r trustRoot -k ${systemKeychainPath} "${certificateFilePath}"`

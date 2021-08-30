@@ -15,20 +15,20 @@ export const getCertificateTrustInfo = async ({
   certificate,
   certificateCommonName,
 }) => {
-  const windowsTrustInfo = await windowsTrustStore.getCertificate({
+  const windowsTrustInfo = await windowsTrustStore.getCertificateTrustInfo({
     logger,
     newAndTryToTrustDisabled,
     certificate,
     certificateCommonName,
   })
 
-  const chromeTrustInfo = await chromeTrustStoreOnWindows.getCertificate({
+  const chromeTrustInfo = await chromeTrustStoreOnWindows.getCertificateTrustInfo({
     logger,
     // chrome needs windowsTrustInfo because it uses OS trust store
     windowsTrustInfo,
   })
 
-  const edgeTrustInfo = await edgeTrustStore.getCertificate({
+  const edgeTrustInfo = await edgeTrustStore.getCertificateTrustInfo({
     logger,
     // edge needs windowsTrustInfo because it uses OS trust store
     windowsTrustInfo,

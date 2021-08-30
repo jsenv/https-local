@@ -69,9 +69,8 @@ export const chromeTrustStoreOnWindows = {
 const detectChrome = memoize(({ logger }) => {
   logger.debug(`Detecting Chrome...`)
 
-  const whichReturnValue = which.sync("FIREFOX_BIN")
-  if (whichReturnValue) {
-    logger.debug(`${okSign} Firefox detected`)
+  if (process.env.CHROME_BIN && which.sync(process.env.CHROME_BIN)) {
+    logger.debug(`${okSign} Chrome detected`)
     return true
   }
 
@@ -81,12 +80,17 @@ const detectChrome = memoize(({ logger }) => {
     `${process.env.ProgramFiles}\\Google\\Chrome\\Application\\chrome.exe`,
     `${process.env["ProgramFiles(x86)"]}\\Google\\Chrome\\Application\\chrome.exe`,
   ]
-  const someExecutableFound = executableCandidates.some((firefoxExecutablePathCandidate) => {
-    if (existsSync(firefoxExecutablePathCandidate)) {
+  const someExecutableFound = executableCandidates.some((chromeExecutablePathCandidate) => {
+    if (existsSync(chromeExecutablePathCandidate)) {
       return true
     }
-    if (which.sync(firefoxExecutablePathCandidate)) {
+    try {
+      const ret = which.sync(chromeExecutablePathCandidate)
+      debugger
       return true
+    }
+    catch(e) {
+      
     }
     return false
   })

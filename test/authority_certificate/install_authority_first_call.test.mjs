@@ -49,7 +49,10 @@ const expected = {
         `${infoSign} You should add certificate to mac OS keychain`,
         `${infoSign} You should add certificate to firefox`,
       ],
-      windows: [],
+      win32: [
+        `${infoSign} You should add certificate to windows`,
+        `${infoSign} unable to detect if certificate is trusted by Firefox (not implemented on windows)`,
+      ],
       linux: [],
     }[process.platform],
   ],
@@ -61,22 +64,42 @@ const expected = {
   rootCertificatePrivateKey: assert.any(String),
   rootCertificateFilePath: assert.any(String),
   trustInfo: {
-    mac: {
-      status: "not_trusted",
-      reason: "certificate is new and tryToTrust is disabled",
+    darwin: {
+      mac: {
+        status: "not_trusted",
+        reason: "certificate is new and tryToTrust is disabled",
+      },
+      chrome: {
+        status: "not_trusted",
+        reason: "certificate is new and tryToTrust is disabled",
+      },
+      firefox: {
+        status: "not_trusted",
+        reason: "certificate is new and tryToTrust is disabled",
+      },
+      safari: {
+        status: "not_trusted",
+        reason: "certificate is new and tryToTrust is disabled",
+      },
     },
-    chrome: {
-      status: "not_trusted",
-      reason: "certificate is new and tryToTrust is disabled",
+    win32: {
+      windows: {
+        status: "not_trusted",
+        reason: "certificate is new and tryToTrust is disabled",
+      },
+      chrome: {
+        status: "not_trusted",
+        reason: "certificate is new and tryToTrust is disabled",
+      },
+      edge: {
+        status: "not_trusted",
+        reason: "certificate is new and tryToTrust is disabled",
+      },
+      firefox: {
+        status: "unknown",
+        reason: "not implemented on windows",
+      },
     },
-    firefox: {
-      status: "not_trusted",
-      reason: "certificate is new and tryToTrust is disabled",
-    },
-    safari: {
-      status: "not_trusted",
-      reason: "certificate is new and tryToTrust is disabled",
-    },
-  },
+  }[process.platform],
 }
 assert({ actual, expected })

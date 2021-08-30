@@ -84,8 +84,7 @@ export const firefoxTrustStoreOnWindows = {
 const detectFirefox = memoize(({ logger }) => {
   logger.debug(`Detecting Firefox...`)
 
-  const whichReturnValue = which.sync("FIREFOX_BIN")
-  if (whichReturnValue) {
+  if (process.env.FIREFOX_BIN && which.sync(process.env.FIREFOX_BIN)) {
     logger.debug(`${okSign} Firefox detected`)
     return true
   }
@@ -100,8 +99,13 @@ const detectFirefox = memoize(({ logger }) => {
     if (existsSync(firefoxExecutablePathCandidate)) {
       return true
     }
-    if (which.sync(firefoxExecutablePathCandidate)) {
+    try {
+      const ret = which.sync(firefoxExecutablePathCandidate)
+      debugger
       return true
+    }
+    catch(e) {
+      
     }
     return false
   })

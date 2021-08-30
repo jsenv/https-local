@@ -1,7 +1,7 @@
 // https://ss64.com/osx/security.html
 
 import { urlToFileSystemPath } from "@jsenv/filesystem"
-import { createDetailedMessage } from "@jsenv/logger"
+import { createDetailedMessage, createLogger } from "@jsenv/logger"
 
 import {
   commandSign,
@@ -27,8 +27,8 @@ const systemKeychainPath = "/Library/Keychains/System.keychain"
 
 const getCertificateTrustInfoFromMac = async ({
   logger,
-  newAndTryToTrustDisabled,
   certificate,
+  newAndTryToTrustDisabled,
 }) => {
   if (newAndTryToTrustDisabled) {
     logger.info(`${infoSign} You should add certificate to mac OS keychain`)
@@ -103,19 +103,20 @@ const addCertificateInMacTrustStore = async ({ logger, certificateFileUrl, exist
 
 const removeCertificateFromMacTrustStore = async ({
   logger,
-  // certificate,
+  certificate,
   certificateCommonName,
   certificateFileUrl,
 }) => {
   // ensure it's in mac keychain or the command to remove would fail
-  // const trustInfo = await getCertificateTrustInfoFromMac({
-  //   logger,
-  //   certificate,
-  //   certificateCommonName,
-  // })
-  // if (trustInfo.status === "not_trusted") {
-  //   return trustInfo
-  // }
+  // + it's avoid having to run sudo for nothing
+  const trustInfo = await getCertificateTrustInfoFromMac({
+    logger: createLogger({ logLevel: "error" }),
+    certificate,
+    certificateCommonName,
+  })
+  if (trustInfo.status === "not_trusted") {
+    return trustInfo
+  }
 
   // https://ss64.com/osx/security-cert.html
   // https://ss64.com/osx/security-delete-cert.html

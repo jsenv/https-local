@@ -329,8 +329,8 @@ export const removeCertificateFromBrowserNSSDB = async ({
   }
 
   logger.info(`Removing certificate from ${browserName}...`)
-
   const NSSDBFiles = await findNSSDBFiles({
+    logger,
     NSSDBDirectoryUrl: browserNSSDBDirectoryUrl,
   })
   const fileCount = NSSDBFiles.length

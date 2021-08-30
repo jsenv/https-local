@@ -1,12 +1,6 @@
 // TODO: add chrome and firefox trust store
 
-import { okSign, infoSign } from "@jsenv/https-localhost/src/internal/logs.js"
-
-import {
-  getCertificateTrustInfoFromLinux,
-  addCertificateInLinuxTrustStore,
-  removeCertificateFromLinuxTrustStore,
-} from "./linux/linux_trust_store.js"
+import { linuxTrustStore } from "./linux/linux_trust_store.js"
 
 export const getCertificateTrustInfo = async ({
   logger,
@@ -14,26 +8,12 @@ export const getCertificateTrustInfo = async ({
   certificate,
   certificateCommonName,
 }) => {
-  let linuxTrustInfo
-  if (newAndTryToTrustDisabled) {
-    linuxTrustInfo = {
-      status: "not_trusted",
-      reason: "tryToTrust disabled",
-    }
-    logger.info(`${infoSign} You should add certificate to linux`)
-  } else {
-    logger.info(`Check if certificate is trusted by linux...`)
-    linuxTrustInfo = await getCertificateTrustInfoFromLinux({
-      logger,
-      certificate,
-      certificateCommonName,
-    })
-    if (linuxTrustInfo.status === "trusted") {
-      logger.info(`${okSign} certificate trusted by linux`)
-    } else {
-      logger.info(`${infoSign} certificate not trusted by linux`)
-    }
-  }
+  const linuxTrustInfo = await linuxTrustStore.getCertificateTrustInfo({
+    logger,
+    certificate,
+    certificateCommonName,
+    newAndTryToTrustDisabled,
+  })
 
   return {
     linux: linuxTrustInfo,
@@ -45,10 +25,10 @@ export const addCertificateToTrustStores = async ({
   certificateFileUrl,
   existingTrustInfo,
 }) => {
-  const linuxTrustInfo = await putInLinuxTrustStoreIfNeeded({
+  const linuxTrustInfo = await linuxTrustStore.addCertificate({
     logger,
     certificateFileUrl,
-    existingLinuxTrustInfo: existingTrustInfo ? existingTrustInfo.linux : null,
+    existingTrustInfo,
   })
 
   return {
@@ -62,25 +42,10 @@ export const removeCertificateFromTrustStores = async ({
   certificateFileUrl,
   certificateCommonName,
 }) => {
-  await removeCertificateFromLinuxTrustStore({
+  await linuxTrustStore.removeCertificate({
     logger,
     certificate,
     certificateFileUrl,
     certificateCommonName,
-  })
-}
-
-const putInLinuxTrustStoreIfNeeded = async ({
-  logger,
-  certificateFileUrl,
-  existingLinuxTrustInfo,
-}) => {
-  if (existingLinuxTrustInfo && existingLinuxTrustInfo.status !== "not_trusted") {
-    return existingLinuxTrustInfo
-  }
-
-  return await addCertificateInLinuxTrustStore({
-    logger,
-    certificateFileUrl,
   })
 }

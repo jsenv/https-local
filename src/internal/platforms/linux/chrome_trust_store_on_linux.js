@@ -2,13 +2,19 @@
 
 import { existsSync } from "node:fs"
 
-export const getCertificateTrustInfoFromChrome = ({ logger }) => {
+import { memoize } from "@jsenv/https-localhost/src/internal/memoize.js"
+
+const getCertificateTrustInfoFromChrome = ({ logger }) => {
   const chromeDetected = detectChrome({ logger })
   if (chromeDetected) {
   }
 }
 
-const detectChrome = ({ logger }) => {
+export const chromeTrustStoreOnLinux = {
+  getCertificateTrustInfo: getCertificateTrustInfoFromChrome,
+}
+
+const detectChrome = memoize(({ logger }) => {
   const chromeBinFileExists = existsSync("/usr/bin/google-chrome")
   if (!chromeBinFileExists) {
     logger.debug(`Chrome not detected`)
@@ -17,4 +23,4 @@ const detectChrome = ({ logger }) => {
 
   logger.debug("Chrome detected")
   return true
-}
+})

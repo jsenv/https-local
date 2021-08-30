@@ -12,6 +12,17 @@ import {
 import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
 import { searchCertificateInCommandOutput } from "@jsenv/https-localhost/src/internal/search_certificate_in_command_output.js"
 
+const REASON_NEW_AND_TRY_TO_TRUST_DISABLED = "certificate is new and tryToTrust is disabled"
+const REASON_NOT_IN_KEYCHAIN = "certificate not found in mac keychain"
+const REASON_IN_KEYCHAIN = "certificate found in mac keychain"
+const REASON_ADD_TO_KEYCHAIN_COMMAND_FAILED = "command to add certificate in mac keychain failed"
+const REASON_ADD_TO_KEYCHAIN_COMMAND_COMPLETED =
+  "command to add certificate in mac keychain completed"
+const REASON_REMOVE_FROM_KEYCHAIN_COMMAND_FAILED =
+  "command to remove certificate from mac keychain failed"
+const REASON_REMOVE_FROM_KEYCHAIN_COMMAND_COMPLETED =
+  "command to remove certificate from mac keychain completed"
+
 const systemKeychainPath = "/Library/Keychains/System.keychain"
 
 const getCertificateTrustInfoFromMac = async ({
@@ -23,7 +34,7 @@ const getCertificateTrustInfoFromMac = async ({
     logger.info(`${infoSign} You should add certificate to mac OS keychain`)
     return {
       status: "not_trusted",
-      reason: "certificate is new and tryToTrust is disabled",
+      reason: REASON_NEW_AND_TRY_TO_TRUST_DISABLED,
     }
   }
 
@@ -43,7 +54,7 @@ const getCertificateTrustInfoFromMac = async ({
     logger.info(`${infoSign} certificate not trusted by mac OS`)
     return {
       status: "not_trusted",
-      reason: `not found in mac keychain`,
+      reason: REASON_NOT_IN_KEYCHAIN,
     }
   }
 
@@ -55,7 +66,7 @@ const getCertificateTrustInfoFromMac = async ({
   logger.info(`${okSign} certificate trusted by mac OS`)
   return {
     status: "trusted",
-    reason: "found in mac keychain",
+    reason: REASON_IN_KEYCHAIN,
   }
 }
 
@@ -74,7 +85,7 @@ const addCertificateInMacTrustStore = async ({ logger, certificateFileUrl, exist
     logger.info(`${okSign} certificate added to mac keychain`)
     return {
       status: "trusted",
-      reason: "add trusted cert command completed",
+      reason: REASON_ADD_TO_KEYCHAIN_COMMAND_COMPLETED,
     }
   } catch (e) {
     logger.error(
@@ -85,7 +96,7 @@ const addCertificateInMacTrustStore = async ({ logger, certificateFileUrl, exist
     )
     return {
       status: "not_trusted",
-      reason: "add trusted cert command failed",
+      reason: REASON_ADD_TO_KEYCHAIN_COMMAND_FAILED,
     }
   }
 }
@@ -116,7 +127,7 @@ const removeCertificateFromMacTrustStore = async ({
     logger.info(`${okSign} certificate removed from mac keychain`)
     return {
       status: "not_trusted",
-      reason: "delete cert command completed",
+      reason: REASON_REMOVE_FROM_KEYCHAIN_COMMAND_COMPLETED,
     }
   } catch (e) {
     logger.error(
@@ -127,7 +138,7 @@ const removeCertificateFromMacTrustStore = async ({
     )
     return {
       status: "unknown", // maybe it was not trusted?
-      reason: "delete cert command failed",
+      reason: REASON_REMOVE_FROM_KEYCHAIN_COMMAND_FAILED,
     }
   }
 }

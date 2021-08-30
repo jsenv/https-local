@@ -49,7 +49,7 @@ const expected = {
         },
         firefox: {
           status: "not_trusted",
-          reason: "missing in some firefox nss database file",
+          reason: "missing or outdated in firefox nss database file",
         },
         safari: {
           status: "not_trusted",
@@ -85,10 +85,10 @@ const expected = {
       `${okSign} certificate attributes are the same`,
       ...{
         darwin: [
-          "Check if certificate is trusted by mac OS...",
-          `${infoSign} certificate not trusted by mac OS`,
-          "Check if certificate is trusted by firefox...",
-          `${infoSign} certificate not trusted by firefox`,
+          "Check if certificate is in mac keychain...",
+          `${infoSign} certificate not found in mac keychain`,
+          "Check if certificate is in firefox...",
+          `${infoSign} certificate not found in firefox`,
         ],
         win32: [
           "Check if certificate is trusted by windows...",

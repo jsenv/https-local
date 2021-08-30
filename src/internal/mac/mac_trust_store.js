@@ -35,17 +35,16 @@ export const executeTrustQueryOnMacKeychain = async ({
   verb,
 }) => {
   if (verb === VERB_CHECK_TRUST && certificateIsNew) {
-    logger.info(`${infoSign} You should add certificate to mac OS keychain`)
+    logger.info(`${infoSign} You should add certificate to mac keychain`)
     return {
       status: "not_trusted",
       reason: REASON_NEW_AND_TRY_TO_TRUST_DISABLED,
     }
   }
 
-  logger.info(`Check if certificate is trusted by mac OS...`)
+  logger.info(`Check if certificate is in mac keychain...`)
   // https://ss64.com/osx/security-find-cert.html
   const findCertificateCommand = `security find-certificate -a -p ${systemKeychainPath}`
-  logger.debug(`Searching certificate in mac keychain...`)
   logger.debug(`${commandSign} ${findCertificateCommand}`)
   const findCertificateCommandOutput = await exec(findCertificateCommand)
   const certificateFoundInCommandOutput = searchCertificateInCommandOutput(
@@ -54,8 +53,7 @@ export const executeTrustQueryOnMacKeychain = async ({
   )
 
   if (!certificateFoundInCommandOutput) {
-    logger.debug(`${infoSign} certificate is not in keychain`)
-    logger.info(`${infoSign} certificate not trusted by mac OS`)
+    logger.info(`${infoSign} certificate not found in mac keychain`)
     if (verb === VERB_CHECK_TRUST || verb === VERB_REMOVE_TRUST) {
       return {
         status: "not_trusted",
@@ -77,7 +75,7 @@ export const executeTrustQueryOnMacKeychain = async ({
       }
     } catch (e) {
       logger.error(
-        createDetailedMessage(`${failureSign} Failed to add certificate to mac keychain`, {
+        createDetailedMessage(`${failureSign} failed to add certificate to mac keychain`, {
           "error stack": e.stack,
           "certificate file": certificateFilePath,
         }),
@@ -93,8 +91,7 @@ export const executeTrustQueryOnMacKeychain = async ({
   // people can still manually untrust the root cert
   // but they shouldn't and I couldn't find an API to know if the cert is trusted or not
   // just if it's in the keychain
-  logger.debug(`${okSign} certificate found in keychain`)
-  logger.info(`${okSign} certificate trusted by mac OS`)
+  logger.info(`${okSign} certificate found in mac keychain`)
   if (verb === VERB_CHECK_TRUST || verb === VERB_ADD_TRUST) {
     return {
       status: "trusted",
@@ -115,7 +112,7 @@ export const executeTrustQueryOnMacKeychain = async ({
     }
   } catch (e) {
     logger.error(
-      createDetailedMessage(`${failureSign} Failed to remove certificate from mac keychain`, {
+      createDetailedMessage(`${failureSign} failed to remove certificate from mac keychain`, {
         "error stack": e.stack,
         "certificate file url": certificateFileUrl,
       }),

@@ -37,15 +37,15 @@ export const executeTrustQueryOnFirefox = ({
 
     browserName: "firefox",
     detectBrowser: () => {
-      logger.debug(`Detecting Firefox...`)
+      logger.debug(`Detecting firefox...`)
       const firefoxDetected = existsSync("/Applications/Firefox.app")
 
       if (firefoxDetected) {
-        logger.debug(`${okSign} Firefox detected`)
+        logger.debug(`${okSign} firefox detected`)
         return true
       }
 
-      logger.debug(`${infoSign} Firefox not detected`)
+      logger.debug(`${infoSign} firefox not detected`)
       return false
     },
     browserNSSDBDirectoryUrl: resolveUrl(
@@ -57,13 +57,13 @@ export const executeTrustQueryOnFirefox = ({
         return
       }
 
-      logger.warn(`${warningSign} waiting for you to close Firefox before resuming...`)
+      logger.warn(`${warningSign} waiting for you to close firefox before resuming...`)
       const next = async () => {
         await new Promise((resolve) => setTimeout(resolve, 50))
         if (isFirefoxOpen()) {
           await next()
         } else {
-          logger.info(`${okSign} Firefox closed, resuming`)
+          logger.info(`${okSign} firefox closed, resuming`)
           // wait 50ms more to ensure firefox has time to cleanup
           // othrwise sometimes there is an SEC_ERROR_REUSED_ISSUER_AND_SERIAL error
           // because we updated nss database file while firefox is not fully closed

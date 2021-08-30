@@ -46,7 +46,7 @@ const expected = {
     `${okSign} authority root certificate written at ${actual.rootCertificateFilePath}`,
     ...{
       darwin: [
-        `${infoSign} You should add certificate to mac OS keychain`,
+        `${infoSign} You should add certificate to mac keychain`,
         `${infoSign} You should add certificate to firefox`,
       ],
       win32: [

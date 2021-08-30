@@ -1,7 +1,7 @@
 import { assertAndNormalizeDirectoryUrl, resolveUrl, urlToFilename } from "@jsenv/filesystem"
 
 export const getCertificateAuthorityFileUrls = () => {
-  // we need a directory common to every instance of @jsenv/https-localhost
+  // we need a directory common to every instance of @jsenv/local-https-certificates
   // so that even if it's used multiple times, the certificate autority files
   // are reused
   const applicationDirectoryUrl = getJsenvApplicationDirectoryUrl()

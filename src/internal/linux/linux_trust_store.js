@@ -11,8 +11,8 @@ import {
   okSign,
   infoSign,
   failureSign,
-} from "@jsenv/https-localhost/src/internal/logs.js"
-import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
+} from "@jsenv/local-https-certificates/src/internal/logs.js"
+import { exec } from "@jsenv/local-https-certificates/src/internal/exec.js"
 
 const REASON_NEW_AND_TRY_TO_TRUST_DISABLED = "certificate is new and tryToTrust is disabled"
 const REASON_NOT_FOUND_IN_LINUX = `not found in linux store`

@@ -8,9 +8,9 @@ import {
   okSign,
   infoSign,
   failureSign,
-} from "@jsenv/https-localhost/src/internal/logs.js"
-import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
-import { searchCertificateInCommandOutput } from "@jsenv/https-localhost/src/internal/search_certificate_in_command_output.js"
+} from "@jsenv/local-https-certificates/src/internal/logs.js"
+import { exec } from "@jsenv/local-https-certificates/src/internal/exec.js"
+import { searchCertificateInCommandOutput } from "@jsenv/local-https-certificates/src/internal/search_certificate_in_command_output.js"
 
 const REASON_NEW_AND_TRY_TO_TRUST_DISABLED = "certificate is new and tryToTrust is disabled"
 const REASON_NOT_IN_KEYCHAIN = "certificate not found in mac keychain"

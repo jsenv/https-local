@@ -1,4 +1,4 @@
-import { verifyHostsFile } from "@jsenv/https-localhost"
+import { verifyHostsFile } from "@jsenv/local-https-certificates"
 
 await verifyHostsFile({
   ipMappings: {

@@ -3,9 +3,9 @@ import { assert } from "@jsenv/assert"
 import {
   createAuthorityRootCertificate,
   requestCertificateFromAuthority,
-} from "@jsenv/https-localhost/src/internal/certificate_generator.js"
-import { createLoggerForTest } from "@jsenv/https-localhost/test/test_helpers.mjs"
-import { importNodeForge } from "@jsenv/https-localhost/src/internal/forge.js"
+} from "@jsenv/local-https-certificates/src/internal/certificate_generator.js"
+import { createLoggerForTest } from "@jsenv/local-https-certificates/test/test_helpers.mjs"
+import { importNodeForge } from "@jsenv/local-https-certificates/src/internal/forge.js"
 
 const {
   rootCertificateForgeObject,

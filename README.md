@@ -2,9 +2,9 @@
 
 A programmatic way to generate locally trusted certificates
 
-[![npm package](https://img.shields.io/npm/v/@jsenv/https-localhost.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/https-localhost)
-[![github main](https://github.com/jsenv/https-localhost/workflows/main/badge.svg)](https://github.com/jsenv/https-localhost/actions?workflow=main)
-[![codecov coverage](https://codecov.io/gh/jsenv/https-localhost/branch/main/graph/badge.svg)](https://codecov.io/gh/jsenv/https-localhost)
+[![npm package](https://img.shields.io/npm/v/@jsenv/local-https-certificates.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/local-https-certificates)
+[![github main](https://github.com/jsenv/local-https-certificates/workflows/main/badge.svg)](https://github.com/jsenv/local-https-certificates/actions?workflow=main)
+[![codecov coverage](https://codecov.io/gh/jsenv/local-https-certificates/branch/main/graph/badge.svg)](https://codecov.io/gh/jsenv/local-https-certificates)
 
 # Presentation
 
@@ -17,7 +17,7 @@ import {
   installCertificateAuthority,
   verifyHostsFile,
   requestCertificateForLocalhost,
-} from "@jsenv/https-localhost"
+} from "@jsenv/local-https-certificates"
 
 await installCertificateAuthority()
 await verifyHostsFile({
@@ -36,7 +36,7 @@ _installCertificateAuthority_ function generates a certificate authority valid f
 This certificate authority is needed to generate local certificates that will be trusted by the operating system and web browsers.
 
 ```js
-import { installCertificateAuthority } from "@jsenv/https-localhost"
+import { installCertificateAuthority } from "@jsenv/local-https-certificates"
 
 await installCertificateAuthority()
 ```
@@ -82,7 +82,7 @@ It can also be done programmatically as explained the next part.
 It's possible to trust root certificate programmatically using _tryToTrust_
 
 ```js
-import { installCertificateAuthority } from "@jsenv/https-localhost"
+import { installCertificateAuthority } from "@jsenv/local-https-certificates"
 
 await installCertificateAuthority({
   tryToTrust: true,
@@ -129,7 +129,7 @@ Check if certificate is trusted by Firefox...
 _verifyHostsFile_ function check your hosts file content to see if ip mappings are present.
 
 ```js
-import { verifyHostsFile } from "@jsenv/https-localhost"
+import { verifyHostsFile } from "@jsenv/local-https-certificates"
 
 await verifyHostsFile({
   ipMappings: {
@@ -210,7 +210,7 @@ C:\\Windows\\System32\\Drivers\\etc\\hosts
 It's possible to update hosts file programmatically using _tryToUpdateHostsFile_.
 
 ```js
-import { verifyHostsFile } from "@jsenv/https-localhost"
+import { verifyHostsFile } from "@jsenv/local-https-certificates"
 
 await verifyHostsFile({
   ipMappings: {
@@ -261,7 +261,7 @@ _requestCertificateForLocalhost_ function returns a certificate and private key 
 
 ```js
 import { createServer } from "node:https"
-import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
+import { requestCertificateForLocalhost } from "@jsenv/local-https-certificates"
 
 const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost({
   serverCertificateAltNames: ["localhost", "local.example.com"],
@@ -301,5 +301,5 @@ In the very unlikely scenario where you are using the same machine for more than
 # Installation
 
 ```console
-npm install --save-dev @jsenv/https-localhost
+npm install --save-dev @jsenv/local-https-certificates
 ```

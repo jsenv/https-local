@@ -4,14 +4,14 @@ import {
   installCertificateAuthority,
   uninstallCertificateAuthority,
   requestCertificateForLocalhost,
-} from "@jsenv/https-localhost"
+} from "@jsenv/local-https-certificates"
 import {
   startServerForTest,
   launchChromium,
   launchFirefox,
   launchWebkit,
   requestServerUsingBrowser,
-} from "@jsenv/https-localhost/test/test_helpers.mjs"
+} from "@jsenv/local-https-certificates/test/test_helpers.mjs"
 
 await uninstallCertificateAuthority({
   logLevel: "warn",

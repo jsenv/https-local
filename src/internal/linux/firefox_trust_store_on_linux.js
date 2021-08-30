@@ -2,7 +2,7 @@
 
 import { existsSync } from "node:fs"
 
-import { memoize } from "@jsenv/https-localhost/src/internal/memoize.js"
+import { memoize } from "@jsenv/local-https-certificates/src/internal/memoize.js"
 
 export const getCertificateTrustInfoFromFirefox = ({ logger }) => {
   const firefoxDetected = detectFirefox({ logger })

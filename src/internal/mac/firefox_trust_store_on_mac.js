@@ -4,21 +4,21 @@ import { execSync } from "node:child_process"
 import { createDetailedMessage } from "@jsenv/logger"
 import { urlToFileSystemPath, resolveUrl, assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
 
-import { memoize } from "@jsenv/https-localhost/src/internal/memoize.js"
+import { memoize } from "@jsenv/local-https-certificates/src/internal/memoize.js"
 import {
   findNSSDBFiles,
   getDirectoryArgFromNSSDBFileUrl,
-} from "@jsenv/https-localhost/src/internal/nssdb.js"
-import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
+} from "@jsenv/local-https-certificates/src/internal/nssdb.js"
+import { exec } from "@jsenv/local-https-certificates/src/internal/exec.js"
 import {
   okSign,
   infoSign,
   commandSign,
   failureSign,
   warningSign,
-} from "@jsenv/https-localhost/src/internal/logs.js"
-import { commandExists } from "@jsenv/https-localhost/src/internal/command.js"
-import { searchCertificateInCommandOutput } from "@jsenv/https-localhost/src/internal/search_certificate_in_command_output.js"
+} from "@jsenv/local-https-certificates/src/internal/logs.js"
+import { commandExists } from "@jsenv/local-https-certificates/src/internal/command.js"
+import { searchCertificateInCommandOutput } from "@jsenv/local-https-certificates/src/internal/search_certificate_in_command_output.js"
 import { detectNSSCommand, getCertutilBinPath } from "./mac_utils.js"
 
 // get status reasons

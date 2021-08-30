@@ -11,8 +11,8 @@ import {
   okSign,
   infoSign,
   failureSign,
-} from "@jsenv/https-localhost/src/internal/logs.js"
-import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
+} from "@jsenv/local-https-certificates/src/internal/logs.js"
+import { exec } from "@jsenv/local-https-certificates/src/internal/exec.js"
 
 const REASON_NOT_FOUND = "not found in windows store"
 const REASON_FOUND = "found in windows store"

@@ -1,8 +1,8 @@
 import { assertAndNormalizeDirectoryUrl, resolveUrl, urlToFileSystemPath } from "@jsenv/filesystem"
 
-import { memoize } from "@jsenv/https-localhost/src/internal/memoize.js"
-import { exec } from "@jsenv/https-localhost/src/internal/exec.js"
-import { infoSign, okSign } from "@jsenv/https-localhost/src/internal/logs.js"
+import { memoize } from "@jsenv/local-https-certificates/src/internal/memoize.js"
+import { exec } from "@jsenv/local-https-certificates/src/internal/exec.js"
+import { infoSign, okSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
 
 export const detectNSSCommand = async ({ logger }) => {
   logger.debug(`Detecting nss command....`)

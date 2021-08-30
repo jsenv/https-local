@@ -1,6 +1,9 @@
 import { warningSign } from "@jsenv/https-localhost/src/internal/logs.js"
 
-const platformTrustInfo = { status: "unknown", reason: "unsupported platform" }
+const platformTrustInfo = {
+  status: "unknown",
+  reason: "unsupported platform",
+}
 
 export const getCertificateTrustInfo = ({ logger }) => {
   logger.warn(`${warningSign} platform not supported, cannot get certificate trust info`)

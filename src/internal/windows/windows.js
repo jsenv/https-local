@@ -4,10 +4,10 @@
  * - https://www.unix.com/man-page/mojave/1/security/
  */
 
-import { windowsTrustStore } from "./windows/windows_trust_store.js"
-import { chromeTrustStoreOnWindows } from "./windows/chrome_trust_store_on_windows.js"
-import { edgeTrustStore } from "./windows/edge_trust_store.js"
-import { firefoxTrustStoreOnWindows } from "./windows/firefox_trust_store_on_windows.js"
+import { windowsTrustStore } from "./windows_trust_store.js"
+import { chromeTrustStoreOnWindows } from "./chrome_trust_store_on_windows.js"
+import { edgeTrustStore } from "./edge_trust_store.js"
+import { firefoxTrustStoreOnWindows } from "./firefox_trust_store_on_windows.js"
 
 export const getCertificateTrustInfo = async ({
   logger,

@@ -1,13 +1,13 @@
 export const importPlatformMethods = async () => {
   const { platform } = process
   if (platform === "darwin") {
-    return await import("./platforms/mac.js")
+    return await import("./mac/mac.js")
   }
   if (platform === "linux") {
-    return await import("./platforms/linux.js")
+    return await import("./linux/linux.js")
   }
   if (platform === "win32") {
-    return await import("./platforms/windows.js")
+    return await import("./windows/windows.js")
   }
-  return await import("./platforms/unsupported.js")
+  return await import("./unsupported_platform/unsupported_platform.js")
 }

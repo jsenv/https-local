@@ -1,6 +1,6 @@
 // TODO: add chrome and firefox trust store
 
-import { linuxTrustStore } from "./linux/linux_trust_store.js"
+import { linuxTrustStore } from "./linux_trust_store.js"
 
 export const getCertificateTrustInfo = async ({
   logger,

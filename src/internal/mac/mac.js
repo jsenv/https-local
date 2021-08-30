@@ -4,10 +4,10 @@
  * - https://www.unix.com/man-page/mojave/1/security/
  */
 
-import { macTrustStore } from "./mac/mac_trust_store.js"
-import { chromeTrustStoreOnMac } from "./mac/chrome_trust_store_on_mac.js"
-import { firefoxTrustStoreOnMac } from "./mac/firefox_trust_store_on_mac.js"
-import { safariTrustStore } from "./mac/safari_trust_store.js"
+import { macTrustStore } from "./mac_trust_store.js"
+import { chromeTrustStoreOnMac } from "./chrome_trust_store_on_mac.js"
+import { firefoxTrustStoreOnMac } from "./firefox_trust_store_on_mac.js"
+import { safariTrustStore } from "./safari_trust_store.js"
 
 export const getCertificateTrustInfo = async ({
   logger,

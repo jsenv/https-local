@@ -16,7 +16,7 @@ import { searchCertificateInCommandOutput } from "@jsenv/local-https-certificate
 
 export const getCertificateInfoFromNSSDB = async ({
   logger,
-  NSSDBDirectoryUrl,
+  browserNSSDBDirectoryUrl,
   getCertutilBinPath,
 
   certificate,
@@ -24,7 +24,7 @@ export const getCertificateInfoFromNSSDB = async ({
 }) => {
   const NSSDBFiles = await findNSSDBFiles({
     logger,
-    NSSDBDirectoryUrl,
+    NSSDBDirectoryUrl: browserNSSDBDirectoryUrl,
   })
   const fileCount = NSSDBFiles.length
   if (fileCount === 0) {
@@ -87,7 +87,7 @@ export const getCertificateInfoFromNSSDB = async ({
 
 export const addCertificateToNSSDB = async ({
   logger,
-  NSSDBDirectoryUrl,
+  browserNSSDBDirectoryUrl,
   getCertutilBinPath,
   getBrowserClosedPromise = () => Promise.resolve(),
 
@@ -96,7 +96,7 @@ export const addCertificateToNSSDB = async ({
 }) => {
   const NSSDBFiles = await findNSSDBFiles({
     logger,
-    NSSDBDirectoryUrl,
+    NSSDBDirectoryUrl: browserNSSDBDirectoryUrl,
   })
   const fileCount = NSSDBFiles.length
   if (fileCount === 0) {
@@ -136,7 +136,7 @@ export const addCertificateToNSSDB = async ({
 
 export const removeCertificateFromNSSDB = async ({
   logger,
-  NSSDBDirectoryUrl,
+  browserNSSDBDirectoryUrl,
   getBrowserClosedPromise,
   getCertutilBinPath,
 
@@ -144,7 +144,7 @@ export const removeCertificateFromNSSDB = async ({
   certificateFileUrl,
 }) => {
   const NSSDBFiles = await findNSSDBFiles({
-    NSSDBDirectoryUrl,
+    NSSDBDirectoryUrl: browserNSSDBDirectoryUrl,
   })
   const fileCount = NSSDBFiles.length
   if (fileCount === 0) {

@@ -3,8 +3,38 @@ import { assertAndNormalizeDirectoryUrl, resolveUrl, urlToFileSystemPath } from 
 import { memoize } from "@jsenv/local-https-certificates/src/internal/memoize.js"
 import { exec } from "@jsenv/local-https-certificates/src/internal/exec.js"
 import { infoSign, okSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
+import { commandExists } from "@jsenv/local-https-certificates/src/internal/command.js"
 
-export const detectIfNSSIsInstalled = async ({ logger }) => {
+export const getNSSCommandInfo = async ({ logger }) => {
+  const nssCommandName = "nss"
+
+  const nssIsInstalled = await detectIfNSSIsInstalled({ logger })
+
+  const nssIsInstallable = commandExists("brew")
+
+  const nssNotInstallableReason = `"brew" is not available`
+
+  const nssInstallFixSuggestion = `install "brew" on this mac`
+
+  const nssInstall = async ({ logger }) => {
+    const brewInstallCommand = `brew install nss`
+    logger.info(`"nss" is not installed, trying to install "nss" via Homebrew`)
+    logger.info(`> ${brewInstallCommand}`)
+    await exec(brewInstallCommand)
+  }
+
+  return {
+    nssCommandName,
+    nssIsInstalled,
+    nssIsInstallable,
+    nssNotInstallableReason,
+    nssInstallFixSuggestion,
+    nssInstall,
+    getCertutilBinPath,
+  }
+}
+
+const detectIfNSSIsInstalled = async ({ logger }) => {
   logger.debug(`Detecting if nss is installed....`)
   const brewListCommand = `brew list --versions nss`
 
@@ -18,7 +48,7 @@ export const detectIfNSSIsInstalled = async ({ logger }) => {
   }
 }
 
-export const getCertutilBinPath = memoize(async () => {
+const getCertutilBinPath = memoize(async () => {
   const brewCommand = `brew --prefix nss`
   const brewCommandOutput = await exec(brewCommand)
   const nssCommandDirectoryUrl = assertAndNormalizeDirectoryUrl(brewCommandOutput.trim())

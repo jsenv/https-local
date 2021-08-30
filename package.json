@@ -1,7 +1,7 @@
 {
-  "name": "@jsenv/https-localhost",
-  "version": "2.0.0",
-  "description": "Https certificate for localhost server",
+  "name": "@jsenv/local-https-certificates",
+  "version": "1.0.0",
+  "description": "A programmatic way to generate locally trusted certificates",
   "license": "MIT",
   "author": {
     "name": "dmail",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jsenv/https-localhost"
+    "url": "https://github.com/jsenv/local-https-certificates"
   },
   "engines": {
     "node": ">=14.17.0"

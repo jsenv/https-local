@@ -1,6 +1,6 @@
-# Https localhost
+# Local https certificates
 
-Generate trusted certificates to start a local server in HTTPS.
+A programmatic way to generate locally trusted certificates
 
 [![npm package](https://img.shields.io/npm/v/@jsenv/https-localhost.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/https-localhost)
 [![github main](https://github.com/jsenv/https-localhost/workflows/main/badge.svg)](https://github.com/jsenv/https-localhost/actions?workflow=main)
@@ -8,7 +8,8 @@ Generate trusted certificates to start a local server in HTTPS.
 
 # Presentation
 
-A programmatic way to generate locally trusted certificates.
+Generate certificate(s) trusted by your operating system and browsers.
+This certificate can be used to start your development server in HTTPS.
 Works on mac, linux and windows.
 
 ```js

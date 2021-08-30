@@ -17,7 +17,7 @@ import {
 } from "@jsenv/local-https-certificates/src/internal/logs.js"
 import { commandExists } from "@jsenv/local-https-certificates/src/internal/command.js"
 import { exec } from "@jsenv/local-https-certificates/src/internal/exec.js"
-import { detectNSSCommand, getCertutilBinPath } from "./mac_utils.js"
+import { detectIfNSSIsInstalled, getCertutilBinPath } from "./mac_utils.js"
 
 const REASON_FIREFOX_NOT_DETECTED = "Firefox not detected"
 const REASON_NSS_MISSING = `"nss" is not installed`
@@ -54,7 +54,7 @@ const getCertificateTrustInfoFromFirefox = async ({
 
   logger.info(`Check if certificate is trusted by Firefox...`)
 
-  const nssAvailable = await detectNSSCommand({ logger })
+  const nssAvailable = await detectIfNSSIsInstalled({ logger })
   if (!nssAvailable) {
     logger.info(
       createDetailedMessage(`${infoSign} Unable to detect if certificate is trusted by Firefox`, {
@@ -139,8 +139,8 @@ const addCertificateInFirefoxTrustStore = async ({
   }
 
   logger.info(`Adding certificate in Firefox...`)
-  const nssCommandAvailable = await detectNSSCommand({ logger })
-  if (!nssCommandAvailable) {
+  const nssAvailable = await detectIfNSSIsInstalled({ logger })
+  if (!nssAvailable) {
     if (!NSSDynamicInstall) {
       logger.warn(
         createDetailedMessage(`${failureSign} cannot add certificate in Firefox`, {
@@ -232,7 +232,7 @@ const removeCertificateFromFirefoxTrustStore = async ({
     }
   }
 
-  const nssAvailable = await detectNSSCommand({ logger })
+  const nssAvailable = await detectIfNSSIsInstalled({ logger })
   if (!nssAvailable) {
     // when nss is not installed we couldn't trust certificate so there is likely
     // no certificate to remove -> log level is debug

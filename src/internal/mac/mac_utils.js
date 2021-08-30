@@ -4,17 +4,16 @@ import { memoize } from "@jsenv/local-https-certificates/src/internal/memoize.js
 import { exec } from "@jsenv/local-https-certificates/src/internal/exec.js"
 import { infoSign, okSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
 
-export const detectNSSCommand = async ({ logger }) => {
-  logger.debug(`Detecting nss command....`)
-  const brewListCommand = `brew list -1`
+export const detectIfNSSIsInstalled = async ({ logger }) => {
+  logger.debug(`Detecting if nss is installed....`)
+  const brewListCommand = `brew list --versions nss`
 
   try {
-    const brewListCommandOutput = await exec(brewListCommand)
-    const nssFound = brewListCommandOutput.includes("\nnss\n")
-    logger.debug(`${okSign} nss command detected`)
-    return nssFound
+    await exec(brewListCommand)
+    logger.debug(`${okSign} nss is installed`)
+    return true
   } catch (e) {
-    logger.debug(`${infoSign} nss command not detected`)
+    logger.debug(`${infoSign} nss not installed`)
     return false
   }
 }

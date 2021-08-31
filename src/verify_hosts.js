@@ -40,20 +40,20 @@ export const verifyHostsFile = async ({
     return
   }
 
+  const EOL = process.platform === "win32" ? "\r\n" : "\n"
+
   if (!tryToUpdateHostsFile) {
-    const mappingsToAdd = missingMappings
+    const linesToAdd = missingMappings
       .map(({ ip, missingHostnames }) => `${ip} ${missingHostnames.join(" ")}`)
-      .join("\n")
+      .join(EOL)
     logger.warn(
       createDetailedMessage(`${warningSign} ${formatXMappingMissingMessage(missingMappingCount)}`, {
         "hosts file path": hostsFilePath,
-        "mappings to add": mappingsToAdd,
+        "line(s) to add": linesToAdd,
       }),
     )
     return
   }
-
-  const EOL = process.platform === "win32" ? "\r\n" : "\n"
 
   logger.info(`${infoSign} ${formatXMappingMissingMessage(missingMappingCount)}`)
   await Promise.all(

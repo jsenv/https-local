@@ -4,10 +4,10 @@
  * - https://www.unix.com/man-page/mojave/1/security/
  */
 
-import { executeTrustQueryOnMacKeychain } from "./mac_trust_store.js"
-import { executeTrustQueryOnChrome } from "./chrome_trust_store_on_mac.js"
-import { executeTrustQueryOnFirefox } from "./firefox_trust_store_on_mac.js"
-import { executeTrustQueryOnSafari } from "./safari_trust_store.js"
+import { executeTrustQueryOnMacKeychain } from "./mac_keychain.js"
+import { executeTrustQueryOnChrome } from "./chrome_mac.js"
+import { executeTrustQueryOnFirefox } from "./firefox_mac.js"
+import { executeTrustQueryOnSafari } from "./safari.js"
 
 export const executeTrustQuery = async ({
   logger,

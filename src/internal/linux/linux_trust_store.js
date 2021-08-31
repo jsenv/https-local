@@ -13,6 +13,7 @@ import {
   failureSign,
 } from "@jsenv/local-https-certificates/src/internal/logs.js"
 import { exec } from "@jsenv/local-https-certificates/src/internal/exec.js"
+import { VERB_CHECK_TRUST, VERB_ADD_TRUST, VERB_REMOVE_TRUST } from "../trust_query.js"
 
 const REASON_NEW_AND_TRY_TO_TRUST_DISABLED = "certificate is new and tryToTrust is disabled"
 const REASON_NOT_FOUND_IN_LINUX = `not found in linux store`
@@ -26,12 +27,15 @@ const REASON_REMOVE_COMMAND_COMPLETED = "command to remove certificate from linu
 const LINUX_CERTIFICATE_AUTHORITIES_DIRECTORY_PATH = `/usr/local/share/ca-certificates/`
 const JSENV_CERTIFICATE_AUTHORITY_PATH = `${LINUX_CERTIFICATE_AUTHORITIES_DIRECTORY_PATH}https_localhost_root_certificate.crt`
 
-const getCertificateTrustInfoFromLinux = async ({
+export const executeTrustQueryOnLinux = async ({
   logger,
+  // certificateCommonName,
+  certificateFileUrl,
+  certificateIsNew,
   certificate,
-  newAndTryToTrustDisabled,
+  verb,
 }) => {
-  if (newAndTryToTrustDisabled) {
+  if (verb === VERB_CHECK_TRUST && certificateIsNew) {
     logger.info(`${infoSign} You should add certificate to linux`)
     return {
       status: "not_trusted",
@@ -39,79 +43,57 @@ const getCertificateTrustInfoFromLinux = async ({
     }
   }
 
-  logger.info(`Check if certificate is trusted by linux...`)
+  logger.info(`Check if certificate is in linux...`)
   logger.debug(`Searching certificate file at ${JSENV_CERTIFICATE_AUTHORITY_PATH}...`)
-  const certificateInStore = existsSync(JSENV_CERTIFICATE_AUTHORITY_PATH)
-
-  if (!certificateInStore) {
-    logger.debug(`${infoSign} not certificate file found`)
-    logger.info(`${infoSign} certificate not trusted by linux`)
-    return {
-      status: "not_trusted",
-      reason: REASON_NOT_FOUND_IN_LINUX,
-    }
-  }
-
-  const certificateInLinuxStore = await readFile(JSENV_CERTIFICATE_AUTHORITY_PATH)
-  if (certificateInLinuxStore !== certificate) {
-    logger.debug(`${infoSign} certificate in linux store is outdated`)
-    logger.info(`${infoSign} certificate not trusted by linux`)
-    return {
-      status: "not_trusted",
-      reason: REASON_OUTDATED_IN_LINUX,
-    }
-  }
-
-  logger.debug(`${okSign} certificate found in linux trust store`)
-  logger.info(`${okSign} certificate trusted by linux`)
-  return {
-    status: "trusted",
-    reason: REASON_FOUND_IN_LINUX,
-  }
-}
-
-const addCertificateInLinuxTrustStore = async ({
-  logger,
-  certificateFileUrl,
-  existingTrustInfo,
-}) => {
-  if (existingTrustInfo && existingTrustInfo.linux.status === "trusted") {
-    return existingTrustInfo.linux
-  }
-
   const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
-  const copyCertificateCommand = `sudo /bin/cp -f "${certificateFilePath}" ${JSENV_CERTIFICATE_AUTHORITY_PATH}`
-  const updateCertificateCommand = `sudo update-ca-certificates`
-  logger.info(`Adding certificate to linux...`)
-  try {
-    logger.info(`${commandSign} ${copyCertificateCommand}`)
-    await exec(copyCertificateCommand)
-    logger.info(`${commandSign} ${updateCertificateCommand}`)
-    await exec(updateCertificateCommand)
-    logger.info(`${okSign} certificate added to linux`)
+  const certificateStatus = await getCertificateStatus({ certificate })
+
+  if (certificateStatus === "missing" || certificateStatus === "outdated") {
+    if (certificateStatus === "missing") {
+      logger.info(`${infoSign} certificate not in linux`)
+    } else {
+      logger.info(`${infoSign} certificate in linux is outdated`)
+    }
+    if (verb === VERB_CHECK_TRUST || verb === VERB_REMOVE_TRUST) {
+      return {
+        status: "not_trusted",
+        reason:
+          certificateStatus === "missing" ? REASON_NOT_FOUND_IN_LINUX : REASON_OUTDATED_IN_LINUX,
+      }
+    }
+
+    const copyCertificateCommand = `sudo /bin/cp -f "${certificateFilePath}" ${JSENV_CERTIFICATE_AUTHORITY_PATH}`
+    const updateCertificateCommand = `sudo update-ca-certificates`
+    logger.info(`Adding certificate to linux...`)
+    try {
+      logger.info(`${commandSign} ${copyCertificateCommand}`)
+      await exec(copyCertificateCommand)
+      logger.info(`${commandSign} ${updateCertificateCommand}`)
+      await exec(updateCertificateCommand)
+      logger.info(`${okSign} certificate added to linux`)
+      return {
+        status: "trusted",
+        reason: REASON_ADD_COMMAND_COMPLETED,
+      }
+    } catch (e) {
+      logger.error(
+        createDetailedMessage(`${failureSign} failed to add certificate to linux`, {
+          "error stack": e.stack,
+          "certificate file": certificateFilePath,
+        }),
+      )
+      return {
+        status: "not_trusted",
+        reason: REASON_ADD_COMMAND_FAILED,
+      }
+    }
+  }
+
+  logger.info(`${okSign} certificate found in linux`)
+  if (verb === VERB_CHECK_TRUST || verb === VERB_ADD_TRUST) {
     return {
       status: "trusted",
-      reason: REASON_ADD_COMMAND_COMPLETED,
-    }
-  } catch (e) {
-    logger.error(
-      createDetailedMessage(`${failureSign} Failed to add certificate to linux`, {
-        "error stack": e.stack,
-        "certificate file": certificateFilePath,
-      }),
-    )
-    return {
-      status: "not_trusted",
-      reason: REASON_ADD_COMMAND_FAILED,
-    }
-  }
-}
-
-const removeCertificateFromLinuxTrustStore = async ({ logger }) => {
-  if (!existsSync(JSENV_CERTIFICATE_AUTHORITY_PATH)) {
-    return {
-      status: "not_trusted",
-      reason: REASON_NOT_FOUND_IN_LINUX,
+      reason: REASON_FOUND_IN_LINUX,
     }
   }
 
@@ -130,7 +112,7 @@ const removeCertificateFromLinuxTrustStore = async ({ logger }) => {
     }
   } catch (e) {
     logger.error(
-      createDetailedMessage(`${failureSign} Failed to delete certificate file in linux store`, {
+      createDetailedMessage(`${failureSign} failed to remove certificate from linux`, {
         "error stack": e.stack,
         "certificate file": JSENV_CERTIFICATE_AUTHORITY_PATH,
       }),
@@ -142,8 +124,14 @@ const removeCertificateFromLinuxTrustStore = async ({ logger }) => {
   }
 }
 
-export const linuxTrustStore = {
-  getCertificateTrustInfo: getCertificateTrustInfoFromLinux,
-  addCertificate: addCertificateInLinuxTrustStore,
-  removeCertificate: removeCertificateFromLinuxTrustStore,
+const getCertificateStatus = async ({ certificate }) => {
+  const certificateInStore = existsSync(JSENV_CERTIFICATE_AUTHORITY_PATH)
+  if (!certificateInStore) {
+    return "missing"
+  }
+  const certificateInLinuxStore = await readFile(JSENV_CERTIFICATE_AUTHORITY_PATH)
+  if (certificateInLinuxStore !== certificate) {
+    return "outdated"
+  }
+  return "found"
 }

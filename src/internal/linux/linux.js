@@ -1,68 +1,43 @@
-import { linuxTrustStore } from "./linux_trust_store.js"
-import { firefoxTrustStoreOnLinux } from "./firefox_trust_store_on_linux.js"
-import { chromeTrustStoreOnLinux } from "./chrome_trust_store_on_linux.js"
+import { executeTrustQueryOnLinux } from "./linux_trust_store.js"
+import { executeTrustQueryOnChrome } from "./chrome_linux.js"
+import { executeTrustQueryOnFirefox } from "./firefox_linux.js"
 
-export const getCertificateTrustInfo = async ({
-  logger,
-  newAndTryToTrustDisabled,
-  certificate,
-  certificateCommonName,
-}) => {
-  const linuxTrustInfo = await linuxTrustStore.getCertificateTrustInfo({
-    logger,
-    certificate,
-    certificateCommonName,
-    newAndTryToTrustDisabled,
-  })
-
-  const chromeTrustInfo = await chromeTrustStoreOnLinux.getCertificateTrustInfo({
-    logger,
-    certificate,
-    certificateCommonName,
-    newAndTryToTrustDisabled,
-  })
-
-  const firefoxTrustInfo = await firefoxTrustStoreOnLinux.getCertificateTrustInfo({
-    logger,
-    certificate,
-    certificateCommonName,
-    newAndTryToTrustDisabled,
-  })
-
-  return {
-    linux: linuxTrustInfo,
-    chrome: chromeTrustInfo,
-    firefox: firefoxTrustInfo,
-  }
-}
-
-export const addCertificateToTrustStores = async ({
+export const executeTrustQuery = async ({
   logger,
   certificateCommonName,
   certificateFileUrl,
+  certificateIsNew,
+  certificate,
+  verb,
   NSSDynamicInstall,
-  existingTrustInfo,
 }) => {
-  const linuxTrustInfo = await linuxTrustStore.addCertificate({
+  const linuxTrustInfo = await executeTrustQueryOnLinux({
     logger,
+    certificateCommonName,
     certificateFileUrl,
-    existingTrustInfo,
+    certificateIsNew,
+    certificate,
+    verb,
   })
 
-  const chromeTrustInfo = await chromeTrustStoreOnLinux.addCertificate({
+  const chromeTrustInfo = await executeTrustQueryOnChrome({
     logger,
-    certificateFileUrl,
     certificateCommonName,
+    certificateFileUrl,
+    certificateIsNew,
+    certificate,
+    verb,
     NSSDynamicInstall,
-    existingTrustInfo,
   })
 
-  const firefoxTrustInfo = await firefoxTrustStoreOnLinux.addCertificate({
+  const firefoxTrustInfo = await executeTrustQueryOnFirefox({
     logger,
-    certificateFileUrl,
     certificateCommonName,
+    certificateFileUrl,
+    certificateIsNew,
+    certificate,
+    verb,
     NSSDynamicInstall,
-    existingTrustInfo,
   })
 
   return {
@@ -70,30 +45,4 @@ export const addCertificateToTrustStores = async ({
     chrome: chromeTrustInfo,
     firefox: firefoxTrustInfo,
   }
-}
-
-export const removeCertificateFromTrustStores = async ({
-  logger,
-  certificate,
-  certificateFileUrl,
-  certificateCommonName,
-}) => {
-  await linuxTrustStore.removeCertificate({
-    logger,
-    certificate,
-    certificateFileUrl,
-    certificateCommonName,
-  })
-
-  await chromeTrustStoreOnLinux.removeCertificate({
-    logger,
-    certificateCommonName,
-    certificateFileUrl,
-  })
-
-  await firefoxTrustStoreOnLinux.removeCertificate({
-    logger,
-    certificateCommonName,
-    certificateFileUrl,
-  })
 }

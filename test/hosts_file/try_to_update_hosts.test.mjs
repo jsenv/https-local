@@ -8,7 +8,7 @@ import { createLoggerForTest } from "@jsenv/local-https-certificates/test/test_h
 const hostFileUrl = new URL("./hosts", import.meta.url)
 const hostsFilePath = urlToFileSystemPath(hostFileUrl)
 
-// required and missing
+// 1 ip mapping missing
 {
   await writeFile(hostFileUrl, `127.0.0.1 localhost`)
   const loggerForTest = createLoggerForTest({
@@ -39,12 +39,11 @@ const hostsFilePath = urlToFileSystemPath(hostFileUrl)
     infos: [
       `Check hosts file content...`,
       `${infoSign} 1 mapping is missing in hosts file`,
-      `Adding 1 mapping(s) in hosts file...`,
+      `Append "127.0.0.1 jsenv" in host file...`,
       process.platform === "win32"
-        ? `${commandSign} (echo 127.0.0.1 localhost& echo 127.0.0.1 jsenv) > ${hostsFilePath}`
-        : `${commandSign} echo "127.0.0.1 localhost
-127.0.0.1 jsenv" | tee ${hostsFilePath}`,
-      `${okSign} mappings added to hosts file`,
+        ? `${commandSign} echo 127.0.0.1 jsenv >> ${hostsFilePath}`
+        : `${commandSign} echo "\n127.0.0.1 jsenv" | tee -a ${hostsFilePath}`,
+      `${okSign} mapping added`,
     ],
     warns: [],
     errors: [],
@@ -52,7 +51,28 @@ const hostsFilePath = urlToFileSystemPath(hostFileUrl)
   assert({ actual, expected })
 }
 
-// required and exists
+// 2 ip mapping missing
+{
+  await writeFile(hostFileUrl, ``)
+  await verifyHostsFile({
+    logLevel: "warn",
+    ipMappings: {
+      "127.0.0.1": ["localhost", "jsenv"],
+      "192.168.1.1": ["toto"],
+    },
+    tryToUpdateHostsFile: true,
+    hostsFilePath,
+  })
+  const hostsFileContent = await readFile(hostsFilePath, { as: "string" })
+  const actual = hostsFileContent
+  const expected =
+    process.platform === "win32"
+      ? `127.0.0.1 localhost jsenv\r\n192.168.1.1 toto`
+      : `127.0.0.1 localhost jsenv\n192.168.1.1 toto\n`
+  assert({ actual, expected })
+}
+
+// all hostname there
 {
   const loggerForTest = createLoggerForTest({
     // forwardToConsole: true,

@@ -5,7 +5,13 @@
 
 import { existsSync } from "node:fs"
 import { createDetailedMessage } from "@jsenv/logger"
-import { collectFiles, resolveUrl, urlToFilename, urlToFileSystemPath } from "@jsenv/filesystem"
+import {
+  assertAndNormalizeDirectoryUrl,
+  collectFiles,
+  resolveUrl,
+  urlToFilename,
+  urlToFileSystemPath,
+} from "@jsenv/filesystem"
 
 import {
   commandSign,
@@ -297,6 +303,7 @@ const findNSSDBFiles = async ({ logger, NSSDBDirectoryUrl }) => {
     NSSDirectoryCache[NSSDBDirectoryUrl] = []
     return []
   }
+  NSSDBDirectoryUrl = assertAndNormalizeDirectoryUrl(NSSDBDirectoryUrl)
   const NSSDBFiles = await collectFiles({
     directoryUrl: NSSDBDirectoryUrl,
     structuredMetaMap: {
@@ -317,7 +324,9 @@ const findNSSDBFiles = async ({ logger, NSSDBDirectoryUrl }) => {
   }
 
   logger.debug(`${okSign} found ${fileCount} nss database file in ${NSSDBDirectoryUrl}`)
-  const files = NSSDBFiles.map((file) => resolveUrl(file.relativeUrl, NSSDBDirectoryUrl))
+  const files = NSSDBFiles.map((file) => {
+    return resolveUrl(file.relativeUrl, NSSDBDirectoryUrl)
+  })
   NSSDirectoryCache[NSSDBDirectoryUrl] = files
   return files
 }

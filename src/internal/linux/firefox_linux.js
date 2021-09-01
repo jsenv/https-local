@@ -49,7 +49,7 @@ export const executeTrustQueryOnFirefox = ({
       return false
     },
     browserNSSDBDirectoryUrl: resolveUrl(
-      ".mozilla/firefox/*",
+      ".mozilla/firefox/",
       assertAndNormalizeDirectoryUrl(process.env.HOME),
     ),
     getBrowserClosedPromise: async () => {

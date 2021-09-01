@@ -74,6 +74,20 @@ const expected = {
           reason: "not implemented on windows",
         },
       },
+      linux: {
+        linux: {
+          status: "not_trusted",
+          reason: "not found in linux store",
+        },
+        chrome: {
+          status: "not_trusted",
+          reason: "missing or outdated in chrome nss database file",
+        },
+        firefox: {
+          status: "not_trusted",
+          reason: "missing or outdated in firefox nss database file",
+        },
+      },
     }[process.platform],
   },
   secondCallLogs: {
@@ -96,7 +110,14 @@ const expected = {
           "Check if certificate is in firefox...",
           `${infoSign} cannot check if certificate is in firefox (not implemented on windows)`,
         ],
-        linux: [],
+        linux: [
+          "Check if certificate is in linux...",
+          `${infoSign} certificate not in linux`,
+          "Check if certificate is in chrome...",
+          `${infoSign} certificate not found in chrome`,
+          "Check if certificate is in firefox...",
+          `${infoSign} certificate not found in firefox`,
+        ],
       }[process.platform],
     ],
     warns: [],

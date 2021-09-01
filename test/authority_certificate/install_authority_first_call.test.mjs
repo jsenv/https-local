@@ -53,7 +53,11 @@ const expected = {
         `${infoSign} You should add certificate to windows`,
         `${infoSign} You should add certificate to firefox`,
       ],
-      linux: [],
+      linux: [
+        `${infoSign} You should add certificate to linux`,
+        `${infoSign} You should add certificate to chrome`,
+        `${infoSign} You should add certificate to firefox`,
+      ],
     }[process.platform],
   ],
   warns: [],
@@ -92,6 +96,20 @@ const expected = {
         reason: "certificate is new and tryToTrust is disabled",
       },
       edge: {
+        status: "not_trusted",
+        reason: "certificate is new and tryToTrust is disabled",
+      },
+      firefox: {
+        status: "not_trusted",
+        reason: "certificate is new and tryToTrust is disabled",
+      },
+    },
+    linux: {
+      linux: {
+        status: "not_trusted",
+        reason: "certificate is new and tryToTrust is disabled",
+      },
+      chrome: {
         status: "not_trusted",
         reason: "certificate is new and tryToTrust is disabled",
       },

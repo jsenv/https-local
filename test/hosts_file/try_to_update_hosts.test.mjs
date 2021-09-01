@@ -41,7 +41,7 @@ const hostsFilePath = urlToFileSystemPath(hostFileUrl)
       `${infoSign} 1 mapping is missing in hosts file`,
       `Append "127.0.0.1 jsenv" in host file...`,
       process.platform === "win32"
-        ? `${commandSign} echo 127.0.0.1 jsenv >> ${hostsFilePath}`
+        ? `${commandSign} (echo.& echo 127.0.0.1 jsenv) >> ${hostsFilePath}`
         : `${commandSign} echo "\n127.0.0.1 jsenv" | tee -a ${hostsFilePath}`,
       `${okSign} mapping added`,
     ],
@@ -67,7 +67,7 @@ const hostsFilePath = urlToFileSystemPath(hostFileUrl)
   const actual = hostsFileContent
   const expected =
     process.platform === "win32"
-      ? `127.0.0.1 localhost jsenv\r\n192.168.1.1 toto`
+      ? `127.0.0.1 localhost jsenv\r\n192.168.1.1 toto\r\n`
       : `127.0.0.1 localhost jsenv\n192.168.1.1 toto\n`
   assert({ actual, expected })
 }

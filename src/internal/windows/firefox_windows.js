@@ -33,7 +33,7 @@ export const executeTrustQueryOnFirefox = ({ logger, certificateIsNew }) => {
     }
   }
 
-  logger.info(`Check if certificate is trusted by firefox...`)
+  logger.info(`Check if certificate is in firefox...`)
   logger.info(
     `${infoSign} cannot check if certificate is in firefox (${REASON_NOT_IMPLEMENTED_ON_WINDOWS})`,
   )

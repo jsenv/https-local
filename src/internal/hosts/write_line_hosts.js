@@ -20,8 +20,8 @@ const appendToHostsFileOnWindows = async ({ lineToAppend, hostsFilePath, onBefor
   const hostsFileContent = await readFile(hostsFilePath)
   const echoCommand =
     hostsFileContent.length > 0 && !hostsFileContent.endsWith("\r\n")
-      ? `(echo & echo "${lineToAppend}")`
-      : `echo "${lineToAppend}"`
+      ? `(echo & echo ${lineToAppend})`
+      : `echo ${lineToAppend}`
   const needsSudo = hostsFilePath === HOSTS_FILE_PATH
   const updateHostsFileCommand = `${echoCommand} >> ${hostsFilePath}`
 

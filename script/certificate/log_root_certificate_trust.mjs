@@ -6,11 +6,12 @@ import { importPlatformMethods } from "@jsenv/local-https-certificates/src/inter
 import { getCertificateAuthorityFileUrls } from "@jsenv/local-https-certificates/src/internal/certificate_authority_file_urls.js"
 
 const { rootCertificateFileUrl } = getCertificateAuthorityFileUrls()
-const { getCertificateTrustInfo } = await importPlatformMethods()
-const trustInfo = await getCertificateTrustInfo({
+const { executeTrustQuery } = await importPlatformMethods()
+const trustInfo = await executeTrustQuery({
   logger: createLogger({ logLevel: "debug" }),
-  certificate: await readFile(rootCertificateFileUrl),
-  certificateFileUrl: rootCertificateFileUrl,
   certificateCommonName: jsenvParameters.certificateCommonName,
+  certificateFileUrl: rootCertificateFileUrl,
+  certificate: await readFile(rootCertificateFileUrl),
+  verb: "CHECK_TRUST",
 })
 console.log(trustInfo)

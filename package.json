@@ -33,6 +33,7 @@
     "eslint-check": "node ./node_modules/eslint/bin/eslint.js .",
     "generate-importmap": "node ./script/importmap/generate_importmap.mjs",
     "measure-performances": "node ./script/performance/generate_performance_report.mjs --local",
+    "start-node-server": "node ./script/certificate/start_node_server.mjs",
     "log-root-certificate-trust": "node ./script/certificate/log_root_certificate_trust.mjs",
     "trust-root-certificate": "node ./script/certificate/trust_root_certificate.mjs",
     "untrust-root-certificate": "node ./script/certificate/untrust_root_certificate.mjs",

@@ -21,4 +21,4 @@ const server = createServer(
   },
 )
 server.listen(8080)
-console.log(`Server listening at https://localhost:8080`)
+console.log(`Server listening at https://local.example:8080`)

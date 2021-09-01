@@ -6,10 +6,11 @@ import { importPlatformMethods } from "@jsenv/local-https-certificates/src/inter
 import { getCertificateAuthorityFileUrls } from "@jsenv/local-https-certificates/src/internal/certificate_authority_file_urls.js"
 
 const { rootCertificateFileUrl } = getCertificateAuthorityFileUrls()
-const { removeCertificateFromTrustStores } = await importPlatformMethods()
-await removeCertificateFromTrustStores({
+const { executeTrustQuery } = await importPlatformMethods()
+await executeTrustQuery({
   logger: createLogger({ logLevel: "debug" }),
-  certificate: await readFile(rootCertificateFileUrl),
-  certificateFileUrl: rootCertificateFileUrl,
   certificateCommonName: jsenvParameters.certificateCommonName,
+  certificateFileUrl: rootCertificateFileUrl,
+  certificate: await readFile(rootCertificateFileUrl),
+  verb: "REMOVE_TRUST",
 })

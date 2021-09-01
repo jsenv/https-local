@@ -93,7 +93,17 @@ _second execution logs_
 ```console
 > node ./install_certificate_authority.mjs
 
-TODO
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate still valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is in linux...
+ℹ certificate in linux is outdated
+Check if certificate is in chrome...
+ℹ certificate not found in chrome
+Check if certificate is in firefox...
+ℹ certificate not found in firefox
 ```
 
 </details>
@@ -175,6 +185,54 @@ Check if certificate is in mac keychain...
 ✔ certificate found in mac keychain
 Check if certificate is in Firefox...
 ✔ certificate found in Firefox
+```
+
+</details>
+
+<details>
+  <summary>windows</summary>
+
+```console
+> node ./install_certificate_authority.mjs
+
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate still valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is in linux...
+ℹ certificate in linux is outdated
+Adding certificate to linux...
+❯ sudo /bin/cp -f "/home/dmail/.config/https_localhost/https_localhost_root_certificate.crt" /usr/local/share/ca-certificates/https_localhost_root_certificate.crt
+[sudo] Password for dmail :
+❯ sudo update-ca-certificates
+✔ certificate added to linux
+Check if certificate is in chrome...
+ℹ certificate not found in chrome
+Adding certificate to chrome...
+✔ certificate added to chrome
+Check if certificate is in firefox...
+ℹ certificate not found in firefox
+Adding certificate to firefox...
+✔ certificate added to firefox
+```
+
+_second execution logs_
+
+```console
+> node ./install_certificate_authority.mjs
+
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate still valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is in linux...
+✔ certificate found in linux
+Check if certificate is in chrome...
+✔ certificate found in chrome
+Check if certificate is in firefox...
+✔ certificate found in firefox
 ```
 
 </details>

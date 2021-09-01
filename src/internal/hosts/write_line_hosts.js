@@ -55,7 +55,7 @@ const appendToHostsFileOnLinuxOrMac = async ({
   const hostsFileContent = await readFile(hostsFilePath)
   const echoCommand =
     hostsFileContent.length > 0 && !hostsFileContent.endsWith("\n")
-      ? `(echo & echo "${lineToAppend}")`
+      ? `echo "\n${lineToAppend}"`
       : `echo "${lineToAppend}"`
   const needsSudo = hostsFilePath === HOSTS_FILE_PATH
   // https://en.wikipedia.org/wiki/Tee_(command)

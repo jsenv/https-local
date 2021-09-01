@@ -80,11 +80,11 @@ const expected = {
           reason: "not found in linux store",
         },
         chrome: {
-          status: "not_trusted",
+          status: "unknown",
           reason: `"libnss3-tools" is not installed`,
         },
         firefox: {
-          status: "not_trusted",
+          status: "unknown",
           reason: `"libnss3-tools" is not installed`,
         },
       },

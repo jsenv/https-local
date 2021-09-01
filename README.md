@@ -12,22 +12,93 @@ Generate certificate(s) trusted by your operating system and browsers.
 This certificate can be used to start your development server in HTTPS.
 Works on mac, linux and windows.
 
-```js
-import {
-  installCertificateAuthority,
-  verifyHostsFile,
-  requestCertificateForLocalhost,
-} from "@jsenv/local-https-certificates"
+# How to use
 
-await installCertificateAuthority()
+1 - Install _@jsenv/local-https-certificates_
+
+```console
+npm install --save-dev @jsenv/local-https-certificates
+```
+
+2 - Create _install_certificate_authority.mjs_
+
+```js
+/*
+ * You need to execute this file once per machine. It will:
+ * - install a certificate authority that will
+ *   be used to generate locally trusted certificates
+ * - ensure ip mappings are present in hosts files
+ *
+ * You can re-execute this file. It will:
+ * - logs certificate authority remaining validity duration, is certificate trusted, ...
+ * - logs if mappings are in hosts files
+ *
+ * Read more in https://github.com/jsenv/local-https-certificates
+ */
+import { installCertificateAuthority, verifyHostsFile } from "@jsenv/local-https-certificates"
+
+await installCertificateAuthority({
+  tryToTrust: true,
+  NSSDynamicInstall: true,
+})
 await verifyHostsFile({
   ipMappings: {
     "127.0.0.1": ["localhost", "local.example.com"],
   },
+  tryToUpdatesHostsFile: true,
 })
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateAltNames: ["localhost", "local.example.com"],
+```
+
+3 - Create _start_dev_server.mjs_
+
+```js
+/*
+ * This file starts a development server in https.
+ *
+ * You MUST run the following command at least once before starting the server:
+ *
+ * > node ./install_certificate_authority.mjs
+ *
+ * This is because this file gets a certificate dynamically from a local certificate authority
+ * installed by "@jsenv/local-https-certificates".
+ * This allows to get a locally trusted certificate that is valid
+ */
+import { createServer } from "node:https"
+import { requestCertificateForLocalhost } from "@jsenv/local-https-certificates"
+
+const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost({
+  serverCertificateAltNames: ["localhost", "local.example"],
 })
+
+const server = createServer(
+  {
+    cert: serverCertificate,
+    key: serverCertificatePrivateKey,
+  },
+  (request, response) => {
+    const body = "Hello world"
+    response.writeHead(200, {
+      "content-type": "text/plain",
+      "content-length": Buffer.byteLength(body),
+    })
+    response.write(body)
+    response.end()
+  },
+)
+server.listen(8080)
+console.log(`Server listening at https://local.example:8080`)
+```
+
+4 - Install certificate authority
+
+```console
+node ./install_certificate_authority.mjs
+```
+
+5 - Start your server
+
+```console
+node ./start_dev_server.mjs
 ```
 
 # installCertificateAuthority

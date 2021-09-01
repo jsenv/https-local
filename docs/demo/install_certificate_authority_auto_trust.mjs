@@ -1,3 +1,5 @@
 import { installCertificateAuthority } from "@jsenv/local-https-certificates"
 
-await installCertificateAuthority()
+await installCertificateAuthority({
+  tryToTrust: true,
+})

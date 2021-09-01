@@ -37,6 +37,7 @@
     "log-root-certificate-trust": "node ./script/certificate/log_root_certificate_trust.mjs",
     "trust-root-certificate": "node ./script/certificate/trust_root_certificate.mjs",
     "untrust-root-certificate": "node ./script/certificate/untrust_root_certificate.mjs",
+    "uninstall-certificate-authority": "node ./script/certificate/uninstall_certificate_authority.mjs",
     "add-localhost-mappings": "node ./script/hosts/add_localhost_mappings.mjs",
     "remove-localhost-mappings": "node ./script/hosts/remove_localhost_mappings.mjs",
     "verify-localhost-mappings": "node ./script/hosts/verify_localhost_mappings.mjs",

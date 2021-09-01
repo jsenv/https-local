@@ -81,11 +81,11 @@ const expected = {
         },
         chrome: {
           status: "not_trusted",
-          reason: "missing or outdated in chrome nss database file",
+          reason: `"libnss3-tools" is not installed`,
         },
         firefox: {
           status: "not_trusted",
-          reason: "missing or outdated in firefox nss database file",
+          reason: `"libnss3-tools" is not installed`,
         },
       },
     }[process.platform],

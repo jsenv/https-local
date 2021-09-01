@@ -1,4 +1,5 @@
 import { createRequire } from "node:module"
+import { readFile } from "@jsenv/filesystem"
 
 import { exec } from "../exec.js"
 
@@ -16,8 +17,12 @@ export const writeLineInHostsFile = async (
 
 // https://renenyffenegger.ch/notes/Windows/dirs/Windows/System32/cmd_exe/commands/echo/index
 const appendToHostsFileOnWindows = async ({ lineToAppend, hostsFilePath, onBeforeExecCommand }) => {
+  const hostsFileContent = await readFile(hostsFilePath)
+  const echoCommand =
+    hostsFileContent.length > 0 && !hostsFileContent.endsWith("\r\n")
+      ? `(echo & echo "${lineToAppend}")`
+      : `echo "${lineToAppend}"`
   const needsSudo = hostsFilePath === HOSTS_FILE_PATH
-  const echoCommand = `echo ${lineToAppend}`
   const updateHostsFileCommand = `${echoCommand} >> ${hostsFilePath}`
 
   if (needsSudo) {
@@ -47,7 +52,11 @@ const appendToHostsFileOnLinuxOrMac = async ({
   hostsFilePath,
   onBeforeExecCommand,
 }) => {
-  const echoCommand = `echo "${lineToAppend}"`
+  const hostsFileContent = await readFile(hostsFilePath)
+  const echoCommand =
+    hostsFileContent.length > 0 && !hostsFileContent.endsWith("\n")
+      ? `(echo & echo "${lineToAppend}")`
+      : `echo "${lineToAppend}"`
   const needsSudo = hostsFilePath === HOSTS_FILE_PATH
   // https://en.wikipedia.org/wiki/Tee_(command)
   const updateHostsFileCommand = needsSudo

@@ -57,17 +57,11 @@ export const verifyHostsFile = async ({
 
   logger.info(`${infoSign} ${formatXMappingMissingMessage(missingMappingCount)}`)
   await Promise.all(
-    missingMappings.map(async ({ ip, missingHostnames }, index) => {
+    missingMappings.map(async ({ ip, missingHostnames }) => {
       const mapping = `${ip} ${missingHostnames.join(" ")}`
       logger.info(`Append "${mapping}" in host file...`)
 
-      const prefixWithNewLine =
-        index === 0 &&
-        // on windows the string to echo cannot contain EOL
-        process.platform !== "win32" &&
-        hostsFileContent.length > 0 &&
-        !hostsFileContent.endsWith(EOL)
-      await writeLineInHostsFile(`${prefixWithNewLine ? EOL : ""}${mapping}`, {
+      await writeLineInHostsFile(mapping, {
         hostsFilePath,
         onBeforeExecCommand: (command) => {
           logger.info(`${commandSign} ${command}`)

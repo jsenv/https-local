@@ -11,7 +11,7 @@ export const detectIfNSSIsInstalled = memoize(async ({ logger }) => {
   logger.debug(`${commandSign} ${aptCommand}`)
   const aptCommandOutput = await exec(aptCommand)
 
-  if (aptCommandOutput.length > 0) {
+  if (aptCommandOutput.includes("libnss3-tools")) {
     logger.debug(`${okSign} libnss3-tools is installed`)
     return true
   }
@@ -24,8 +24,8 @@ export const getCertutilBinPath = () => "certutil"
 
 export const getNSSDynamicInstallInfo = () => {
   return {
-    isInstallable: true,
-    installNss: async ({ logger }) => {
+    nssIsInstallable: true,
+    nssInstall: async ({ logger }) => {
       const aptInstallCommand = `sudo apt install libnss3-tools`
       logger.info(`"libnss3-tools" is not installed, trying to install "libnss3-tools"`)
       logger.info(`${commandSign} ${aptInstallCommand}`)

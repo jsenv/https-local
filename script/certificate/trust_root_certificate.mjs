@@ -13,4 +13,5 @@ await executeTrustQuery({
   certificateFileUrl: rootCertificateFileUrl,
   certificate: await readFile(rootCertificateFileUrl),
   verb: "ADD_TRUST",
+  NSSDynamicInstall: true,
 })

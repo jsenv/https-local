@@ -3,6 +3,7 @@
  * Certutil command documentation: https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/tools/NSS_Tools_certutil
  */
 
+import { existsSync } from "node:fs"
 import { createDetailedMessage } from "@jsenv/logger"
 import { collectFiles, resolveUrl, urlToFilename, urlToFileSystemPath } from "@jsenv/filesystem"
 
@@ -287,14 +288,23 @@ const findNSSDBFiles = async ({ logger, NSSDBDirectoryUrl }) => {
   }
 
   logger.debug(`Searching nss database files in directory...`)
+  const NSSDBDirectoryPath = urlToFileSystemPath(NSSDBDirectoryUrl)
+  const NSSDBDirectoryExists = existsSync(NSSDBDirectoryPath)
+  if (!NSSDBDirectoryExists) {
+    logger.info(
+      `${infoSign} nss database directory not found on filesystem at ${NSSDBDirectoryPath}`,
+    )
+    NSSDirectoryCache[NSSDBDirectoryUrl] = []
+    return []
+  }
   const NSSDBFiles = await collectFiles({
     directoryUrl: NSSDBDirectoryUrl,
     structuredMetaMap: {
       isLegacyNSSDB: {
-        "./**/*/cert8.db": true,
+        "./**/cert8.db": true,
       },
       isModernNSSDB: {
-        "./**/*/cert9.db": true,
+        "./**/cert9.db": true,
       },
     },
     predicate: ({ isLegacyNSSDB, isModernNSSDB }) => isLegacyNSSDB || isModernNSSDB,

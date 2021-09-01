@@ -75,6 +75,30 @@ Check if certificate is in firefox...
 </details>
 
 <details>
+  <summary>linux</summary>
+
+```console
+> node ./install_certificate_authority.mjs
+
+ℹ authority root certificate not found in filesystem
+Generating authority root certificate with a validity of 20 years...
+✔ authority root certificate written at /home/dmail/.config/https_localhost/https_localhost_root_certificate.crt
+ℹ You should add certificate to linux
+ℹ You should add certificate to chrome
+ℹ You should add certificate to firefox
+```
+
+_second execution logs_
+
+```console
+> node ./install_certificate_authority.mjs
+
+TODO
+```
+
+</details>
+
+<details>
   <summary>windows</summary>
 
 ```console

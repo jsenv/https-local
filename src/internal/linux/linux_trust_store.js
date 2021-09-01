@@ -76,9 +76,9 @@ export const executeTrustQueryOnLinux = async ({
         reason: REASON_ADD_COMMAND_COMPLETED,
       }
     } catch (e) {
+      console.error(e)
       logger.error(
         createDetailedMessage(`${failureSign} failed to add certificate to linux`, {
-          "error stack": e.stack,
           "certificate file": certificateFilePath,
         }),
       )

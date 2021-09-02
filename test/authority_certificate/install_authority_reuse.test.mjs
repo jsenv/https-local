@@ -4,7 +4,7 @@ import {
   installCertificateAuthority,
   uninstallCertificateAuthority,
 } from "@jsenv/local-https-certificates"
-import { infoSign, okSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
+import { infoSign, okSign, failureSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
 import { createLoggerForTest } from "@jsenv/local-https-certificates/test/test_helpers.mjs"
 
 await uninstallCertificateAuthority({
@@ -114,9 +114,13 @@ const expected = {
           "Check if certificate is in linux...",
           `${infoSign} certificate not in linux`,
           "Check if certificate is in chrome...",
-          `${infoSign} certificate not found in chrome`,
+          `${failureSign} cannot check if certificate is in chrome
+--- reason ---
+"libnss3-tools" is not installed`,
           "Check if certificate is in firefox...",
-          `${infoSign} certificate not found in firefox`,
+          `${failureSign} cannot check if certificate is in firefox
+--- reason ---
+"libnss3-tools" is not installed`,
         ],
       }[process.platform],
     ],

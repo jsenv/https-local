@@ -445,7 +445,7 @@ await verifyHostsFile({
 Check hosts file content...
 ℹ 1 mapping is missing in hosts file
 Adding 1 mapping(s) in hosts file...
-❯ echo "127.0.0.1 local.example" | sudo tee /etc/hosts
+❯ echo "127.0.0.1 local.example" | sudo tee -a /etc/hosts
 Password:
 ✔ mappings added to hosts file
 ```

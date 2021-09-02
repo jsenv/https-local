@@ -117,7 +117,7 @@ export const requestServerUsingBrowser = async ({ serverOrigin, browser }) => {
     })
 
     page.on("load", () => {
-      setTimeout(resolve, 200) // this time is required for firefox to trigger "requestfailed"
+      setTimeout(resolve, 400) // this time is required for firefox to trigger "requestfailed"
     })
 
     page.goto(serverOrigin).catch((e) => {

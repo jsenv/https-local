@@ -369,7 +369,7 @@ await verifyHostsFile({
 Find below logs written in terminal when this function is executed.
 
 <details>
-  <summary>mac</summary>
+  <summary>mac and linux</summary>
 
 ```console
 > node ./verify_hosts.mjs
@@ -416,25 +416,36 @@ await verifyHostsFile({
 ```
 
 <details>
-  <summary>mac</summary>
+  <summary>mac and linux</summary>
 
 ```console
 Check hosts file content...
 ℹ 1 mapping is missing in hosts file
-Adding 2 mapping(s) in hosts file...
-❯ echo "##
-# Host Database
-#
-#
-# localhost is used to configure the loopback interface
-# when the system is booting. Do not change this entry.
-##
-127.0.0.1	      localhost
-255.255.255.255 broadcasthost
-::1             localhost
-127.0.0.1	      local.example.com
-127.0.0.1       local.example.com
-" | sudo tee /etc/hosts
+Adding 1 mapping(s) in hosts file...
+❯ echo "127.0.0.1 local.example.com" | sudo tee /etc/hosts
+Password:
+✔ mappings added to hosts file
+```
+
+_Second execution logs_
+
+```console
+> node ./verify_hosts.mjs
+
+Check hosts file content...
+✔ all ip mappings found in hosts file
+```
+
+</details>
+
+<details>
+  <summary>windows</summary>
+
+```console
+Check hosts file content...
+ℹ 1 mapping is missing in hosts file
+Adding 1 mapping(s) in hosts file...
+❯ (echo 127.0.0.1 local.example.com) >> C:\\Windows\\System32\\Drivers\\etc\\hosts
 Password:
 ✔ mappings added to hosts file
 ```

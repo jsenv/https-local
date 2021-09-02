@@ -24,16 +24,11 @@ npm install --save-dev @jsenv/https-local
 
 ```js
 /*
- * You need to execute this file once per machine. It will:
- * - install a certificate authority that will
- *   be used to generate locally trusted certificates
- * - ensure ip mappings are present in hosts files
+ * This file needs to be executed once. After that the root certificate is valid for 20 years.
+ * Re-executing this file will log the current root certificate validity and trust status.
+ * Re-executing this file 20 years later would reinstall a root certificate and re-trust it.
  *
- * You can re-execute this file. It will:
- * - logs certificate authority remaining validity duration, is certificate trusted, ...
- * - logs if mappings are in hosts files
- *
- * Read more in https://github.com/jsenv/local-https-certificates
+ * Read more in https://github.com/jsenv/https-local#installCertificateAuthority
  */
 import { installCertificateAuthority, verifyHostsFile } from "@jsenv/https-local"
 
@@ -59,15 +54,16 @@ node ./install_certificate_authority.mjs
 
 ```js
 /*
- * This file starts a development server in https.
+ * This file uses "@jsenv/https-local" to obtain a certificate used to start a server in https.
+ * The certificate is valid for 396 days and is issued by a certificate authority trusted on this machine.
+ * If the certificate authority was not installed before executing this file, an error is thrown
+ * explaining that certificate authority must be installed first.
  *
- * You MUST run the following command at least once before starting the server:
+ * To install the certificate authority, you can use the following command
  *
  * > node ./install_certificate_authority.mjs
  *
- * This is because this file gets a certificate dynamically from a local certificate authority
- * installed by "@jsenv/https-local".
- * This allows to get a locally trusted certificate that is valid
+ * Read more in https://github.com/jsenv/https-local#requestCertificateForLocalhost
  */
 import { createServer } from "node:https"
 import { requestCertificateForLocalhost } from "@jsenv/https-local"

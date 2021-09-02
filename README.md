@@ -269,7 +269,7 @@ Check if certificate is in Firefox...
 </details>
 
 <details>
-  <summary>windows</summary>
+  <summary>linux</summary>
 
 ```console
 > node ./install_certificate_authority.mjs

@@ -128,7 +128,7 @@ Find below logs written in terminal when this function is executed.
 
 ℹ authority root certificate not found in filesystem
 Generating authority root certificate with a validity of 20 years...
-✔ authority root certificate written at /Users/dmail/https_localhost/http_localhost_root_certificate.crt
+✔ authority root certificate written at /Users/dmail/https_local/http_local_root_certificate.crt
 ℹ You should add root certificate to mac keychain
 ℹ You should add root certificate to firefox
 ```
@@ -159,7 +159,7 @@ Check if certificate is in firefox...
 
 ℹ authority root certificate not found in filesystem
 Generating authority root certificate with a validity of 20 years...
-✔ authority root certificate written at /home/dmail/.config/https_localhost/https_localhost_root_certificate.crt
+✔ authority root certificate written at /home/dmail/.config/https_local/https_local_root_certificate.crt
 ℹ You should add certificate to linux
 ℹ You should add certificate to chrome
 ℹ You should add certificate to firefox
@@ -193,7 +193,7 @@ Check if certificate is in firefox...
 
 ℹ authority root certificate not found in filesystem
 Generating authority root certificate with a validity of 20 years...
-✔ authority root certificate written at C:\Users\Dmail\AppData\Local\https_localhost\https_localhost_root_certificate.crt
+✔ authority root certificate written at C:\Users\Dmail\AppData\Local\https_local\https_local_root_certificate.crt
 ℹ You should add certificate to windows
 ℹ You should add certificate to firefox
 ```
@@ -241,9 +241,9 @@ await installCertificateAuthority({
 
 ℹ authority root certificate not found in filesystem
 Generating authority root certificate with a validity of 20 years...
-✔ authority root certificate written at /Users/dmail/https_localhost/https_localhost_root_certificate.crt
+✔ authority root certificate written at /Users/dmail/https_local/https_local_root_certificate.crt
 Adding certificate to mac keychain...
-❯ sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "/Users/dmail/https_localhost/https_localhost_root_certificate.crt"
+❯ sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "/Users/dmail/https_local/https_local_root_certificate.crt"
 Password:
 ✔ certificate added to mac keychain
 Adding certificate to firefox...
@@ -282,7 +282,7 @@ Detect if certificate attributes have changed...
 Check if certificate is in linux...
 ℹ certificate in linux is outdated
 Adding certificate to linux...
-❯ sudo /bin/cp -f "/home/dmail/.config/https_localhost/https_localhost_root_certificate.crt" /usr/local/share/ca-certificates/https_localhost_root_certificate.crt
+❯ sudo /bin/cp -f "/home/dmail/.config/https_local/https_local_root_certificate.crt" /usr/local/share/ca-certificates/https_local_root_certificate.crt
 [sudo] Password for dmail :
 ❯ sudo update-ca-certificates
 ✔ certificate added to linux
@@ -332,7 +332,7 @@ Check if certificate is trusted by windows...
 Check if certificate is trusted by firefox...
 ℹ unable to detect if certificate is trusted by firefox (not implemented on windows)
 Adding certificate to windows...
-❯ certutil -addstore -user root C:\Users\Dmail\AppData\Local\https_localhost\https_localhost_root_certificate.crt
+❯ certutil -addstore -user root C:\Users\Dmail\AppData\Local\https_local\https_local_root_certificate.crt
 ✔ certificate added to windows
 ```
 

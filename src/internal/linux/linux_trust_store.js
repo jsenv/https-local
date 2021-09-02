@@ -20,7 +20,7 @@ const REASON_REMOVE_COMMAND_FAILED = "command to remove certificate from linux f
 const REASON_REMOVE_COMMAND_COMPLETED = "command to remove certificate from linux completed"
 
 const LINUX_CERTIFICATE_AUTHORITIES_DIRECTORY_PATH = `/usr/local/share/ca-certificates/`
-const JSENV_CERTIFICATE_AUTHORITY_PATH = `${LINUX_CERTIFICATE_AUTHORITIES_DIRECTORY_PATH}https_localhost_root_certificate.crt`
+const JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH = `${LINUX_CERTIFICATE_AUTHORITIES_DIRECTORY_PATH}https_local_root_certificate.crt`
 
 export const executeTrustQueryOnLinux = async ({
   logger,
@@ -39,7 +39,7 @@ export const executeTrustQueryOnLinux = async ({
   }
 
   logger.info(`Check if certificate is in linux...`)
-  logger.debug(`Searching certificate file at ${JSENV_CERTIFICATE_AUTHORITY_PATH}...`)
+  logger.debug(`Searching certificate file at ${JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH}...`)
   const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
   const certificateStatus = await getCertificateStatus({ certificate })
 
@@ -57,7 +57,7 @@ export const executeTrustQueryOnLinux = async ({
       }
     }
 
-    const copyCertificateCommand = `sudo /bin/cp -f "${certificateFilePath}" ${JSENV_CERTIFICATE_AUTHORITY_PATH}`
+    const copyCertificateCommand = `sudo /bin/cp -f "${certificateFilePath}" ${JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH}`
     const updateCertificateCommand = `sudo update-ca-certificates`
     logger.info(`Adding certificate to linux...`)
     try {
@@ -93,7 +93,7 @@ export const executeTrustQueryOnLinux = async ({
   }
 
   logger.info(`Removing certificate from linux...`)
-  const removeCertificateCommand = `sudo rm ${JSENV_CERTIFICATE_AUTHORITY_PATH}`
+  const removeCertificateCommand = `sudo rm ${JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH}`
   const updateCertificateCommand = `sudo update-ca-certificates`
   try {
     logger.info(`${commandSign} ${removeCertificateCommand}`)
@@ -109,7 +109,7 @@ export const executeTrustQueryOnLinux = async ({
     logger.error(
       createDetailedMessage(`${failureSign} failed to remove certificate from linux`, {
         "error stack": e.stack,
-        "certificate file": JSENV_CERTIFICATE_AUTHORITY_PATH,
+        "certificate file": JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH,
       }),
     )
     return {
@@ -120,11 +120,11 @@ export const executeTrustQueryOnLinux = async ({
 }
 
 const getCertificateStatus = async ({ certificate }) => {
-  const certificateInStore = existsSync(JSENV_CERTIFICATE_AUTHORITY_PATH)
+  const certificateInStore = existsSync(JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH)
   if (!certificateInStore) {
     return "missing"
   }
-  const certificateInLinuxStore = await readFile(JSENV_CERTIFICATE_AUTHORITY_PATH)
+  const certificateInLinuxStore = await readFile(JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH)
   if (certificateInLinuxStore !== certificate) {
     return "outdated"
   }

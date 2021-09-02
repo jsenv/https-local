@@ -1,7 +1,7 @@
 import { createValidityDurationOfXYears } from "./validity_duration.js"
 
 export const jsenvParameters = {
-  certificateCommonName: "local-https-certificates root certificate",
+  certificateCommonName: "https local root certificate",
   certificateValidityDurationInMs: createValidityDurationOfXYears(20),
 }
 

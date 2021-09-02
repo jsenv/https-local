@@ -7,17 +7,17 @@ export const getCertificateAuthorityFileUrls = () => {
   const applicationDirectoryUrl = getJsenvApplicationDirectoryUrl()
 
   const certificateAuthorityJsonFileUrl = new URL(
-    "./https_localhost_certificate_authority.json",
+    "./https_local_certificate_authority.json",
     applicationDirectoryUrl,
   )
 
   const rootCertificateFileUrl = new URL(
-    "./https_localhost_root_certificate.crt",
+    "./https_local_root_certificate.crt",
     applicationDirectoryUrl,
   )
 
   const rootCertificatePrivateKeyFileUrl = resolveUrl(
-    "./https_localhost_root_certificate.key",
+    "./https_local_root_certificate.key",
     applicationDirectoryUrl,
   )
 
@@ -52,7 +52,7 @@ const getJsenvApplicationDirectoryUrl = () => {
 
   if (platform === "darwin") {
     return resolveUrl(
-      `./Library/Application Support/https_localhost/`,
+      `./Library/Application Support/https_local/`,
       assertAndNormalizeDirectoryUrl(process.env.HOME),
     )
   }
@@ -60,26 +60,20 @@ const getJsenvApplicationDirectoryUrl = () => {
   if (platform === "linux") {
     if (process.env.XDG_CONFIG_HOME) {
       return resolveUrl(
-        `./https_localhost/`,
+        `./https_local/`,
         assertAndNormalizeDirectoryUrl(process.env.XDG_CONFIG_HOME),
       )
     }
-    return resolveUrl(
-      `./.config/https_localhost/`,
-      assertAndNormalizeDirectoryUrl(process.env.HOME),
-    )
+    return resolveUrl(`./.config/https_local/`, assertAndNormalizeDirectoryUrl(process.env.HOME))
   }
 
   if (platform === "win32") {
     if (process.env.LOCALAPPDATA) {
-      return resolveUrl(
-        `./https_localhost/`,
-        assertAndNormalizeDirectoryUrl(process.env.LOCALAPPDATA),
-      )
+      return resolveUrl(`./https_local/`, assertAndNormalizeDirectoryUrl(process.env.LOCALAPPDATA))
     }
 
     return resolveUrl(
-      `./Local Settings/Application Data/https_localhost/`,
+      `./Local Settings/Application Data/https_local/`,
       assertAndNormalizeDirectoryUrl(process.env.USERPROFILE),
     )
   }

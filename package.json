@@ -1,7 +1,7 @@
 {
-  "name": "@jsenv/https-localhost",
+  "name": "@jsenv/https-local",
   "version": "1.0.0",
-  "description": "Https certificate for localhost server",
+  "description": "A programmatic way to generate locally trusted certificates",
   "license": "MIT",
   "author": {
     "name": "dmail",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jsenv/https-localhost"
+    "url": "https://github.com/jsenv/https-local"
   },
   "engines": {
     "node": ">=14.17.0"
@@ -33,6 +33,15 @@
     "eslint-check": "node ./node_modules/eslint/bin/eslint.js .",
     "generate-importmap": "node ./script/importmap/generate_importmap.mjs",
     "measure-performances": "node ./script/performance/generate_performance_report.mjs --local",
+    "start-node-server": "node ./script/certificate/start_node_server.mjs",
+    "log-root-certificate-trust": "node ./script/certificate/log_root_certificate_trust.mjs",
+    "trust-root-certificate": "node ./script/certificate/trust_root_certificate.mjs",
+    "untrust-root-certificate": "node ./script/certificate/untrust_root_certificate.mjs",
+    "uninstall-certificate-authority": "node ./script/certificate/uninstall_certificate_authority.mjs",
+    "add-localhost-mappings": "node ./script/hosts/add_localhost_mappings.mjs",
+    "remove-localhost-mappings": "node ./script/hosts/remove_localhost_mappings.mjs",
+    "verify-localhost-mappings": "node ./script/hosts/verify_localhost_mappings.mjs",
+    "ensure-localhost-mappings": "node ./script/hosts/ensure_localhost_mappings.mjs",
     "test": "node ./script/test/test.mjs",
     "test-with-coverage": "npm run test -- --coverage",
     "prettier-format": "node ./script/prettier/prettier_format.mjs",
@@ -44,9 +53,14 @@
     "postpublish": "node ./script/publish/restore_postinstall.mjs"
   },
   "dependencies": {
-    "@jsenv/logger": "4.0.1",
     "@jsenv/filesystem": "2.1.1",
-    "node-forge": "0.10.0"
+    "@jsenv/logger": "4.0.1",
+    "command-exists": "1.2.9",
+    "is-unicode-supported": "1.1.0",
+    "node-forge": "0.10.0",
+    "sudo-prompt": "9.2.1",
+    "supports-color": "9.0.2",
+    "which": "2.0.2"
   },
   "devDependencies": {
     "@jsenv/assert": "2.3.0",

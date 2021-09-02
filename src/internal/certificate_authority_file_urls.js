@@ -1,24 +1,30 @@
 import { assertAndNormalizeDirectoryUrl, resolveUrl, urlToFilename } from "@jsenv/filesystem"
 
 export const getCertificateAuthorityFileUrls = () => {
-  // we need a directory common to every instance of @jsenv/https-localhost
+  // we need a directory common to every instance of @jsenv/https-local
   // so that even if it's used multiple times, the certificate autority files
   // are reused
   const applicationDirectoryUrl = getJsenvApplicationDirectoryUrl()
 
   const certificateAuthorityJsonFileUrl = new URL(
-    "./jsenv_certificate_authority.json",
+    "./https_localhost_certificate_authority.json",
     applicationDirectoryUrl,
   )
 
-  const rootCertificateFileUrl = new URL("./jsenv_root_certificate.crt", applicationDirectoryUrl)
+  const rootCertificateFileUrl = new URL(
+    "./https_localhost_root_certificate.crt",
+    applicationDirectoryUrl,
+  )
 
-  const rootPrivateKeyFileUrl = resolveUrl("./jsenv_root_certificate.key", applicationDirectoryUrl)
+  const rootCertificatePrivateKeyFileUrl = resolveUrl(
+    "./https_localhost_root_certificate.key",
+    applicationDirectoryUrl,
+  )
 
   return {
     certificateAuthorityJsonFileUrl,
     rootCertificateFileUrl,
-    rootPrivateKeyFileUrl,
+    rootCertificatePrivateKeyFileUrl,
   }
 }
 
@@ -46,7 +52,7 @@ const getJsenvApplicationDirectoryUrl = () => {
 
   if (platform === "darwin") {
     return resolveUrl(
-      `./Library/Application Support/jsenv_https_localhost/`,
+      `./Library/Application Support/https_localhost/`,
       assertAndNormalizeDirectoryUrl(process.env.HOME),
     )
   }
@@ -54,12 +60,12 @@ const getJsenvApplicationDirectoryUrl = () => {
   if (platform === "linux") {
     if (process.env.XDG_CONFIG_HOME) {
       return resolveUrl(
-        `./jsenv_https_localhost/`,
+        `./https_localhost/`,
         assertAndNormalizeDirectoryUrl(process.env.XDG_CONFIG_HOME),
       )
     }
     return resolveUrl(
-      `./.config/jsenv_https_localhost/`,
+      `./.config/https_localhost/`,
       assertAndNormalizeDirectoryUrl(process.env.HOME),
     )
   }
@@ -67,13 +73,13 @@ const getJsenvApplicationDirectoryUrl = () => {
   if (platform === "win32") {
     if (process.env.LOCALAPPDATA) {
       return resolveUrl(
-        `./jsenv_https_localhost/`,
+        `./https_localhost/`,
         assertAndNormalizeDirectoryUrl(process.env.LOCALAPPDATA),
       )
     }
 
     return resolveUrl(
-      `./Local Settings/Application Data/jsenv_https_localhost/`,
+      `./Local Settings/Application Data/https_localhost/`,
       assertAndNormalizeDirectoryUrl(process.env.USERPROFILE),
     )
   }

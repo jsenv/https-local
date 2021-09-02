@@ -1,116 +1,81 @@
-# Https localhost
+# https local
 
-Generate https certificate to use for a server running on localhost.
+A programmatic way to generate locally trusted certificates
 
-[![npm package](https://img.shields.io/npm/v/@jsenv/https-localhost.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/https-localhost)
-[![github main](https://github.com/jsenv/https-localhost/workflows/main/badge.svg)](https://github.com/jsenv/https-localhost/actions?workflow=main)
-[![codecov coverage](https://codecov.io/gh/jsenv/https-localhost/branch/main/graph/badge.svg)](https://codecov.io/gh/jsenv/https-localhost)
+[![npm package](https://img.shields.io/npm/v/@jsenv/https-local.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/https-local)
+[![github main](https://github.com/jsenv/https-local/workflows/main/badge.svg)](https://github.com/jsenv/https-local/actions?workflow=main)
+[![codecov coverage](https://codecov.io/gh/jsenv/https-local/branch/main/graph/badge.svg)](https://codecov.io/gh/jsenv/https-local)
 
 # Presentation
 
-`@jsenv/https-localhost` generates what is needed to start a local server in https:
+Generate certificate(s) trusted by your operating system and browsers.
+This certificate can be used to start your development server in HTTPS.
+Works on mac, linux and windows.
 
-- a certificate
-- a private key
+# How to use
 
-```js
-import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
-
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateFileUrl: new URL("./certificates/server.crt", import.meta.url),
-})
-```
-
-# Trusting certificate
-
-Every time _requestCertificateForLocalhost_ is executed it checks if the root certificate is trusted. When not, a log explains how to trust it on your OS.
-
-_Message when certificate is not trusted on macOS_
+1 - Install _@jsenv/https-local_
 
 ```console
-Root certificate must be added to macOS keychain
---- root certificate file ---
-/Users/dmail/Library/Application Support/jsenv_https_localhost/jsenv_root_certificate.crt
---- suggested documentation ---
-https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac
---- suggested command ---
-sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain -p ssl -p basic "/Users/dmail/Library/Application Support/jsenv_https_localhost/jsenv_root_certificate.crt"
+npm install --save-dev @jsenv/https-local
 ```
 
-It is possible to automate the trusting of the root certificate using _tryToTrustRootCertificate_.
+2 - Create _install_certificate_authority.mjs_
 
 ```js
-import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
+/*
+ * This file needs to be executed once. After that the root certificate is valid for 20 years.
+ * Re-executing this file will log the current root certificate validity and trust status.
+ * Re-executing this file 20 years later would reinstall a root certificate and re-trust it.
+ *
+ * Read more in https://github.com/jsenv/https-local#installCertificateAuthority
+ */
+import { installCertificateAuthority, verifyHostsFile } from "@jsenv/https-local"
 
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateFileUrl: new URL("./certificates/server.crt", import.meta.url),
-  tryToTrustRootCertificate: true,
+await installCertificateAuthority({
+  tryToTrust: true,
+  NSSDynamicInstall: true,
+})
+await verifyHostsFile({
+  ipMappings: {
+    "127.0.0.1": ["localhost", "local.example.com"],
+  },
+  tryToUpdatesHostsFile: true,
 })
 ```
 
-# Mapping hosts
-
-Every time _requestCertificateForLocalhost_ is executed it checks if server hostnames are properly mapped to _127.0.0.1_ in your hosts file.
-
-_Message when hostnames are not mapped on macOS_
+3 - Install certificate authority
 
 ```console
-2 hostnames(s) must be mapped to 127.0.0.1
---- hostnames ---
-localhost
-*.localhost
---- hosts file ---
-/etc/hosts
---- suggested hosts file content ---
-127.0.0.1 localhost
-127.0.0.1 *.localhost
+node ./install_certificate_authority.mjs
 ```
 
-It is possible to automate the update of hosts file using _tryToRegisterHostnames_.
+4 - Create _start_dev_server.mjs_
 
 ```js
-import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
-
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateFileUrl: new URL("./certificates/server.crt", import.meta.url),
-  tryToRegisterHostnames: true,
-})
-```
-
-On windows _tryToRegisterHostnames_ is ignored, you have to do it manually for now.
-
-# Add more alternative names
-
-When you need to make certificate works for other hosts than localhost use _serverCertificateAltNames_.
-
-```js
-import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
-
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateFileUrl: new URL("./certificates/server.crt", import.meta.url),
-  serverCertificateAltNames: ["whatever"], // makes certificate also valid for https://whatever
-})
-```
-
-All host passed in _serverCertificateAltNames_ must be mapped to 127.0.0.1 in your hosts file.
-This is done for you when _tryToRegisterHostnames_ is enabled.
-
-# Usage with node server
-
-```js
+/*
+ * This file uses "@jsenv/https-local" to obtain a certificate used to start a server in https.
+ * The certificate is valid for 396 days and is issued by a certificate authority trusted on this machine.
+ * If the certificate authority was not installed before executing this file, an error is thrown
+ * explaining that certificate authority must be installed first.
+ *
+ * To install the certificate authority, you can use the following command
+ *
+ * > node ./install_certificate_authority.mjs
+ *
+ * Read more in https://github.com/jsenv/https-local#requestCertificateForLocalhost
+ */
 import { createServer } from "node:https"
-import { requestCertificateForLocalhost } from "@jsenv/https-localhost"
+import { requestCertificateForLocalhost } from "@jsenv/https-local"
 
-const { serverCertificate, serverPrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateFileUrl: new URL("./certificates/server.crt", import.meta.url),
-  tryToTrustRootCertificate: true,
-  tryToRegisterHostnames: true,
+const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost({
+  serverCertificateAltNames: ["localhost", "local.example"],
 })
 
 const server = createServer(
   {
     cert: serverCertificate,
-    key: serverPrivateKey,
+    key: serverCertificatePrivateKey,
   },
   (request, response) => {
     const body = "Hello world"
@@ -123,16 +88,410 @@ const server = createServer(
   },
 )
 server.listen(8080)
+console.log(`Server listening at https://local.example:8080`)
+```
 
+5 - Start your server
+
+```console
+node ./start_dev_server.mjs
+```
+
+# Certificate expiration
+
+The server certificate expires after one year which is the maximum duration allowed by web browsers.
+
+In the unlikely scenario where your local server is running for more than a year without interruption, restart it and you're good for one more year.
+
+The authority root certificate expires after 20 years which is close to the maximum allowed duration.
+
+In the very unlikely scenario where you are using the same machine for more than 20 years, re-execute [installCertificateAuthority](#installCertificateAuthority) to update certificate authority and restart your server.
+
+# installCertificateAuthority
+
+_installCertificateAuthority_ function generates a certificate authority valid for 20 years.
+This certificate authority is needed to generate local certificates that will be trusted by the operating system and web browsers.
+
+```js
+import { installCertificateAuthority } from "@jsenv/https-local"
+
+await installCertificateAuthority()
+```
+
+Find below logs written in terminal when this function is executed.
+
+<details>
+  <summary>mac</summary>
+
+```console
+> node ./install_certificate_authority.mjs
+
+ℹ authority root certificate not found in filesystem
+Generating authority root certificate with a validity of 20 years...
+✔ authority root certificate written at /Users/dmail/https_localhost/http_localhost_root_certificate.crt
+ℹ You should add root certificate to mac keychain
+ℹ You should add root certificate to firefox
+```
+
+_second execution logs_
+
+```console
+> node ./install_certificate_authority.mjs
+
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate still valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is in mac keychain...
+ℹ certificate not found in mac keychain
+Check if certificate is in firefox...
+ℹ certificate not found in firefox
+```
+
+</details>
+
+<details>
+  <summary>linux</summary>
+
+```console
+> node ./install_certificate_authority.mjs
+
+ℹ authority root certificate not found in filesystem
+Generating authority root certificate with a validity of 20 years...
+✔ authority root certificate written at /home/dmail/.config/https_localhost/https_localhost_root_certificate.crt
+ℹ You should add certificate to linux
+ℹ You should add certificate to chrome
+ℹ You should add certificate to firefox
+```
+
+_second execution logs_
+
+```console
+> node ./install_certificate_authority.mjs
+
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate still valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is in linux...
+ℹ certificate in linux is outdated
+Check if certificate is in chrome...
+ℹ certificate not found in chrome
+Check if certificate is in firefox...
+ℹ certificate not found in firefox
+```
+
+</details>
+
+<details>
+  <summary>windows</summary>
+
+```console
+> node ./install_certificate_authority.mjs
+
+ℹ authority root certificate not found in filesystem
+Generating authority root certificate with a validity of 20 years...
+✔ authority root certificate written at C:\Users\Dmail\AppData\Local\https_localhost\https_localhost_root_certificate.crt
+ℹ You should add certificate to windows
+ℹ You should add certificate to firefox
+```
+
+_second execution logs_
+
+```console
+> node ./install_certificate_authority.mjs
+
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate still valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is trusted by windows...
+ℹ certificate is not trusted by windows
+Check if certificate is trusted by firefox...
+ℹ unable to detect if certificate is trusted by firefox (not implemented on windows)
+```
+
+</details>
+
+By default, trusting authority root certificate is a manual process.
+This manual process is documented in [BenMorel/dev-certificates#Import the CA in your browser](https://github.com/BenMorel/dev-certificates/tree/c10cd68945da772f31815b7a36721ddf848ff3a3#import-the-ca-in-your-browser).
+
+Trusting the root certificate can also be done programmatically as explained the next part.
+
+## Auto trust
+
+It's possible to trust root certificate programmatically using _tryToTrust_
+
+```js
+import { installCertificateAuthority } from "@jsenv/https-local"
+
+await installCertificateAuthority({
+  tryToTrust: true,
+})
+```
+
+<details>
+  <summary>mac</summary>
+
+```console
+> node ./install_certificate_authority.mjs
+
+ℹ authority root certificate not found in filesystem
+Generating authority root certificate with a validity of 20 years...
+✔ authority root certificate written at /Users/dmail/https_localhost/https_localhost_root_certificate.crt
+Adding certificate to mac keychain...
+❯ sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "/Users/dmail/https_localhost/https_localhost_root_certificate.crt"
+Password:
+✔ certificate added to mac keychain
+Adding certificate to firefox...
+✔ certificate added to Firefox
+```
+
+_second execution logs_
+
+```console
+> node ./install_certificate_authority.mjs
+
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate still valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is in mac keychain...
+✔ certificate found in mac keychain
+Check if certificate is in Firefox...
+✔ certificate found in Firefox
+```
+
+</details>
+
+<details>
+  <summary>windows</summary>
+
+```console
+> node ./install_certificate_authority.mjs
+
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate still valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is in linux...
+ℹ certificate in linux is outdated
+Adding certificate to linux...
+❯ sudo /bin/cp -f "/home/dmail/.config/https_localhost/https_localhost_root_certificate.crt" /usr/local/share/ca-certificates/https_localhost_root_certificate.crt
+[sudo] Password for dmail :
+❯ sudo update-ca-certificates
+✔ certificate added to linux
+Check if certificate is in chrome...
+ℹ certificate not found in chrome
+Adding certificate to chrome...
+✔ certificate added to chrome
+Check if certificate is in firefox...
+ℹ certificate not found in firefox
+Adding certificate to firefox...
+✔ certificate added to firefox
+```
+
+_second execution logs_
+
+```console
+> node ./install_certificate_authority.mjs
+
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate still valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is in linux...
+✔ certificate found in linux
+Check if certificate is in chrome...
+✔ certificate found in chrome
+Check if certificate is in firefox...
+✔ certificate found in firefox
+```
+
+</details>
+
+<details>
+  <summary>windows</summary>
+
+```console
+> node ./install_certificate_authority.mjs
+
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate still valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is trusted by windows...
+ℹ certificate not trusted by windows
+Check if certificate is trusted by firefox...
+ℹ unable to detect if certificate is trusted by firefox (not implemented on windows)
+Adding certificate to windows...
+❯ certutil -addstore -user root C:\Users\Dmail\AppData\Local\https_localhost\https_localhost_root_certificate.crt
+✔ certificate added to windows
+```
+
+_second execution logs_
+
+```console
+> node ./install_certificate_authority.mjs
+
+✔ authority root certificate found in filesystem
+Checking certificate validity...
+✔ certificate still valid for 19 years
+Detect if certificate attributes have changed...
+✔ certificate attributes are the same
+Check if certificate is trusted by windows...
+✔ certificate trusted by windows
+Check if certificate is trusted by firefox...
+ℹ unable to detect if certificate is trusted by firefox (not implemented on windows)
+```
+
+</details>
+
+# verifyHostsFile
+
+_verifyHostsFile_ function check your hosts file content to see if ip mappings are present.
+
+```js
+import { verifyHostsFile } from "@jsenv/https-local"
+
+await verifyHostsFile({
+  ipMappings: {
+    "127.0.0.1": ["localhost", "local.example.com"],
+  },
+})
+```
+
+Find below logs written in terminal when this function is executed.
+
+<details>
+  <summary>mac and linux</summary>
+
+```console
+> node ./verify_hosts.mjs
+
+Check hosts file content...
+⚠ 1 mapping is missing in hosts file
+--- hosts file path ---
+/etc/hosts
+--- line(s) to add ---
+127.0.0.1 localhost local.example.com
+```
+
+</details>
+
+<details>
+  <summary>windows</summary>
+
+```console
+> node ./verify_hosts.mjs
+
+Check hosts file content...
+⚠ 1 mapping is missing in hosts file
+--- hosts file path ---
+C:\\Windows\\System32\\Drivers\\etc\\hosts
+--- line(s) to add ---
+127.0.0.1 localhost local.example.com
+```
+
+</details>
+
+## Auto update hosts
+
+It's possible to update hosts file programmatically using _tryToUpdateHostsFile_.
+
+```js
+import { verifyHostsFile } from "@jsenv/https-local"
+
+await verifyHostsFile({
+  ipMappings: {
+    "127.0.0.1": ["localhost", "local.example.com"],
+  },
+  tryToUpdateHostsFile: true,
+})
+```
+
+<details>
+  <summary>mac and linux</summary>
+
+```console
+Check hosts file content...
+ℹ 1 mapping is missing in hosts file
+Adding 1 mapping(s) in hosts file...
+❯ echo "127.0.0.1 local.example.com" | sudo tee /etc/hosts
+Password:
+✔ mappings added to hosts file
+```
+
+_Second execution logs_
+
+```console
+> node ./verify_hosts.mjs
+
+Check hosts file content...
+✔ all ip mappings found in hosts file
+```
+
+</details>
+
+<details>
+  <summary>windows</summary>
+
+```console
+Check hosts file content...
+ℹ 1 mapping is missing in hosts file
+Adding 1 mapping(s) in hosts file...
+❯ (echo 127.0.0.1 local.example.com) >> C:\\Windows\\System32\\Drivers\\etc\\hosts
+Password:
+✔ mappings added to hosts file
+```
+
+_Second execution logs_
+
+```console
+> node ./verify_hosts.mjs
+
+Check hosts file content...
+✔ all ip mappings found in hosts file
+```
+
+</details>
+
+# requestCertificateForLocalhost
+
+_requestCertificateForLocalhost_ function returns a certificate and private key that can be used to start a server in HTTPS.
+
+```js
+import { createServer } from "node:https"
+import { requestCertificateForLocalhost } from "@jsenv/https-local"
+
+const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost({
+  serverCertificateAltNames: ["localhost", "local.example.com"],
+})
+
+const server = createServer(
+  {
+    cert: serverCertificate,
+    key: serverCertificatePrivateKey,
+  },
+  (request, response) => {
+    const body = "Hello world"
+    response.writeHead(200, {
+      "content-type": "text/plain",
+      "content-length": Buffer.byteLength(body),
+    })
+    response.write(body)
+    response.end()
+  },
+)
+server.listen(8080)
 console.log(`Server listening at https://localhost:8080`)
 ```
 
-# Installation
-
-```console
-npm install --save-dev @jsenv/https-localhost
-```
-
-# Development
-
-If you are part or want to be part of the developpers of this package, check [development.md](./docs/development.md)
+[installCertificateAuthority](#installCertificateAuthority) must be called before this function.

@@ -4,9 +4,9 @@ import {
   installCertificateAuthority,
   uninstallCertificateAuthority,
   requestCertificateForLocalhost,
-} from "@jsenv/local-https-certificates"
-import { okSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
-import { createLoggerForTest } from "@jsenv/local-https-certificates/test/test_helpers.mjs"
+} from "@jsenv/https-local"
+import { okSign } from "@jsenv/https-local/src/internal/logs.js"
+import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
 
 const loggerDuringTest = createLoggerForTest({
   // forwardToConsole: true,

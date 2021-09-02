@@ -1,5 +1,5 @@
 import { createServer } from "node:https"
-import { requestCertificateForLocalhost } from "@jsenv/local-https-certificates"
+import { requestCertificateForLocalhost } from "@jsenv/https-local"
 
 const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost({
   serverCertificateAltNames: ["localhost", "local.example"],

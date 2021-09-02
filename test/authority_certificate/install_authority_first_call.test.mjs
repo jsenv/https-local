@@ -1,11 +1,8 @@
 import { assert } from "@jsenv/assert"
 
-import {
-  installCertificateAuthority,
-  uninstallCertificateAuthority,
-} from "@jsenv/local-https-certificates"
-import { infoSign, okSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
-import { createLoggerForTest } from "@jsenv/local-https-certificates/test/test_helpers.mjs"
+import { installCertificateAuthority, uninstallCertificateAuthority } from "@jsenv/https-local"
+import { infoSign, okSign } from "@jsenv/https-local/src/internal/logs.js"
+import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
 
 await uninstallCertificateAuthority({
   logLevel: "warn",

@@ -6,8 +6,8 @@
 import { createRequire } from "node:module"
 import { existsSync } from "node:fs"
 
-import { okSign, infoSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
-import { memoize } from "@jsenv/local-https-certificates/src/internal/memoize.js"
+import { okSign, infoSign } from "@jsenv/https-local/src/internal/logs.js"
+import { memoize } from "@jsenv/https-local/src/internal/memoize.js"
 
 const require = createRequire(import.meta.url)
 

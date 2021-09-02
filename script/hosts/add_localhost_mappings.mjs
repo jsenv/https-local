@@ -1,8 +1,4 @@
-import {
-  readHostsFile,
-  parseHosts,
-  writeHostsFile,
-} from "@jsenv/local-https-certificates/src/internal/hosts.js"
+import { readHostsFile, parseHosts, writeHostsFile } from "@jsenv/https-local/src/internal/hosts.js"
 
 const hostsFileContent = await readHostsFile()
 const hostnames = parseHosts(hostsFileContent)

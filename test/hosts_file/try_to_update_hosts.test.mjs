@@ -1,9 +1,9 @@
 import { assert } from "@jsenv/assert"
 import { readFile, urlToFileSystemPath, writeFile } from "@jsenv/filesystem"
 
-import { verifyHostsFile } from "@jsenv/local-https-certificates"
-import { infoSign, commandSign, okSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
-import { createLoggerForTest } from "@jsenv/local-https-certificates/test/test_helpers.mjs"
+import { verifyHostsFile } from "@jsenv/https-local"
+import { infoSign, commandSign, okSign } from "@jsenv/https-local/src/internal/logs.js"
+import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
 
 const hostFileUrl = new URL("./hosts", import.meta.url)
 const hostsFilePath = urlToFileSystemPath(hostFileUrl)

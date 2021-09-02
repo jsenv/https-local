@@ -2,9 +2,9 @@
 
 A programmatic way to generate locally trusted certificates
 
-[![npm package](https://img.shields.io/npm/v/@jsenv/local-https-certificates.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/local-https-certificates)
-[![github main](https://github.com/jsenv/local-https-certificates/workflows/main/badge.svg)](https://github.com/jsenv/local-https-certificates/actions?workflow=main)
-[![codecov coverage](https://codecov.io/gh/jsenv/local-https-certificates/branch/main/graph/badge.svg)](https://codecov.io/gh/jsenv/local-https-certificates)
+[![npm package](https://img.shields.io/npm/v/@jsenv/https-local.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/https-local)
+[![github main](https://github.com/jsenv/https-local/workflows/main/badge.svg)](https://github.com/jsenv/https-local/actions?workflow=main)
+[![codecov coverage](https://codecov.io/gh/jsenv/https-local/branch/main/graph/badge.svg)](https://codecov.io/gh/jsenv/https-local)
 
 # Presentation
 
@@ -14,10 +14,10 @@ Works on mac, linux and windows.
 
 # How to use
 
-1 - Install _@jsenv/local-https-certificates_
+1 - Install _@jsenv/https-local_
 
 ```console
-npm install --save-dev @jsenv/local-https-certificates
+npm install --save-dev @jsenv/https-local
 ```
 
 2 - Create _install_certificate_authority.mjs_
@@ -35,7 +35,7 @@ npm install --save-dev @jsenv/local-https-certificates
  *
  * Read more in https://github.com/jsenv/local-https-certificates
  */
-import { installCertificateAuthority, verifyHostsFile } from "@jsenv/local-https-certificates"
+import { installCertificateAuthority, verifyHostsFile } from "@jsenv/https-local"
 
 await installCertificateAuthority({
   tryToTrust: true,
@@ -49,7 +49,13 @@ await verifyHostsFile({
 })
 ```
 
-3 - Create _start_dev_server.mjs_
+3 - Install certificate authority
+
+```console
+node ./install_certificate_authority.mjs
+```
+
+4 - Create _start_dev_server.mjs_
 
 ```js
 /*
@@ -60,11 +66,11 @@ await verifyHostsFile({
  * > node ./install_certificate_authority.mjs
  *
  * This is because this file gets a certificate dynamically from a local certificate authority
- * installed by "@jsenv/local-https-certificates".
+ * installed by "@jsenv/https-local".
  * This allows to get a locally trusted certificate that is valid
  */
 import { createServer } from "node:https"
-import { requestCertificateForLocalhost } from "@jsenv/local-https-certificates"
+import { requestCertificateForLocalhost } from "@jsenv/https-local"
 
 const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost({
   serverCertificateAltNames: ["localhost", "local.example"],
@@ -89,17 +95,21 @@ server.listen(8080)
 console.log(`Server listening at https://local.example:8080`)
 ```
 
-4 - Install certificate authority
-
-```console
-node ./install_certificate_authority.mjs
-```
-
 5 - Start your server
 
 ```console
 node ./start_dev_server.mjs
 ```
+
+# Certificate expiration
+
+The server certificate expires after one year which is the maximum duration allowed by web browsers.
+
+In the unlikely scenario where your local server is running for more than a year without interruption, restart it and you're good for one more year.
+
+The authority root certificate expires after 20 years which is close to the maximum allowed duration.
+
+In the very unlikely scenario where you are using the same machine for more than 20 years, re-execute [installCertificateAuthority](#installCertificateAuthority) to update certificate authority and restart your server.
 
 # installCertificateAuthority
 
@@ -107,7 +117,7 @@ _installCertificateAuthority_ function generates a certificate authority valid f
 This certificate authority is needed to generate local certificates that will be trusted by the operating system and web browsers.
 
 ```js
-import { installCertificateAuthority } from "@jsenv/local-https-certificates"
+import { installCertificateAuthority } from "@jsenv/https-local"
 
 await installCertificateAuthority()
 ```
@@ -218,7 +228,7 @@ It can also be done programmatically as explained the next part.
 It's possible to trust root certificate programmatically using _tryToTrust_
 
 ```js
-import { installCertificateAuthority } from "@jsenv/local-https-certificates"
+import { installCertificateAuthority } from "@jsenv/https-local"
 
 await installCertificateAuthority({
   tryToTrust: true,
@@ -351,7 +361,7 @@ Check if certificate is trusted by firefox...
 _verifyHostsFile_ function check your hosts file content to see if ip mappings are present.
 
 ```js
-import { verifyHostsFile } from "@jsenv/local-https-certificates"
+import { verifyHostsFile } from "@jsenv/https-local"
 
 await verifyHostsFile({
   ipMappings: {
@@ -399,7 +409,7 @@ C:\\Windows\\System32\\Drivers\\etc\\hosts
 It's possible to update hosts file programmatically using _tryToUpdateHostsFile_.
 
 ```js
-import { verifyHostsFile } from "@jsenv/local-https-certificates"
+import { verifyHostsFile } from "@jsenv/https-local"
 
 await verifyHostsFile({
   ipMappings: {
@@ -450,7 +460,7 @@ _requestCertificateForLocalhost_ function returns a certificate and private key 
 
 ```js
 import { createServer } from "node:https"
-import { requestCertificateForLocalhost } from "@jsenv/local-https-certificates"
+import { requestCertificateForLocalhost } from "@jsenv/https-local"
 
 const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost({
   serverCertificateAltNames: ["localhost", "local.example.com"],
@@ -476,19 +486,3 @@ console.log(`Server listening at https://localhost:8080`)
 ```
 
 [installCertificateAuthority](#installCertificateAuthority) must be called before this function.
-
-# Certificate expiration
-
-The server certificate expires after one year which is the maximum duration allowed by web browsers.
-
-In the unlikely scenario where your local server is running for more than a year without interruption, restart it and you're good for one more year.
-
-The authority root certificate expires after 20 years which is close to the maximum allowed duration.
-
-In the very unlikely scenario where you are using the same machine for more than 20 years, re-execute [installCertificateAuthority](#installCertificateAuthority) to update certificate authority and restart your server.
-
-# Installation
-
-```console
-npm install --save-dev @jsenv/local-https-certificates
-```

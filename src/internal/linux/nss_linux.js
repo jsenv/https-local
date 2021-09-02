@@ -1,6 +1,6 @@
-import { memoize } from "@jsenv/local-https-certificates/src/internal/memoize.js"
-import { commandSign, infoSign, okSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
-import { exec } from "@jsenv/local-https-certificates/src/internal/exec.js"
+import { memoize } from "@jsenv/https-local/src/internal/memoize.js"
+import { commandSign, infoSign, okSign } from "@jsenv/https-local/src/internal/logs.js"
+import { exec } from "@jsenv/https-local/src/internal/exec.js"
 
 export const nssCommandName = "libnss3-tools"
 

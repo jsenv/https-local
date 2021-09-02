@@ -1,9 +1,9 @@
 import { createLogger } from "@jsenv/logger"
 import { readFile } from "@jsenv/filesystem"
 
-import { jsenvParameters } from "@jsenv/local-https-certificates/src/jsenvParameters.js"
-import { importPlatformMethods } from "@jsenv/local-https-certificates/src/internal/platform.js"
-import { getCertificateAuthorityFileUrls } from "@jsenv/local-https-certificates/src/internal/certificate_authority_file_urls.js"
+import { jsenvParameters } from "@jsenv/https-local/src/jsenvParameters.js"
+import { importPlatformMethods } from "@jsenv/https-local/src/internal/platform.js"
+import { getCertificateAuthorityFileUrls } from "@jsenv/https-local/src/internal/certificate_authority_file_urls.js"
 
 const { rootCertificateFileUrl } = getCertificateAuthorityFileUrls()
 const { executeTrustQuery } = await importPlatformMethods()

@@ -19,9 +19,9 @@ import {
   infoSign,
   warningSign,
   failureSign,
-} from "@jsenv/local-https-certificates/src/internal/logs.js"
-import { exec } from "@jsenv/local-https-certificates/src/internal/exec.js"
-import { searchCertificateInCommandOutput } from "@jsenv/local-https-certificates/src/internal/search_certificate_in_command_output.js"
+} from "@jsenv/https-local/src/internal/logs.js"
+import { exec } from "@jsenv/https-local/src/internal/exec.js"
+import { searchCertificateInCommandOutput } from "@jsenv/https-local/src/internal/search_certificate_in_command_output.js"
 import { VERB_CHECK_TRUST, VERB_ADD_TRUST } from "./trust_query.js"
 
 export const executeTrustQueryOnBrowserNSSDB = async ({

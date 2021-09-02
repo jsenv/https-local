@@ -1,4 +1,4 @@
-import { verifyHostsFile } from "@jsenv/local-https-certificates"
+import { verifyHostsFile } from "@jsenv/https-local"
 
 await verifyHostsFile({
   logLevel: "debug",

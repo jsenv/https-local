@@ -1,4 +1,4 @@
-import { uninstallCertificateAuthority } from "@jsenv/local-https-certificates"
+import { uninstallCertificateAuthority } from "@jsenv/https-local"
 
 await uninstallCertificateAuthority({
   logLevel: "debug",

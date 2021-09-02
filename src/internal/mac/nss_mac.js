@@ -1,9 +1,9 @@
 import { assertAndNormalizeDirectoryUrl, resolveUrl, urlToFileSystemPath } from "@jsenv/filesystem"
 
-import { memoize } from "@jsenv/local-https-certificates/src/internal/memoize.js"
-import { exec } from "@jsenv/local-https-certificates/src/internal/exec.js"
-import { infoSign, okSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
-import { commandExists } from "@jsenv/local-https-certificates/src/internal/command.js"
+import { memoize } from "@jsenv/https-local/src/internal/memoize.js"
+import { exec } from "@jsenv/https-local/src/internal/exec.js"
+import { infoSign, okSign } from "@jsenv/https-local/src/internal/logs.js"
+import { commandExists } from "@jsenv/https-local/src/internal/command.js"
 
 export const nssCommandName = "nss"
 

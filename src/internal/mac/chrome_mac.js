@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs"
 
-import { okSign, infoSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
-import { memoize } from "@jsenv/local-https-certificates/src/internal/memoize.js"
+import { okSign, infoSign } from "@jsenv/https-local/src/internal/logs.js"
+import { memoize } from "@jsenv/https-local/src/internal/memoize.js"
 
 const REASON_CHROME_NOT_DETECTED = `Chrome not detected`
 

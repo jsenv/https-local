@@ -3,14 +3,9 @@
 import { urlToFileSystemPath } from "@jsenv/filesystem"
 import { createDetailedMessage } from "@jsenv/logger"
 
-import {
-  commandSign,
-  okSign,
-  infoSign,
-  failureSign,
-} from "@jsenv/local-https-certificates/src/internal/logs.js"
-import { exec } from "@jsenv/local-https-certificates/src/internal/exec.js"
-import { searchCertificateInCommandOutput } from "@jsenv/local-https-certificates/src/internal/search_certificate_in_command_output.js"
+import { commandSign, okSign, infoSign, failureSign } from "@jsenv/https-local/src/internal/logs.js"
+import { exec } from "@jsenv/https-local/src/internal/exec.js"
+import { searchCertificateInCommandOutput } from "@jsenv/https-local/src/internal/search_certificate_in_command_output.js"
 import { VERB_CHECK_TRUST, VERB_ADD_TRUST, VERB_REMOVE_TRUST } from "../trust_query.js"
 
 const REASON_NEW_AND_TRY_TO_TRUST_DISABLED = "certificate is new and tryToTrust is disabled"

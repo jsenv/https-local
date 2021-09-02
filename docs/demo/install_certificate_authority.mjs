@@ -1,3 +1,3 @@
-import { installCertificateAuthority } from "@jsenv/local-https-certificates"
+import { installCertificateAuthority } from "@jsenv/https-local"
 
 await installCertificateAuthority()

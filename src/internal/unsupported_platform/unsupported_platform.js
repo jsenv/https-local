@@ -1,4 +1,4 @@
-import { warningSign } from "@jsenv/local-https-certificates/src/internal/logs.js"
+import { warningSign } from "@jsenv/https-local/src/internal/logs.js"
 
 const platformTrustInfo = {
   status: "unknown",

@@ -30,6 +30,7 @@ npm install --save-dev @jsenv/https-local
  *
  * Read more in https://github.com/jsenv/https-local#installCertificateAuthority
  */
+
 import { installCertificateAuthority, verifyHostsFile } from "@jsenv/https-local"
 
 await installCertificateAuthority({
@@ -38,13 +39,13 @@ await installCertificateAuthority({
 })
 await verifyHostsFile({
   ipMappings: {
-    "127.0.0.1": ["localhost", "local.example.com"],
+    "127.0.0.1": ["localhost", "local.example"],
   },
   tryToUpdatesHostsFile: true,
 })
 ```
 
-3 - Install certificate authority
+3 - Run file to install certificate authority with node
 
 ```console
 node ./install_certificate_authority.mjs
@@ -55,7 +56,7 @@ node ./install_certificate_authority.mjs
 ```js
 /*
  * This file uses "@jsenv/https-local" to obtain a certificate used to start a server in https.
- * The certificate is valid for 396 days and is issued by a certificate authority trusted on this machine.
+ * The certificate is valid for 1 year (396 days) and is issued by a certificate authority trusted on this machine.
  * If the certificate authority was not installed before executing this file, an error is thrown
  * explaining that certificate authority must be installed first.
  *
@@ -65,6 +66,7 @@ node ./install_certificate_authority.mjs
  *
  * Read more in https://github.com/jsenv/https-local#requestCertificateForLocalhost
  */
+
 import { createServer } from "node:https"
 import { requestCertificateForLocalhost } from "@jsenv/https-local"
 
@@ -91,11 +93,14 @@ server.listen(8080)
 console.log(`Server listening at https://local.example:8080`)
 ```
 
-5 - Start your server
+5 - Run file to start server with node
 
 ```console
 node ./start_dev_server.mjs
 ```
+
+At this stage of the documentation you have a server running in https.
+The rest of the documentation goes into details.
 
 # Certificate expiration
 
@@ -105,7 +110,7 @@ In the unlikely scenario where your local server is running for more than a year
 
 The authority root certificate expires after 20 years which is close to the maximum allowed duration.
 
-In the very unlikely scenario where you are using the same machine for more than 20 years, re-execute [installCertificateAuthority](#installCertificateAuthority) to update certificate authority and restart your server.
+In the very unlikely scenario where you are using the same machine for more than 20 years, re-execute [installCertificateAuthority](#installCertificateAuthority) to update certificate authority then restart your server.
 
 # installCertificateAuthority
 
@@ -117,6 +122,11 @@ import { installCertificateAuthority } from "@jsenv/https-local"
 
 await installCertificateAuthority()
 ```
+
+By default, trusting authority root certificate is a manual process.
+This manual process is documented in [BenMorel/dev-certificates#Import the CA in your browser](https://github.com/BenMorel/dev-certificates/tree/c10cd68945da772f31815b7a36721ddf848ff3a3#import-the-ca-in-your-browser).
+
+Trusting the root certificate can also be done programmatically as explained in [Auto trust](#Auto-trust).
 
 Find below logs written in terminal when this function is executed.
 
@@ -216,11 +226,6 @@ Check if certificate is trusted by firefox...
 
 </details>
 
-By default, trusting authority root certificate is a manual process.
-This manual process is documented in [BenMorel/dev-certificates#Import the CA in your browser](https://github.com/BenMorel/dev-certificates/tree/c10cd68945da772f31815b7a36721ddf848ff3a3#import-the-ca-in-your-browser).
-
-Trusting the root certificate can also be done programmatically as explained the next part.
-
 ## Auto trust
 
 It's possible to trust root certificate programmatically using _tryToTrust_
@@ -280,7 +285,7 @@ Checking certificate validity...
 Detect if certificate attributes have changed...
 ✔ certificate attributes are the same
 Check if certificate is in linux...
-ℹ certificate in linux is outdated
+ℹ certificate not in linux
 Adding certificate to linux...
 ❯ sudo /bin/cp -f "/home/dmail/.config/https_local/https_local_root_certificate.crt" /usr/local/share/ca-certificates/https_local_root_certificate.crt
 [sudo] Password for dmail :
@@ -329,11 +334,11 @@ Detect if certificate attributes have changed...
 ✔ certificate attributes are the same
 Check if certificate is trusted by windows...
 ℹ certificate not trusted by windows
-Check if certificate is trusted by firefox...
-ℹ unable to detect if certificate is trusted by firefox (not implemented on windows)
 Adding certificate to windows...
 ❯ certutil -addstore -user root C:\Users\Dmail\AppData\Local\https_local\https_local_root_certificate.crt
 ✔ certificate added to windows
+Check if certificate is trusted by firefox...
+ℹ unable to detect if certificate is trusted by firefox (not implemented on windows)
 ```
 
 _second execution logs_
@@ -354,16 +359,32 @@ Check if certificate is trusted by firefox...
 
 </details>
 
+# requestCertificateForLocalhost
+
+_requestCertificateForLocalhost_ function returns a certificate and private key that can be used to start a server in HTTPS.
+
+```js
+import { createServer } from "node:https"
+import { requestCertificateForLocalhost } from "@jsenv/https-local"
+
+const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost({
+  serverCertificateAltNames: ["localhost", "local.example.com"],
+})
+```
+
+[installCertificateAuthority](#installCertificateAuthority) must be called before this function.
+
 # verifyHostsFile
 
-_verifyHostsFile_ function check your hosts file content to see if ip mappings are present.
+This function is not mandatory to obtain the https certificates.
+But it is useful to programmatically verify ip mappings that are important for your local server are present in hosts file.
 
 ```js
 import { verifyHostsFile } from "@jsenv/https-local"
 
 await verifyHostsFile({
   ipMappings: {
-    "127.0.0.1": ["localhost", "local.example.com"],
+    "127.0.0.1": ["localhost", "local.example"],
   },
 })
 ```
@@ -462,36 +483,3 @@ Check hosts file content...
 ```
 
 </details>
-
-# requestCertificateForLocalhost
-
-_requestCertificateForLocalhost_ function returns a certificate and private key that can be used to start a server in HTTPS.
-
-```js
-import { createServer } from "node:https"
-import { requestCertificateForLocalhost } from "@jsenv/https-local"
-
-const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateAltNames: ["localhost", "local.example.com"],
-})
-
-const server = createServer(
-  {
-    cert: serverCertificate,
-    key: serverCertificatePrivateKey,
-  },
-  (request, response) => {
-    const body = "Hello world"
-    response.writeHead(200, {
-      "content-type": "text/plain",
-      "content-length": Buffer.byteLength(body),
-    })
-    response.write(body)
-    response.end()
-  },
-)
-server.listen(8080)
-console.log(`Server listening at https://localhost:8080`)
-```
-
-[installCertificateAuthority](#installCertificateAuthority) must be called before this function.

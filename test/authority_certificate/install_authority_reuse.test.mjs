@@ -45,8 +45,8 @@ const expected = {
           reason: "certificate not found in mac keychain",
         },
         firefox: {
-          status: "not_trusted",
-          reason: "missing or outdated in firefox nss database file",
+          status: "unknown",
+          reason: `"nss" is not installed`,
         },
         safari: {
           status: "not_trusted",
@@ -99,7 +99,9 @@ const expected = {
           "Check if certificate is in mac keychain...",
           `${infoSign} certificate not found in mac keychain`,
           "Check if certificate is in firefox...",
-          `${infoSign} certificate not found in firefox`,
+          `${failureSign} cannot check if certificate is in firefox
+--- reason ---
+"nss" is not installed`,
         ],
         win32: [
           "Check if certificate is in windows...",

@@ -368,7 +368,7 @@ import { createServer } from "node:https"
 import { requestCertificateForLocalhost } from "@jsenv/https-local"
 
 const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateAltNames: ["localhost", "local.example.com"],
+  serverCertificateAltNames: ["localhost", "local.example"],
 })
 ```
 
@@ -402,7 +402,7 @@ Check hosts file content...
 --- hosts file path ---
 /etc/hosts
 --- line(s) to add ---
-127.0.0.1 localhost local.example.com
+127.0.0.1 localhost local.example
 ```
 
 </details>
@@ -418,7 +418,7 @@ Check hosts file content...
 --- hosts file path ---
 C:\\Windows\\System32\\Drivers\\etc\\hosts
 --- line(s) to add ---
-127.0.0.1 localhost local.example.com
+127.0.0.1 localhost local.example
 ```
 
 </details>
@@ -432,7 +432,7 @@ import { verifyHostsFile } from "@jsenv/https-local"
 
 await verifyHostsFile({
   ipMappings: {
-    "127.0.0.1": ["localhost", "local.example.com"],
+    "127.0.0.1": ["localhost", "local.example"],
   },
   tryToUpdateHostsFile: true,
 })
@@ -445,7 +445,7 @@ await verifyHostsFile({
 Check hosts file content...
 ℹ 1 mapping is missing in hosts file
 Adding 1 mapping(s) in hosts file...
-❯ echo "127.0.0.1 local.example.com" | sudo tee /etc/hosts
+❯ echo "127.0.0.1 local.example" | sudo tee /etc/hosts
 Password:
 ✔ mappings added to hosts file
 ```
@@ -468,7 +468,7 @@ Check hosts file content...
 Check hosts file content...
 ℹ 1 mapping is missing in hosts file
 Adding 1 mapping(s) in hosts file...
-❯ (echo 127.0.0.1 local.example.com) >> C:\\Windows\\System32\\Drivers\\etc\\hosts
+❯ (echo 127.0.0.1 local.example) >> C:\\Windows\\System32\\Drivers\\etc\\hosts
 Password:
 ✔ mappings added to hosts file
 ```

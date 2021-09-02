@@ -216,8 +216,10 @@ Check if certificate is trusted by firefox...
 
 </details>
 
-By default it's up to you to trust authority root certificate.
-It can also be done programmatically as explained the next part.
+By default, trusting authority root certificate is a manual process.
+This manual process is documented in [BenMorel/dev-certificates#Import the CA in your browser](https://github.com/BenMorel/dev-certificates/tree/c10cd68945da772f31815b7a36721ddf848ff3a3#import-the-ca-in-your-browser).
+
+Trusting the root certificate can also be done programmatically as explained the next part.
 
 ## Auto trust
 

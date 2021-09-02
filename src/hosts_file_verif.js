@@ -56,20 +56,19 @@ export const verifyHostsFile = async ({
   }
 
   logger.info(`${infoSign} ${formatXMappingMissingMessage(missingMappingCount)}`)
-  await Promise.all(
-    missingMappings.map(async ({ ip, missingHostnames }) => {
-      const mapping = `${ip} ${missingHostnames.join(" ")}`
-      logger.info(`Append "${mapping}" in host file...`)
+  await missingMappings.reduce(async (previous, { ip, missingHostnames }) => {
+    await previous
+    const mapping = `${ip} ${missingHostnames.join(" ")}`
+    logger.info(`Append "${mapping}" in host file...`)
 
-      await writeLineInHostsFile(mapping, {
-        hostsFilePath,
-        onBeforeExecCommand: (command) => {
-          logger.info(`${commandSign} ${command}`)
-        },
-      })
-      logger.info(`${okSign} mapping added`)
-    }),
-  )
+    await writeLineInHostsFile(mapping, {
+      hostsFilePath,
+      onBeforeExecCommand: (command) => {
+        logger.info(`${commandSign} ${command}`)
+      },
+    })
+    logger.info(`${okSign} mapping added`)
+  }, Promise.resolve())
 }
 
 const normalizeHostnames = (hostnames) => {

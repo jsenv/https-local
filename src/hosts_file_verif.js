@@ -24,7 +24,9 @@ export const verifyHostsFile = async ({
   Object.keys(ipMappings).forEach((ip) => {
     const ipHostnames = ipMappings[ip]
     if (!Array.isArray(ipHostnames)) {
-      throw new TypeError(`ipMappings values must be an array, found ${ipHostnames} for ${ip}`)
+      throw new TypeError(
+        `ipMappings values must be an array, found ${ipHostnames} for ${ip}`,
+      )
     }
     const existingMappings = hostnames.getIpHostnames(ip)
     const missingHostnames = normalizeHostnames(ipHostnames).filter(
@@ -47,15 +49,20 @@ export const verifyHostsFile = async ({
       .map(({ ip, missingHostnames }) => `${ip} ${missingHostnames.join(" ")}`)
       .join(EOL)
     logger.warn(
-      createDetailedMessage(`${warningSign} ${formatXMappingMissingMessage(missingMappingCount)}`, {
-        "hosts file path": hostsFilePath,
-        "line(s) to add": linesToAdd,
-      }),
+      createDetailedMessage(
+        `${warningSign} ${formatXMappingMissingMessage(missingMappingCount)}`,
+        {
+          "hosts file path": hostsFilePath,
+          "line(s) to add": linesToAdd,
+        },
+      ),
     )
     return
   }
 
-  logger.info(`${infoSign} ${formatXMappingMissingMessage(missingMappingCount)}`)
+  logger.info(
+    `${infoSign} ${formatXMappingMissingMessage(missingMappingCount)}`,
+  )
   await missingMappings.reduce(async (previous, { ip, missingHostnames }) => {
     await previous
     const mapping = `${ip} ${missingHostnames.join(" ")}`

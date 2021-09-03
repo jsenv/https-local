@@ -1,6 +1,9 @@
 import { assert } from "@jsenv/assert"
 
-import { installCertificateAuthority, uninstallCertificateAuthority } from "@jsenv/https-local"
+import {
+  installCertificateAuthority,
+  uninstallCertificateAuthority,
+} from "@jsenv/https-local"
 import { okSign, infoSign } from "@jsenv/https-local/src/internal/logs.js"
 import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
 

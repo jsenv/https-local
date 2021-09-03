@@ -9,9 +9,17 @@ export const writeHostsFile = async (
   { hostsFilePath = HOSTS_FILE_PATH, onBeforeExecCommand = () => {} } = {},
 ) => {
   if (process.platform === "win32") {
-    return writeHostsFileOnWindows({ hostsFileContent, hostsFilePath, onBeforeExecCommand })
+    return writeHostsFileOnWindows({
+      hostsFileContent,
+      hostsFilePath,
+      onBeforeExecCommand,
+    })
   }
-  return writeHostsFileOnLinuxOrMac({ hostsFileContent, hostsFilePath, onBeforeExecCommand })
+  return writeHostsFileOnLinuxOrMac({
+    hostsFileContent,
+    hostsFilePath,
+    onBeforeExecCommand,
+  })
 }
 
 const writeHostsFileOnLinuxOrMac = async ({
@@ -42,15 +50,19 @@ const writeHostsFileOnWindows = async ({
     const sudoPrompt = require("sudo-prompt")
     onBeforeExecCommand(updateHostsFileCommand)
     await new Promise((resolve, reject) => {
-      sudoPrompt.exec(updateHostsFileCommand, { name: "write hosts" }, (error, stdout, stderr) => {
-        if (error) {
-          reject(error)
-        } else if (typeof stderr === "string" && stderr.trim().length > 0) {
-          reject(stderr)
-        } else {
-          resolve(stdout)
-        }
-      })
+      sudoPrompt.exec(
+        updateHostsFileCommand,
+        { name: "write hosts" },
+        (error, stdout, stderr) => {
+          if (error) {
+            reject(error)
+          } else if (typeof stderr === "string" && stderr.trim().length > 0) {
+            reject(stderr)
+          } else {
+            resolve(stdout)
+          }
+        },
+      )
     })
     return
   }

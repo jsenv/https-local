@@ -7,7 +7,10 @@ import {
 } from "@jsenv/performance-impact"
 
 export const measureImport = async ({ iterations = 10 } = {}) => {
-  const childProcessFileUrl = new URL("./child_process_measuring_import.mjs", import.meta.url)
+  const childProcessFileUrl = new URL(
+    "./child_process_measuring_import.mjs",
+    import.meta.url,
+  )
   const childProcessFilePath = fileURLToPath(childProcessFileUrl)
 
   const metrics = await measurePerformanceMultipleTimes(

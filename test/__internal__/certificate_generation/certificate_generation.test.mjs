@@ -41,11 +41,15 @@ const {
   const { pki } = await importNodeForge()
   // const rootCertificate = pki.certificateToPem(rootCertificateForgeObject)
   // const authorityCertificateForgeObject = pki.certificateFromPem(rootCertificate)
-  const rootCertificatePrivateKey = pki.privateKeyToPem(rootCertificatePrivateKeyForgeObject)
+  const rootCertificatePrivateKey = pki.privateKeyToPem(
+    rootCertificatePrivateKeyForgeObject,
+  )
   await new Promise((resolve) => {
     setTimeout(resolve, 1000)
   })
-  const auhtorityCertificatePrivateKeyForgeObject = pki.privateKeyFromPem(rootCertificatePrivateKey)
+  const auhtorityCertificatePrivateKeyForgeObject = pki.privateKeyFromPem(
+    rootCertificatePrivateKey,
+  )
   const actual = auhtorityCertificatePrivateKeyForgeObject
   const expected = auhtorityCertificatePrivateKeyForgeObject
   assert({ actual, expected })
@@ -58,7 +62,8 @@ const {
     certificatePrivateKeyForgeObject,
   } = await requestCertificateFromAuthority({
     authorityCertificateForgeObject: rootCertificateForgeObject,
-    auhtorityCertificatePrivateKeyForgeObject: rootCertificatePrivateKeyForgeObject,
+    auhtorityCertificatePrivateKeyForgeObject:
+      rootCertificatePrivateKeyForgeObject,
     serialNumber: 1,
     altNames: ["localhost"],
     validityDurationInMs: 10000,

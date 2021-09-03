@@ -14,10 +14,13 @@ await uninstallCertificateAuthority({
 await installCertificateAuthority({
   tryToTrust: true,
 })
-const { serverCertificate, serverCertificatePrivateKey, rootCertificateFilePath } =
-  await requestCertificateForLocalhost({
-    serverCertificateAltNames: ["localhost", "*.localhost"],
-  })
+const {
+  serverCertificate,
+  serverCertificatePrivateKey,
+  rootCertificateFilePath,
+} = await requestCertificateForLocalhost({
+  serverCertificateAltNames: ["localhost", "*.localhost"],
+})
 
 if (process.platform !== "win32") {
   // not on windows because symlink requires admin rights

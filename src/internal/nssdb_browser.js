@@ -64,8 +64,12 @@ export const executeTrustQueryOnBrowserNSSDB = async ({
   const cannotCheckMessage = `${failureSign} cannot check if certificate is in ${browserName}`
   if (!nssIsInstalled) {
     if (verb === VERB_ADD_TRUST) {
-      const { nssIsInstallable, nssNotInstallableReason, nssInstallFixSuggestion, nssInstall } =
-        await getNSSDynamicInstallInfo({ logger })
+      const {
+        nssIsInstallable,
+        nssNotInstallableReason,
+        nssInstallFixSuggestion,
+        nssInstall,
+      } = await getNSSDynamicInstallInfo({ logger })
       if (!nssIsInstallable) {
         const reason = `"${nssCommandName}" is not installed and not cannot be installed`
         logger.warn(
@@ -314,16 +318,21 @@ const findNSSDBFiles = async ({ logger, NSSDBDirectoryUrl }) => {
         "./**/cert9.db": true,
       },
     },
-    predicate: ({ isLegacyNSSDB, isModernNSSDB }) => isLegacyNSSDB || isModernNSSDB,
+    predicate: ({ isLegacyNSSDB, isModernNSSDB }) =>
+      isLegacyNSSDB || isModernNSSDB,
   })
   const fileCount = NSSDBFiles.length
   if (fileCount === 0) {
-    logger.warn(`${warningSign} could not find nss database file in ${NSSDBDirectoryUrl}`)
+    logger.warn(
+      `${warningSign} could not find nss database file in ${NSSDBDirectoryUrl}`,
+    )
     NSSDirectoryCache[NSSDBDirectoryUrl] = []
     return []
   }
 
-  logger.debug(`${okSign} found ${fileCount} nss database file in ${NSSDBDirectoryUrl}`)
+  logger.debug(
+    `${okSign} found ${fileCount} nss database file in ${NSSDBDirectoryUrl}`,
+  )
   const files = NSSDBFiles.map((file) => {
     return resolveUrl(file.relativeUrl, NSSDBDirectoryUrl)
   })
@@ -335,7 +344,9 @@ const getDirectoryArgFromNSSDBFileUrl = (NSSDBFileUrl) => {
   const nssDBFilename = urlToFilename(NSSDBFileUrl)
   const nssDBDirectoryUrl = resolveUrl("./", NSSDBFileUrl)
   const nssDBDirectoryPath = urlToFileSystemPath(nssDBDirectoryUrl)
-  return nssDBFilename === "cert8.db" ? `"${nssDBDirectoryPath}"` : `sql:"${nssDBDirectoryPath}"`
+  return nssDBFilename === "cert8.db"
+    ? `"${nssDBDirectoryPath}"`
+    : `sql:"${nssDBDirectoryPath}"`
 }
 
 const execCertutilCommmand = async (command) => {

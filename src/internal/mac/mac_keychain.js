@@ -3,15 +3,26 @@
 import { urlToFileSystemPath } from "@jsenv/filesystem"
 import { createDetailedMessage } from "@jsenv/logger"
 
-import { commandSign, okSign, infoSign, failureSign } from "@jsenv/https-local/src/internal/logs.js"
+import {
+  commandSign,
+  okSign,
+  infoSign,
+  failureSign,
+} from "@jsenv/https-local/src/internal/logs.js"
 import { exec } from "@jsenv/https-local/src/internal/exec.js"
 import { searchCertificateInCommandOutput } from "@jsenv/https-local/src/internal/search_certificate_in_command_output.js"
-import { VERB_CHECK_TRUST, VERB_ADD_TRUST, VERB_REMOVE_TRUST } from "../trust_query.js"
+import {
+  VERB_CHECK_TRUST,
+  VERB_ADD_TRUST,
+  VERB_REMOVE_TRUST,
+} from "../trust_query.js"
 
-const REASON_NEW_AND_TRY_TO_TRUST_DISABLED = "certificate is new and tryToTrust is disabled"
+const REASON_NEW_AND_TRY_TO_TRUST_DISABLED =
+  "certificate is new and tryToTrust is disabled"
 const REASON_NOT_IN_KEYCHAIN = "certificate not found in mac keychain"
 const REASON_IN_KEYCHAIN = "certificate found in mac keychain"
-const REASON_ADD_TO_KEYCHAIN_COMMAND_FAILED = "command to add certificate in mac keychain failed"
+const REASON_ADD_TO_KEYCHAIN_COMMAND_FAILED =
+  "command to add certificate in mac keychain failed"
 const REASON_ADD_TO_KEYCHAIN_COMMAND_COMPLETED =
   "command to add certificate in mac keychain completed"
 const REASON_REMOVE_FROM_KEYCHAIN_COMMAND_FAILED =
@@ -70,10 +81,13 @@ export const executeTrustQueryOnMacKeychain = async ({
       }
     } catch (e) {
       logger.error(
-        createDetailedMessage(`${failureSign} failed to add certificate to mac keychain`, {
-          "error stack": e.stack,
-          "certificate file": certificateFilePath,
-        }),
+        createDetailedMessage(
+          `${failureSign} failed to add certificate to mac keychain`,
+          {
+            "error stack": e.stack,
+            "certificate file": certificateFilePath,
+          },
+        ),
       )
       return {
         status: "not_trusted",
@@ -107,10 +121,13 @@ export const executeTrustQueryOnMacKeychain = async ({
     }
   } catch (e) {
     logger.error(
-      createDetailedMessage(`${failureSign} failed to remove certificate from mac keychain`, {
-        "error stack": e.stack,
-        "certificate file url": certificateFileUrl,
-      }),
+      createDetailedMessage(
+        `${failureSign} failed to remove certificate from mac keychain`,
+        {
+          "error stack": e.stack,
+          "certificate file url": certificateFileUrl,
+        },
+      ),
     )
     return {
       status: "not_trusted",

@@ -40,16 +40,18 @@ const detectChrome = memoize(({ logger }) => {
     `${process.env.ProgramFiles}\\Google\\Chrome\\Application\\chrome.exe`,
     `${process.env["ProgramFiles(x86)"]}\\Google\\Chrome\\Application\\chrome.exe`,
   ]
-  const someExecutableFound = executableCandidates.some((chromeExecutablePathCandidate) => {
-    if (existsSync(chromeExecutablePathCandidate)) {
-      return true
-    }
-    try {
-      which.sync(chromeExecutablePathCandidate)
-      return true
-    } catch (e) {}
-    return false
-  })
+  const someExecutableFound = executableCandidates.some(
+    (chromeExecutablePathCandidate) => {
+      if (existsSync(chromeExecutablePathCandidate)) {
+        return true
+      }
+      try {
+        which.sync(chromeExecutablePathCandidate)
+        return true
+      } catch (e) {}
+      return false
+    },
+  )
   if (someExecutableFound) {
     logger.debug(`${okSign} Chrome detected`)
     return true

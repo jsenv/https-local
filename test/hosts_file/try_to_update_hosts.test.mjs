@@ -2,7 +2,11 @@ import { assert } from "@jsenv/assert"
 import { readFile, urlToFileSystemPath, writeFile } from "@jsenv/filesystem"
 
 import { verifyHostsFile } from "@jsenv/https-local"
-import { infoSign, commandSign, okSign } from "@jsenv/https-local/src/internal/logs.js"
+import {
+  infoSign,
+  commandSign,
+  okSign,
+} from "@jsenv/https-local/src/internal/logs.js"
 import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
 
 const hostFileUrl = new URL("./hosts", import.meta.url)
@@ -23,7 +27,11 @@ const hostsFilePath = urlToFileSystemPath(hostFileUrl)
     hostsFilePath,
   })
 
-  const { infos, warns, errors } = loggerForTest.getLogs({ info: true, warn: true, error: true })
+  const { infos, warns, errors } = loggerForTest.getLogs({
+    info: true,
+    warn: true,
+    error: true,
+  })
   const hostsFileContent = await readFile(hostsFilePath, { as: "string" })
   const actual = {
     hostsFileContent,
@@ -87,14 +95,21 @@ const hostsFilePath = urlToFileSystemPath(hostFileUrl)
     hostsFilePath,
   })
 
-  const { infos, warns, errors } = loggerForTest.getLogs({ info: true, warn: true, error: true })
+  const { infos, warns, errors } = loggerForTest.getLogs({
+    info: true,
+    warn: true,
+    error: true,
+  })
   const actual = {
     infos,
     warns,
     errors,
   }
   const expected = {
-    infos: [`Check hosts file content...`, `${okSign} all ip mappings found in hosts file`],
+    infos: [
+      `Check hosts file content...`,
+      `${okSign} all ip mappings found in hosts file`,
+    ],
     warns: [],
     errors: [],
   }

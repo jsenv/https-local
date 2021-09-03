@@ -1,6 +1,9 @@
 import { assert } from "@jsenv/assert"
 
-import { installCertificateAuthority, uninstallCertificateAuthority } from "@jsenv/https-local"
+import {
+  installCertificateAuthority,
+  uninstallCertificateAuthority,
+} from "@jsenv/https-local"
 import { infoSign, okSign } from "@jsenv/https-local/src/internal/logs.js"
 import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
 
@@ -21,7 +24,11 @@ const {
 } = await installCertificateAuthority({
   logger: loggerForTest,
 })
-const { infos, warns, errors } = loggerForTest.getLogs({ info: true, warn: true, error: true })
+const { infos, warns, errors } = loggerForTest.getLogs({
+  info: true,
+  warn: true,
+  error: true,
+})
 
 const actual = {
   // assert what is logged

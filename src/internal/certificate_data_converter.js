@@ -34,7 +34,9 @@ const isUrl = (value) => {
   }
 }
 
-export const extensionArrayFromExtensionDescription = (extensionDescription) => {
+export const extensionArrayFromExtensionDescription = (
+  extensionDescription,
+) => {
   const extensionArray = []
   Object.keys(extensionDescription).forEach((key) => {
     const value = extensionDescription[key]
@@ -65,7 +67,9 @@ export const attributeDescriptionFromAttributeArray = (attributeArray) => {
   return attributeObject
 }
 
-export const attributeArrayFromAttributeDescription = (attributeDescription) => {
+export const attributeArrayFromAttributeDescription = (
+  attributeDescription,
+) => {
   const attributeArray = []
   Object.keys(attributeDescription).forEach((key) => {
     const value = attributeDescription[key]

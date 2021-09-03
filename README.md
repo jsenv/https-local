@@ -31,7 +31,10 @@ npm install --save-dev @jsenv/https-local
  * Read more in https://github.com/jsenv/https-local#installCertificateAuthority
  */
 
-import { installCertificateAuthority, verifyHostsFile } from "@jsenv/https-local"
+import {
+  installCertificateAuthority,
+  verifyHostsFile,
+} from "@jsenv/https-local"
 
 await installCertificateAuthority({
   tryToTrust: true,
@@ -39,7 +42,7 @@ await installCertificateAuthority({
 })
 await verifyHostsFile({
   ipMappings: {
-    "127.0.0.1": ["localhost", "local.example"],
+    "127.0.0.1": ["localhost"],
   },
   tryToUpdatesHostsFile: true,
 })
@@ -70,9 +73,8 @@ node ./install_certificate_authority.mjs
 import { createServer } from "node:https"
 import { requestCertificateForLocalhost } from "@jsenv/https-local"
 
-const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateAltNames: ["localhost", "local.example"],
-})
+const { serverCertificate, serverCertificatePrivateKey } =
+  await requestCertificateForLocalhost()
 
 const server = createServer(
   {
@@ -367,9 +369,10 @@ _requestCertificateForLocalhost_ function returns a certificate and private key 
 import { createServer } from "node:https"
 import { requestCertificateForLocalhost } from "@jsenv/https-local"
 
-const { serverCertificate, serverCertificatePrivateKey } = await requestCertificateForLocalhost({
-  serverCertificateAltNames: ["localhost", "local.example"],
-})
+const { serverCertificate, serverCertificatePrivateKey } =
+  await requestCertificateForLocalhost({
+    serverCertificateAltNames: ["localhost", "local.example"],
+  })
 ```
 
 [installCertificateAuthority](#installCertificateAuthority) must be called before this function.

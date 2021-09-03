@@ -17,7 +17,9 @@ export const verifyRootCertificateValidityDuration = (validityDurationInMs) => {
   return { ok: true }
 }
 
-export const verifyServerCertificateValidityDuration = (serverCertificateValidityDurationInMs) => {
+export const verifyServerCertificateValidityDuration = (
+  serverCertificateValidityDurationInMs,
+) => {
   const serverCertificateValidityDurationInDays =
     serverCertificateValidityDurationInMs / MILLISECONDS_PER_DAY
 
@@ -34,6 +36,8 @@ export const verifyServerCertificateValidityDuration = (serverCertificateValidit
   return { ok: true }
 }
 
-export const createValidityDurationOfXYears = (years) => MILLISECONDS_PER_YEAR * years + 5000
+export const createValidityDurationOfXYears = (years) =>
+  MILLISECONDS_PER_YEAR * years + 5000
 
-export const createValidityDurationOfXDays = (days) => MILLISECONDS_PER_DAY * days + 5000
+export const createValidityDurationOfXDays = (days) =>
+  MILLISECONDS_PER_DAY * days + 5000

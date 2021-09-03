@@ -5,7 +5,10 @@
  * - update "paths" in "./jsconfig.json" file that is used by VSCode to resolve imports
  */
 
-import { getImportMapFromProjectFiles, writeImportMapFile } from "@jsenv/importmap-node-module"
+import {
+  getImportMapFromProjectFiles,
+  writeImportMapFile,
+} from "@jsenv/importmap-node-module"
 
 import { projectDirectoryUrl } from "../../jsenv.config.mjs"
 

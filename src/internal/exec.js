@@ -1,6 +1,9 @@
 import { exec as nodeExec } from "node:child_process"
 
-export const exec = (command, { cwd, input, onLog = () => {}, onErrorLog = () => {} } = {}) => {
+export const exec = (
+  command,
+  { cwd, input, onLog = () => {}, onErrorLog = () => {} } = {},
+) => {
   return new Promise((resolve, reject) => {
     const commandProcess = nodeExec(
       command,

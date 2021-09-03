@@ -1,4 +1,8 @@
-import { assertAndNormalizeDirectoryUrl, resolveUrl, urlToFilename } from "@jsenv/filesystem"
+import {
+  assertAndNormalizeDirectoryUrl,
+  resolveUrl,
+  urlToFilename,
+} from "@jsenv/filesystem"
 
 export const getCertificateAuthorityFileUrls = () => {
   // we need a directory common to every instance of @jsenv/https-local
@@ -36,9 +40,15 @@ export const getRootCertificateSymlinkUrls = ({
   const serverCertificateDirectory = resolveUrl("./", serverCertificateFileUrl)
 
   const rootCertificateFilename = urlToFilename(rootCertificateFileUrl)
-  const rootCertificateSymlinkUrl = resolveUrl(rootCertificateFilename, serverCertificateDirectory)
+  const rootCertificateSymlinkUrl = resolveUrl(
+    rootCertificateFilename,
+    serverCertificateDirectory,
+  )
   const rootPrivateKeyFilename = urlToFilename(rootPrivateKeyFileUrl)
-  const rootPrivateKeySymlinkUrl = resolveUrl(rootPrivateKeyFilename, serverCertificateDirectory)
+  const rootPrivateKeySymlinkUrl = resolveUrl(
+    rootPrivateKeyFilename,
+    serverCertificateDirectory,
+  )
 
   return {
     rootCertificateSymlinkUrl,
@@ -64,12 +74,18 @@ const getJsenvApplicationDirectoryUrl = () => {
         assertAndNormalizeDirectoryUrl(process.env.XDG_CONFIG_HOME),
       )
     }
-    return resolveUrl(`./.config/https_local/`, assertAndNormalizeDirectoryUrl(process.env.HOME))
+    return resolveUrl(
+      `./.config/https_local/`,
+      assertAndNormalizeDirectoryUrl(process.env.HOME),
+    )
   }
 
   if (platform === "win32") {
     if (process.env.LOCALAPPDATA) {
-      return resolveUrl(`./https_local/`, assertAndNormalizeDirectoryUrl(process.env.LOCALAPPDATA))
+      return resolveUrl(
+        `./https_local/`,
+        assertAndNormalizeDirectoryUrl(process.env.LOCALAPPDATA),
+      )
     }
 
     return resolveUrl(

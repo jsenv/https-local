@@ -6,18 +6,31 @@ import { existsSync } from "node:fs"
 import { createDetailedMessage } from "@jsenv/logger"
 import { readFile, urlToFileSystemPath } from "@jsenv/filesystem"
 
-import { commandSign, okSign, infoSign, failureSign } from "@jsenv/https-local/src/internal/logs.js"
+import {
+  commandSign,
+  okSign,
+  infoSign,
+  failureSign,
+} from "@jsenv/https-local/src/internal/logs.js"
 import { exec } from "@jsenv/https-local/src/internal/exec.js"
-import { VERB_CHECK_TRUST, VERB_ADD_TRUST, VERB_REMOVE_TRUST } from "../trust_query.js"
+import {
+  VERB_CHECK_TRUST,
+  VERB_ADD_TRUST,
+  VERB_REMOVE_TRUST,
+} from "../trust_query.js"
 
-const REASON_NEW_AND_TRY_TO_TRUST_DISABLED = "certificate is new and tryToTrust is disabled"
+const REASON_NEW_AND_TRY_TO_TRUST_DISABLED =
+  "certificate is new and tryToTrust is disabled"
 const REASON_NOT_FOUND_IN_LINUX = `not found in linux store`
 const REASON_OUTDATED_IN_LINUX = "certificate in linux store is outdated"
 const REASON_FOUND_IN_LINUX = "found in linux store"
 const REASON_ADD_COMMAND_FAILED = "command to add certificate to linux failed"
-const REASON_ADD_COMMAND_COMPLETED = "command to add certificate to linux completed"
-const REASON_REMOVE_COMMAND_FAILED = "command to remove certificate from linux failed"
-const REASON_REMOVE_COMMAND_COMPLETED = "command to remove certificate from linux completed"
+const REASON_ADD_COMMAND_COMPLETED =
+  "command to add certificate to linux completed"
+const REASON_REMOVE_COMMAND_FAILED =
+  "command to remove certificate from linux failed"
+const REASON_REMOVE_COMMAND_COMPLETED =
+  "command to remove certificate from linux completed"
 
 const LINUX_CERTIFICATE_AUTHORITIES_DIRECTORY_PATH = `/usr/local/share/ca-certificates/`
 const JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH = `${LINUX_CERTIFICATE_AUTHORITIES_DIRECTORY_PATH}https_local_root_certificate.crt`
@@ -39,7 +52,9 @@ export const executeTrustQueryOnLinux = async ({
   }
 
   logger.info(`Check if certificate is in linux...`)
-  logger.debug(`Searching certificate file at ${JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH}...`)
+  logger.debug(
+    `Searching certificate file at ${JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH}...`,
+  )
   const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
   const certificateStatus = await getCertificateStatus({ certificate })
 
@@ -53,7 +68,9 @@ export const executeTrustQueryOnLinux = async ({
       return {
         status: "not_trusted",
         reason:
-          certificateStatus === "missing" ? REASON_NOT_FOUND_IN_LINUX : REASON_OUTDATED_IN_LINUX,
+          certificateStatus === "missing"
+            ? REASON_NOT_FOUND_IN_LINUX
+            : REASON_OUTDATED_IN_LINUX,
       }
     }
 
@@ -73,9 +90,12 @@ export const executeTrustQueryOnLinux = async ({
     } catch (e) {
       console.error(e)
       logger.error(
-        createDetailedMessage(`${failureSign} failed to add certificate to linux`, {
-          "certificate file": certificateFilePath,
-        }),
+        createDetailedMessage(
+          `${failureSign} failed to add certificate to linux`,
+          {
+            "certificate file": certificateFilePath,
+          },
+        ),
       )
       return {
         status: "not_trusted",
@@ -107,10 +127,13 @@ export const executeTrustQueryOnLinux = async ({
     }
   } catch (e) {
     logger.error(
-      createDetailedMessage(`${failureSign} failed to remove certificate from linux`, {
-        "error stack": e.stack,
-        "certificate file": JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH,
-      }),
+      createDetailedMessage(
+        `${failureSign} failed to remove certificate from linux`,
+        {
+          "error stack": e.stack,
+          "certificate file": JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH,
+        },
+      ),
     )
     return {
       status: "unknown",
@@ -124,7 +147,9 @@ const getCertificateStatus = async ({ certificate }) => {
   if (!certificateInStore) {
     return "missing"
   }
-  const certificateInLinuxStore = await readFile(JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH)
+  const certificateInLinuxStore = await readFile(
+    JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH,
+  )
   if (certificateInLinuxStore !== certificate) {
     return "outdated"
   }

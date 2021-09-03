@@ -1,5 +1,7 @@
 export const formatStillValid = ({ certificateName, validityRemainingMs }) => {
-  return `${certificateName} still valid for ${formatDuration(validityRemainingMs)}`
+  return `${certificateName} still valid for ${formatDuration(
+    validityRemainingMs,
+  )}`
 }
 
 export const formatAboutToExpire = ({

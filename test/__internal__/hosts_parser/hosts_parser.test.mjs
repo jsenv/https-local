@@ -3,7 +3,9 @@ import { readFile } from "@jsenv/filesystem"
 
 import { parseHosts } from "@jsenv/https-local/src/internal/hosts.js"
 
-const hostsAContent = await readFile(new URL("./hosts_files/hosts", import.meta.url))
+const hostsAContent = await readFile(
+  new URL("./hosts_files/hosts", import.meta.url),
+)
 const hostsA = parseHosts(hostsAContent)
 
 {

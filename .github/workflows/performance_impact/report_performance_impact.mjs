@@ -5,7 +5,10 @@
  * See https://github.com/jsenv/performance-impact
  */
 
-import { reportPerformanceImpact, readGitHubWorkflowEnv } from "@jsenv/performance-impact"
+import {
+  reportPerformanceImpact,
+  readGitHubWorkflowEnv,
+} from "@jsenv/performance-impact"
 
 reportPerformanceImpact({
   ...readGitHubWorkflowEnv(),

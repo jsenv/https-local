@@ -6,7 +6,9 @@ const platformTrustInfo = {
 }
 
 export const executeTrustQuery = ({ logger }) => {
-  logger.warn(`${warningSign} platform not supported, cannot execute trust query`)
+  logger.warn(
+    `${warningSign} platform not supported, cannot execute trust query`,
+  )
   return {
     platform: platformTrustInfo,
   }

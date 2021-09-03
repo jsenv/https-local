@@ -11,14 +11,20 @@ export const getAuthorityFileInfos = () => {
     rootCertificatePrivateKeyFileUrl,
   } = getCertificateAuthorityFileUrls()
 
-  const authorityJsonFilePath = urlToFileSystemPath(certificateAuthorityJsonFileUrl)
+  const authorityJsonFilePath = urlToFileSystemPath(
+    certificateAuthorityJsonFileUrl,
+  )
   const authorityJsonFileDetected = existsSync(authorityJsonFilePath)
 
   const rootCertificateFilePath = urlToFileSystemPath(rootCertificateFileUrl)
   const rootCertificateFileDetected = existsSync(rootCertificateFilePath)
 
-  const rootCertificatePrivateKeyFilePath = urlToFileSystemPath(rootCertificatePrivateKeyFileUrl)
-  const rootCertificatePrivateKeyFileDetected = existsSync(rootCertificatePrivateKeyFilePath)
+  const rootCertificatePrivateKeyFilePath = urlToFileSystemPath(
+    rootCertificatePrivateKeyFileUrl,
+  )
+  const rootCertificatePrivateKeyFileDetected = existsSync(
+    rootCertificatePrivateKeyFilePath,
+  )
 
   return {
     authorityJsonFileInfo: {

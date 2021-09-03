@@ -1,7 +1,10 @@
 const IS_WINDOWS = process.platform === "win32"
 
 // https://github.com/feross/hostile/blob/master/index.js
-export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => {
+export const parseHosts = (
+  hosts,
+  { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {},
+) => {
   const lines = []
   hosts.split(/\r?\n/).forEach((line) => {
     const lineWithoutComments = line.replace(/#.*/, "")
@@ -22,7 +25,9 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
       if (line.type === "rule") {
         const { ip, hostnames } = line
         const existingHostnames = ipHostnames[ip]
-        ipHostnames[ip] = existingHostnames ? [...existingHostnames, ...hostnames] : hostnames
+        ipHostnames[ip] = existingHostnames
+          ? [...existingHostnames, ...hostnames]
+          : hostnames
       }
     })
     return ipHostnames
@@ -40,7 +45,8 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
 
   const addIpHostname = (ip, host) => {
     const alreadyThere = lines.some(
-      (line) => line.type === "rule" && line.ip === ip && line.hostnames.includes(host),
+      (line) =>
+        line.type === "rule" && line.ip === ip && line.hostnames.includes(host),
     )
     if (alreadyThere) {
       return false
@@ -96,7 +102,9 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
 
   const asFileContent = () => {
     let hostsFileContent = ""
-    const ips = lines.filter((line) => line.type === "rule").map((line) => line.ip)
+    const ips = lines
+      .filter((line) => line.type === "rule")
+      .map((line) => line.ip)
     const longestIp = ips.reduce((previous, ip) => {
       const length = ip.length
       return length > previous ? length : previous
@@ -107,7 +115,9 @@ export const parseHosts = (hosts, { EOL = IS_WINDOWS ? "\r\n" : "\n" } = {}) => 
         const { ip, hostnames } = line
         const ipLength = ip.length
         const lengthDelta = longestIp - ipLength
-        hostsFileContent += `${ip}${" ".repeat(lengthDelta)} ${hostnames.join(" ")}`
+        hostsFileContent += `${ip}${" ".repeat(lengthDelta)} ${hostnames.join(
+          " ",
+        )}`
       } else {
         hostsFileContent += line.value
       }

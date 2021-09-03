@@ -2,7 +2,11 @@ import { existsSync } from "node:fs"
 import { execSync } from "node:child_process"
 import { resolveUrl, assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
 
-import { okSign, infoSign, warningSign } from "@jsenv/https-local/src/internal/logs.js"
+import {
+  okSign,
+  infoSign,
+  warningSign,
+} from "@jsenv/https-local/src/internal/logs.js"
 import {
   nssCommandName,
   detectIfNSSIsInstalled,
@@ -57,7 +61,9 @@ export const executeTrustQueryOnChrome = ({
         return
       }
 
-      logger.warn(`${warningSign} waiting for you to close Chrome before resuming...`)
+      logger.warn(
+        `${warningSign} waiting for you to close Chrome before resuming...`,
+      )
       const next = async () => {
         await new Promise((resolve) => setTimeout(resolve, 50))
         if (isChromeOpen()) {

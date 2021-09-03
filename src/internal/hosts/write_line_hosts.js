@@ -10,13 +10,25 @@ export const writeLineInHostsFile = async (
   { hostsFilePath = HOSTS_FILE_PATH, onBeforeExecCommand = () => {} } = {},
 ) => {
   if (process.platform === "win32") {
-    return appendToHostsFileOnWindows({ lineToAppend, hostsFilePath, onBeforeExecCommand })
+    return appendToHostsFileOnWindows({
+      lineToAppend,
+      hostsFilePath,
+      onBeforeExecCommand,
+    })
   }
-  return appendToHostsFileOnLinuxOrMac({ lineToAppend, hostsFilePath, onBeforeExecCommand })
+  return appendToHostsFileOnLinuxOrMac({
+    lineToAppend,
+    hostsFilePath,
+    onBeforeExecCommand,
+  })
 }
 
 // https://renenyffenegger.ch/notes/Windows/dirs/Windows/System32/cmd_exe/commands/echo/index
-const appendToHostsFileOnWindows = async ({ lineToAppend, hostsFilePath, onBeforeExecCommand }) => {
+const appendToHostsFileOnWindows = async ({
+  lineToAppend,
+  hostsFilePath,
+  onBeforeExecCommand,
+}) => {
   const hostsFileContent = await readFile(hostsFilePath)
   const echoCommand =
     hostsFileContent.length > 0 && !hostsFileContent.endsWith("\r\n")
@@ -30,15 +42,19 @@ const appendToHostsFileOnWindows = async ({ lineToAppend, hostsFilePath, onBefor
     const sudoPrompt = require("sudo-prompt")
     onBeforeExecCommand(updateHostsFileCommand)
     await new Promise((resolve, reject) => {
-      sudoPrompt.exec(updateHostsFileCommand, { name: "append hosts" }, (error, stdout, stderr) => {
-        if (error) {
-          reject(error)
-        } else if (typeof stderr === "string" && stderr.trim().length > 0) {
-          reject(stderr)
-        } else {
-          resolve(stdout)
-        }
-      })
+      sudoPrompt.exec(
+        updateHostsFileCommand,
+        { name: "append hosts" },
+        (error, stdout, stderr) => {
+          if (error) {
+            reject(error)
+          } else if (typeof stderr === "string" && stderr.trim().length > 0) {
+            reject(stderr)
+          } else {
+            resolve(stdout)
+          }
+        },
+      )
     })
     return
   }

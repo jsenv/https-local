@@ -33,7 +33,9 @@ export const createAuthorityRootCertificate = async ({
   rootCertificateForgeObject.publicKey = rootCertificatePublicKeyForgeObject
   rootCertificateForgeObject.serialNumber = serialNumber.toString(16)
   rootCertificateForgeObject.validity.notBefore = new Date()
-  rootCertificateForgeObject.validity.notAfter = new Date(Date.now() + validityDurationInMs)
+  rootCertificateForgeObject.validity.notAfter = new Date(
+    Date.now() + validityDurationInMs,
+  )
   rootCertificateForgeObject.setSubject(
     attributeArrayFromAttributeDescription({
       commonName,
@@ -109,7 +111,9 @@ export const requestCertificateFromAuthority = async ({
     )
   }
   if (typeof serialNumber !== "number") {
-    throw new TypeError(`serialNumber must be a number but received ${serialNumber}`)
+    throw new TypeError(
+      `serialNumber must be a number but received ${serialNumber}`,
+    )
   }
 
   const forge = await importNodeForge()
@@ -122,16 +126,23 @@ export const requestCertificateFromAuthority = async ({
   certificateForgeObject.publicKey = certificatePublicKeyForgeObject
   certificateForgeObject.serialNumber = serialNumber.toString(16)
   certificateForgeObject.validity.notBefore = new Date()
-  certificateForgeObject.validity.notAfter = new Date(Date.now() + validityDurationInMs)
+  certificateForgeObject.validity.notAfter = new Date(
+    Date.now() + validityDurationInMs,
+  )
 
   const attributeDescription = {
-    ...attributeDescriptionFromAttributeArray(authorityCertificateForgeObject.subject.attributes),
+    ...attributeDescriptionFromAttributeArray(
+      authorityCertificateForgeObject.subject.attributes,
+    ),
     commonName,
     // organizationName: serverCertificateOrganizationName
   }
-  const attributeArray = attributeArrayFromAttributeDescription(attributeDescription)
+  const attributeArray =
+    attributeArrayFromAttributeDescription(attributeDescription)
   certificateForgeObject.setSubject(attributeArray)
-  certificateForgeObject.setIssuer(authorityCertificateForgeObject.subject.attributes)
+  certificateForgeObject.setIssuer(
+    authorityCertificateForgeObject.subject.attributes,
+  )
   certificateForgeObject.setExtensions(
     extensionArrayFromExtensionDescription({
       basicConstraints: {
@@ -159,7 +170,10 @@ export const requestCertificateFromAuthority = async ({
       },
     }),
   )
-  certificateForgeObject.sign(auhtorityCertificatePrivateKeyForgeObject, forge.sha256.create())
+  certificateForgeObject.sign(
+    auhtorityCertificatePrivateKeyForgeObject,
+    forge.sha256.create(),
+  )
 
   return {
     certificateForgeObject,

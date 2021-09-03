@@ -1,7 +1,14 @@
 import { assert } from "@jsenv/assert"
 
-import { installCertificateAuthority, uninstallCertificateAuthority } from "@jsenv/https-local"
-import { infoSign, okSign, failureSign } from "@jsenv/https-local/src/internal/logs.js"
+import {
+  installCertificateAuthority,
+  uninstallCertificateAuthority,
+} from "@jsenv/https-local"
+import {
+  infoSign,
+  okSign,
+  failureSign,
+} from "@jsenv/https-local/src/internal/logs.js"
 import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
 
 await uninstallCertificateAuthority({
@@ -17,7 +24,11 @@ const loggerForTest = createLoggerForTest({
 const secondCallReturnValue = await installCertificateAuthority({
   logger: loggerForTest,
 })
-const secondCallLogs = loggerForTest.getLogs({ info: true, warn: true, error: true })
+const secondCallLogs = loggerForTest.getLogs({
+  info: true,
+  warn: true,
+  error: true,
+})
 const sameCertificate =
   firstCallReturnValue.rootCertificate === secondCallReturnValue.rootCertificate
 

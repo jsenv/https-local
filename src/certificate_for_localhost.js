@@ -41,8 +41,11 @@ export const requestCertificateForLocalhost = async ({
     )
   }
 
-  const { authorityJsonFileInfo, rootCertificateFileInfo, rootCertificatePrivateKeyFileInfo } =
-    getAuthorityFileInfos()
+  const {
+    authorityJsonFileInfo,
+    rootCertificateFileInfo,
+    rootCertificatePrivateKeyFileInfo,
+  } = getAuthorityFileInfos()
   if (!rootCertificateFileInfo.exists) {
     throw new Error(
       `Certificate authority not found, "installCertificateAuthority" must be called before "requestCertificateForLocalhost"`,
@@ -57,16 +60,26 @@ export const requestCertificateForLocalhost = async ({
 
   logger.debug(`Restoring certificate authority from filesystem...`)
   const { pki } = await importNodeForge()
-  const rootCertificate = await readFile(rootCertificateFileInfo.url, { as: "string" })
-  const rootCertificatePrivateKey = await readFile(rootCertificatePrivateKeyFileInfo.url, {
+  const rootCertificate = await readFile(rootCertificateFileInfo.url, {
     as: "string",
   })
-  const certificateAuthorityData = await readFile(authorityJsonFileInfo.url, { as: "json" })
+  const rootCertificatePrivateKey = await readFile(
+    rootCertificatePrivateKeyFileInfo.url,
+    {
+      as: "string",
+    },
+  )
+  const certificateAuthorityData = await readFile(authorityJsonFileInfo.url, {
+    as: "json",
+  })
   const rootCertificateForgeObject = pki.certificateFromPem(rootCertificate)
-  const rootCertificatePrivateKeyForgeObject = pki.privateKeyFromPem(rootCertificatePrivateKey)
+  const rootCertificatePrivateKeyForgeObject = pki.privateKeyFromPem(
+    rootCertificatePrivateKey,
+  )
   logger.debug(`${okSign} certificate authority restored from filesystem`)
 
-  const serverCertificateSerialNumber = certificateAuthorityData.serialNumber + 1
+  const serverCertificateSerialNumber =
+    certificateAuthorityData.serialNumber + 1
   await writeFile(
     authorityJsonFileInfo.url,
     JSON.stringify({ serialNumber: serverCertificateSerialNumber }, null, "  "),
@@ -81,14 +94,17 @@ export const requestCertificateForLocalhost = async ({
     await requestCertificateFromAuthority({
       logger,
       authorityCertificateForgeObject: rootCertificateForgeObject,
-      auhtorityCertificatePrivateKeyForgeObject: rootCertificatePrivateKeyForgeObject,
+      auhtorityCertificatePrivateKeyForgeObject:
+        rootCertificatePrivateKeyForgeObject,
       serialNumber: serverCertificateSerialNumber,
       altNames: serverCertificateAltNames,
       commonName: serverCertificateCommonName,
       validityDurationInMs: serverCertificateValidityDurationInMs,
     })
   const serverCertificate = pki.certificateToPem(certificateForgeObject)
-  const serverCertificatePrivateKey = pki.privateKeyToPem(certificatePrivateKeyForgeObject)
+  const serverCertificatePrivateKey = pki.privateKeyToPem(
+    certificatePrivateKeyForgeObject,
+  )
   logger.debug(
     `${okSign} server certificate generated, it will be valid for ${formatDuration(
       serverCertificateValidityDurationInMs,

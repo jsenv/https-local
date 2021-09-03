@@ -6,17 +6,31 @@
 import { createDetailedMessage } from "@jsenv/logger"
 import { urlToFileSystemPath } from "@jsenv/filesystem"
 
-import { commandSign, okSign, infoSign, failureSign } from "@jsenv/https-local/src/internal/logs.js"
+import {
+  commandSign,
+  okSign,
+  infoSign,
+  failureSign,
+} from "@jsenv/https-local/src/internal/logs.js"
 import { exec } from "@jsenv/https-local/src/internal/exec.js"
-import { VERB_CHECK_TRUST, VERB_ADD_TRUST, VERB_REMOVE_TRUST } from "../trust_query.js"
+import {
+  VERB_CHECK_TRUST,
+  VERB_ADD_TRUST,
+  VERB_REMOVE_TRUST,
+} from "../trust_query.js"
 
-const REASON_NEW_AND_TRY_TO_TRUST_DISABLED = "certificate is new and tryToTrust is disabled"
+const REASON_NEW_AND_TRY_TO_TRUST_DISABLED =
+  "certificate is new and tryToTrust is disabled"
 const REASON_NOT_FOUND_IN_WINDOWS = "not found in windows store"
 const REASON_FOUND_IN_WINDOWS = "found in windows store"
-const REASON_ADD_COMMAND_FAILED = "command to add certificate to windows store failed"
-const REASON_ADD_COMMAND_COMPLETED = "command to add certificate to windows store completed"
-const REASON_DELETE_COMMAND_FAILED = "command to remove certificate from windows store failed"
-const REASON_DELETE_COMMAND_COMPLETED = "command to remove certificate from windows store completed"
+const REASON_ADD_COMMAND_FAILED =
+  "command to add certificate to windows store failed"
+const REASON_ADD_COMMAND_COMPLETED =
+  "command to add certificate to windows store completed"
+const REASON_DELETE_COMMAND_FAILED =
+  "command to remove certificate from windows store failed"
+const REASON_DELETE_COMMAND_COMPLETED =
+  "command to remove certificate from windows store completed"
 
 export const executeTrustQueryOnWindows = async ({
   logger,
@@ -44,7 +58,9 @@ export const executeTrustQueryOnWindows = async ({
 
   // it's not super accurate and do not take into account if the cert is different
   // but it's the best I could do with certutil command on windows
-  const certificateInStore = certutilListCommandOutput.includes(certificateCommonName)
+  const certificateInStore = certutilListCommandOutput.includes(
+    certificateCommonName,
+  )
   if (!certificateInStore) {
     logger.info(`${infoSign} certificate not found in windows`)
     if (verb === VERB_CHECK_TRUST || verb === VERB_REMOVE_TRUST) {
@@ -67,10 +83,13 @@ export const executeTrustQueryOnWindows = async ({
       }
     } catch (e) {
       logger.error(
-        createDetailedMessage(`${failureSign} Failed to add certificate to windows`, {
-          "error stack": e.stack,
-          "certificate file": certificateFilePath,
-        }),
+        createDetailedMessage(
+          `${failureSign} Failed to add certificate to windows`,
+          {
+            "error stack": e.stack,
+            "certificate file": certificateFilePath,
+          },
+        ),
       )
       return {
         status: "not_trusted",
@@ -100,10 +119,13 @@ export const executeTrustQueryOnWindows = async ({
     }
   } catch (e) {
     logger.error(
-      createDetailedMessage(`${failureSign} failed to remove certificate from windows`, {
-        "error stack": e.stack,
-        "certificate file": certificateFilePath,
-      }),
+      createDetailedMessage(
+        `${failureSign} failed to remove certificate from windows`,
+        {
+          "error stack": e.stack,
+          "certificate file": certificateFilePath,
+        },
+      ),
     )
     return {
       status: "unknown", // maybe it was not trusted?

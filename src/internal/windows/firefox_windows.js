@@ -58,16 +58,18 @@ const detectFirefox = memoize(({ logger }) => {
     `${process.env.ProgramFiles}\\Mozilla Firefox\\firefox.exe`,
     `${process.env["ProgramFiles(x86)"]}\\Mozilla Firefox\\firefox.exe`,
   ]
-  const someExecutableFound = executableCandidates.some((firefoxExecutablePathCandidate) => {
-    if (existsSync(firefoxExecutablePathCandidate)) {
-      return true
-    }
-    try {
-      which.sync(firefoxExecutablePathCandidate)
-      return true
-    } catch (e) {}
-    return false
-  })
+  const someExecutableFound = executableCandidates.some(
+    (firefoxExecutablePathCandidate) => {
+      if (existsSync(firefoxExecutablePathCandidate)) {
+        return true
+      }
+      try {
+        which.sync(firefoxExecutablePathCandidate)
+        return true
+      } catch (e) {}
+      return false
+    },
+  )
   if (someExecutableFound) {
     logger.debug(`${okSign} Firefox detected`)
     return true

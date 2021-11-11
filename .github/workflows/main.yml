@@ -17,19 +17,19 @@
 name: main
 
 on:
-  pull_request:
-    branches:
-      - "**"
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - "**"
 
 jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-latest, windows-latest]
-        node: [14.17.0]
+        os: [ubuntu-20.04, macos-10.15, windows-2019]
+        node: [16.13.0]
     runs-on: ${{ matrix.os }}
     name: test on ${{ matrix.os }} and node ${{ matrix.node }}
     env:
@@ -39,30 +39,30 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
-      - name: npm install
+      - name: NPM installation
         run: npm install
-      - name: install playwright
-        run: npm run install-playwright
       - name: check lint
         run: npm run eslint-check
       - name: check tests
         run: npm run test-with-coverage
       - name: upload coverage
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        if: env.CODECOV_TOKEN != null
-        run: node ./script/test/upload_coverage.mjs
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          # see "coverageJsonFileRelativeUrl" in script/test/test.mjs
+          files: ./coverage/coverage.json
+          verbose: true
 
   release:
     needs: [test]
     if: success() && github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     name: release
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: "16.6.x"
+          node-version: "16.13.0"
       - name: npm install
         run: npm install
       - name: publish package
@@ -71,6 +71,6 @@ jobs:
         if: env.NPM_TOKEN != null
         run: node ./.github/workflows/main/publish_package.mjs
       - name: ensure github release
-        run: node ./.github/workflows/main/github_release.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node ./.github/workflows/main/github_release.mjs

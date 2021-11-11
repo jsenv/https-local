@@ -3,17 +3,23 @@
  * See https://github.com/jsenv/jsenv-core/blob/master/docs/testing/readme.md#jsenv-test-runner
  */
 
-import { executeTestPlan, launchNode } from "@jsenv/core"
+import { executeTestPlan, nodeRuntime } from "@jsenv/core"
 
-import * as jsenvConfig from "../../jsenv.config.mjs"
+import { projectDirectoryUrl } from "../../jsenv.config.mjs"
 
-executeTestPlan({
-  ...jsenvConfig,
+await executeTestPlan({
+  projectDirectoryUrl,
   testPlan: {
     "test/**/*.test.mjs": {
       node: {
-        launch: launchNode,
+        runtime: nodeRuntime,
       },
     },
+  },
+  coverage: process.argv.includes("--coverage"),
+  coverageJsonFileRelativeUrl: "coverage/coverage.json",
+  coverageConfig: {
+    "./main.js": true,
+    "./src/**/*.js": true,
   },
 })

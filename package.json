@@ -1,6 +1,6 @@
 {
   "name": "@jsenv/https-local",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A programmatic way to generate locally trusted certificates",
   "license": "MIT",
   "author": {
@@ -19,6 +19,7 @@
     "access": "public"
   },
   "type": "module",
+  "main": "./main.js",
   "exports": {
     ".": {
       "import": "./main.js"
@@ -32,7 +33,7 @@
   "scripts": {
     "eslint-check": "node ./node_modules/eslint/bin/eslint.js .",
     "generate-importmap": "node ./script/importmap/generate_importmap.mjs",
-    "measure-performances": "node ./script/performance/generate_performance_report.mjs --local",
+    "measure-performances": "node --expose-gc ./script/performance/generate_performance_report.mjs --log",
     "start-node-server": "node ./script/certificate/start_node_server.mjs",
     "log-root-certificate-trust": "node ./script/certificate/log_root_certificate_trust.mjs",
     "trust-root-certificate": "node ./script/certificate/trust_root_certificate.mjs",
@@ -53,7 +54,7 @@
     "postpublish": "node ./script/publish/restore_postinstall.mjs"
   },
   "dependencies": {
-    "@jsenv/filesystem": "2.1.1",
+    "@jsenv/filesystem": "2.5.1",
     "@jsenv/logger": "4.0.1",
     "command-exists": "1.2.9",
     "is-unicode-supported": "1.1.0",
@@ -63,19 +64,18 @@
     "which": "2.0.2"
   },
   "devDependencies": {
-    "@jsenv/assert": "2.3.0",
-    "@jsenv/codecov-upload": "3.5.0",
-    "@jsenv/core": "19.6.2",
-    "@jsenv/eslint-config": "15.0.2",
+    "@jsenv/assert": "2.3.2",
+    "@jsenv/core": "23.6.2",
+    "@jsenv/eslint-config": "16.0.9",
     "@jsenv/github-release-package": "1.2.3",
-    "@jsenv/importmap-eslint-resolver": "5.1.0",
-    "@jsenv/importmap-node-module": "1.0.1",
+    "@jsenv/importmap-eslint-resolver": "5.1.2",
+    "@jsenv/importmap-node-module": "2.5.0",
     "@jsenv/package-publish": "1.6.2",
-    "@jsenv/performance-impact": "1.7.0",
+    "@jsenv/performance-impact": "2.2.1",
     "@jsenv/prettier-check-project": "5.6.1",
-    "eslint": "7.32.0",
-    "eslint-plugin-import": "2.24.0",
-    "playwright": "1.14.0",
-    "prettier": "2.3.2"
+    "eslint": "8.2.0",
+    "eslint-plugin-import": "2.25.3",
+    "playwright": "1.16.3",
+    "prettier": "2.4.1"
   }
 }

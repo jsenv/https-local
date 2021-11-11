@@ -48,7 +48,7 @@
     "prettier-format": "node ./script/prettier/prettier_format.mjs",
     "prettier-format-stage": "npm run prettier-format -- --staged",
     "prettier-check": "npm run prettier-format -- --dry-run",
-    "install-playwright": "npx playwright install-deps && npx playwright install",
+    "playwright-install": "npx playwright install-deps && npx playwright install",
     "postinstall": "npm run generate-importmap",
     "prepublishOnly": "node ./script/publish/remove_postinstall.mjs",
     "postpublish": "node ./script/publish/restore_postinstall.mjs"

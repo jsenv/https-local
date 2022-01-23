@@ -4,5 +4,6 @@ const require = createRequire(import.meta.url)
 
 export const commandExists = async (command) => {
   const { sync } = require("command-exists")
-  return sync(command)
+  const exists = sync(command)
+  return exists
 }

@@ -38,7 +38,7 @@ export const getCertutilBinPath = memoize(async () => {
 
 export const getNSSDynamicInstallInfo = () => {
   return {
-    isInstallable: commandExists("brew"),
+    nssIsInstallable: commandExists("brew"),
     nssNotInstallableReason: `"brew" is not available`,
     nssInstallFixSuggestion: `install "brew" on this mac`,
     installNss: async ({ logger }) => {

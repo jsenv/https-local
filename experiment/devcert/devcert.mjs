@@ -3,10 +3,13 @@ import { startServerForTest } from "../../test/test_helpers.mjs"
 
 const require = createRequire(import.meta.url)
 
+// eslint-disable-next-line import/no-unresolved
 const devcert = require("devcert")
 
 await devcert.uninstall()
-const { key, cert } = await devcert.certificateFor(["localhost", "toto"], { getCaPath: true })
+const { key, cert } = await devcert.certificateFor(["localhost", "toto"], {
+  getCaPath: true,
+})
 
 const serverOrigin = await startServerForTest({
   port: 5556,

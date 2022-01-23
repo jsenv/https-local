@@ -13,21 +13,22 @@
 
 import { importMetricFromFiles } from "@jsenv/performance-impact"
 
-const { packageImportMetrics, packageTarballMetrics } = await importMetricFromFiles({
-  directoryUrl: new URL("./", import.meta.url),
-  metricsDescriptions: {
-    packageImportMetrics: {
-      file: "./measure_package_import.mjs#packageImportMetrics",
-      iterations: process.argv.includes("--once") ? 1 : 7,
-      msToWaitBetweenEachIteration: 500,
+const { packageImportMetrics, packageTarballMetrics } =
+  await importMetricFromFiles({
+    directoryUrl: new URL("./", import.meta.url),
+    metricsDescriptions: {
+      packageImportMetrics: {
+        file: "./measure_package_import.mjs#packageImportMetrics",
+        iterations: process.argv.includes("--once") ? 1 : 7,
+        msToWaitBetweenEachIteration: 500,
+      },
+      packageTarballMetrics: {
+        file: "./measure_package_tarball.mjs#packageTarballmetrics",
+        iterations: 1,
+      },
     },
-    packageTarballMetrics: {
-      file: "./measure_package_tarball.mjs#packageTarballmetrics",
-      iterations: 1,
-    },
-  },
-  logLevel: process.argv.includes("--log") ? "info" : "warn",
-})
+    logLevel: process.argv.includes("--log") ? "info" : "warn",
+  })
 
 export const performanceReport = {
   "package metrics": {

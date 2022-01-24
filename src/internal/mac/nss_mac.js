@@ -6,7 +6,11 @@ import {
 
 import { memoize } from "@jsenv/https-local/src/internal/memoize.js"
 import { exec } from "@jsenv/https-local/src/internal/exec.js"
-import { infoSign, okSign } from "@jsenv/https-local/src/internal/logs.js"
+import {
+  infoSign,
+  okSign,
+  commandSign,
+} from "@jsenv/https-local/src/internal/logs.js"
 import { commandExists } from "@jsenv/https-local/src/internal/command.js"
 
 export const nssCommandName = "nss"
@@ -46,7 +50,7 @@ export const getNSSDynamicInstallInfo = () => {
       logger.info(
         `"nss" is not installed, trying to install "nss" via Homebrew`,
       )
-      logger.info(`> ${brewInstallCommand}`)
+      logger.info(`${commandSign} ${brewInstallCommand}`)
       await exec(brewInstallCommand)
     },
   }

@@ -64,19 +64,15 @@ export const executeTrustQueryOnBrowserNSSDB = async ({
   const cannotCheckMessage = `${failureSign} cannot check if certificate is in ${browserName}`
   if (!nssIsInstalled) {
     if (verb === VERB_ADD_TRUST) {
-      const {
-        nssIsInstallable,
-        nssNotInstallableReason,
-        nssInstallFixSuggestion,
-        nssInstall,
-      } = await getNSSDynamicInstallInfo({ logger })
-      if (!nssIsInstallable) {
+      const nssDynamicInstallInfo = await getNSSDynamicInstallInfo({ logger })
+      if (!nssDynamicInstallInfo.isInstallable) {
         const reason = `"${nssCommandName}" is not installed and not cannot be installed`
         logger.warn(
           createDetailedMessage(cannotCheckMessage, {
             reason,
-            "reason it cannot be installed": nssNotInstallableReason,
-            "suggested solution": nssInstallFixSuggestion,
+            "reason it cannot be installed":
+              nssDynamicInstallInfo.notInstallableReason,
+            "suggested solution": nssDynamicInstallInfo.suggestion,
           }),
         )
         return {
@@ -100,7 +96,7 @@ export const executeTrustQueryOnBrowserNSSDB = async ({
       }
 
       try {
-        await nssInstall()
+        await nssDynamicInstallInfo.install()
       } catch (e) {
         logger.error(
           createDetailedMessage(cannotCheckMessage, {

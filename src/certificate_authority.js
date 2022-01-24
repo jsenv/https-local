@@ -1,7 +1,5 @@
-/* eslint-disable import/max-dependencies */
-
-import { createLogger, createDetailedMessage } from "@jsenv/logger"
 import { readFile, writeFile, removeFileSystemNode } from "@jsenv/filesystem"
+import { createLogger, createDetailedMessage } from "@jsenv/logger"
 
 import { infoSign, okSign } from "./internal/logs.js"
 import { getAuthorityFileInfos } from "./internal/authority_file_infos.js"

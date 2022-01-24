@@ -9,40 +9,13 @@
       "program": "${file}",
       "runtimeArgs": [
         "--unhandled-rejections=strict",
-        "--experimental-json-modules",
-        "--experimental-top-level-await"
+        "--experimental-json-modules"
       ],
+      "console": "integratedTerminal",
       "autoAttachChildProcesses": true,
       "sourceMaps": true,
       "smartStep": true,
-      "skipFiles": [
-        "node_modules/**",
-        "node_modules/@babel/template/**",
-        "node_modules/@rollup/**",
-        "<node_internals>/**"
-      ]
-    },
-    {
-      "name": "node (prod)",
-      "type": "node",
-      "request": "launch",
-      "protocol": "inspector",
-      "program": "${file}",
-      "runtimeArgs": [
-        "--conditions=production",
-        "--unhandled-rejections=strict",
-        "--experimental-json-modules",
-        "--experimental-top-level-await"
-      ],
-      "autoAttachChildProcesses": true,
-      "sourceMaps": true,
-      "smartStep": true,
-      "skipFiles": [
-        "node_modules/**",
-        "node_modules/@babel/template/**",
-        "node_modules/@rollup/**",
-        "<node_internals>/**"
-      ]
+      "skipFiles": ["node_modules/**", "<node_internals>/**"]
     }
   ]
 }

@@ -96,7 +96,7 @@ export const executeTrustQueryOnBrowserNSSDB = async ({
       }
 
       try {
-        await nssDynamicInstallInfo.install()
+        await nssDynamicInstallInfo.install({ logger })
       } catch (e) {
         logger.error(
           createDetailedMessage(cannotCheckMessage, {

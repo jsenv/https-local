@@ -1,10 +1,10 @@
 import { requestCertificateForLocalhost } from "@jsenv/https-local"
 import {
-  resetAllCertificateFiles,
+  // resetAllCertificateFiles,
   startServerForTest,
 } from "@jsenv/https-local/test/test_helpers.mjs"
 
-await resetAllCertificateFiles()
+// await resetAllCertificateFiles()
 const { serverCertificate, serverPrivateKey } =
   await requestCertificateForLocalhost({
     logLevel: "debug",

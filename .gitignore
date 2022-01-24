@@ -44,3 +44,5 @@
 # that must not be published by git.
 # Please don't yell at me for doing this.
 /secrets.json
+
+.DS_STORE

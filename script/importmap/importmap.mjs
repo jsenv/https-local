@@ -13,9 +13,9 @@ await writeImportMapFiles({
   projectDirectoryUrl,
   importMapFiles: {
     "./node_resolution.importmap": {
+      runtime: "node",
       mappingsForNodeResolution: true,
       mappingsForDevDependencies: true,
-      runtime: "node",
       useForJsConfigJSON: true,
     },
   },

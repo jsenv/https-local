@@ -1,12 +1,6 @@
-# https local
+# https local [![npm package](https://img.shields.io/npm/v/@jsenv/https-local.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/https-local) [![github main](https://github.com/jsenv/https-local/workflows/main/badge.svg)](https://github.com/jsenv/https-local/actions?workflow=main) [![codecov coverage](https://codecov.io/gh/jsenv/https-local/branch/main/graph/badge.svg)](https://codecov.io/gh/jsenv/https-local)
 
-A programmatic way to generate locally trusted certificates
-
-[![npm package](https://img.shields.io/npm/v/@jsenv/https-local.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/https-local)
-[![github main](https://github.com/jsenv/https-local/workflows/main/badge.svg)](https://github.com/jsenv/https-local/actions?workflow=main)
-[![codecov coverage](https://codecov.io/gh/jsenv/https-local/branch/main/graph/badge.svg)](https://codecov.io/gh/jsenv/https-local)
-
-# Presentation
+A programmatic way to generate locally trusted certificates.
 
 Generate certificate(s) trusted by your operating system and browsers.
 This certificate can be used to start your development server in HTTPS.
@@ -106,13 +100,14 @@ The rest of the documentation goes into details.
 
 # Certificate expiration
 
-The server certificate expires after one year which is the maximum duration allowed by web browsers.
+| Certificate | Expires after | How to renew?                           |
+| ----------- | ------------- | --------------------------------------- |
+| server      | 1 year        | Re-run _requestCertificateForLocalhost_ |
+| authority   | 20 year       | Re-run _installCertificateAuthority_    |
 
-In the unlikely scenario where your local server is running for more than a year without interruption, restart it and you're good for one more year.
+The **server** certificate expires after one year which is the maximum duration allowed by web browsers. In the unlikely scenario where your local server is running for more than a year without interruption, restart it and you're good for one more year.
 
-The authority root certificate expires after 20 years which is close to the maximum allowed duration.
-
-In the very unlikely scenario where you are using the same machine for more than 20 years, re-execute [installCertificateAuthority](#installCertificateAuthority) to update certificate authority then restart your server.
+The **authority** root certificate expires after 20 years which is close to the maximum allowed duration. In the very unlikely scenario where you are using the same machine for more than 20 years, re-execute [installCertificateAuthority](#installCertificateAuthority) to update certificate authority then restart your server.
 
 # installCertificateAuthority
 
@@ -125,10 +120,7 @@ import { installCertificateAuthority } from "@jsenv/https-local"
 await installCertificateAuthority()
 ```
 
-By default, trusting authority root certificate is a manual process.
-This manual process is documented in [BenMorel/dev-certificates#Import the CA in your browser](https://github.com/BenMorel/dev-certificates/tree/c10cd68945da772f31815b7a36721ddf848ff3a3#import-the-ca-in-your-browser).
-
-Trusting the root certificate can also be done programmatically as explained in [Auto trust](#Auto-trust).
+By default, trusting authority root certificate is a manual process. This manual process is documented in [BenMorel/dev-certificates#Import the CA in your browser](https://github.com/BenMorel/dev-certificates/tree/c10cd68945da772f31815b7a36721ddf848ff3a3#import-the-ca-in-your-browser). This process can be done programmatically as explained in [Auto trust](#Auto-trust).
 
 Find below logs written in terminal when this function is executed.
 

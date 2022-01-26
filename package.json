@@ -31,7 +31,7 @@
     "/main.js"
   ],
   "scripts": {
-    "eslint": "node ./node_modules/eslint/bin/eslint.js . --ext=.js,.mjs",
+    "eslint": "npx eslint . --ext=.js,.mjs",
     "importmap": "node ./script/importmap/importmap.mjs",
     "performances": "node --expose-gc ./script/performance/generate_performance_report.mjs --log",
     "test": "node ./script/test/test.mjs",

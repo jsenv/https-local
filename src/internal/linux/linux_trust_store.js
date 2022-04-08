@@ -149,6 +149,7 @@ const getCertificateStatus = async ({ certificate }) => {
   }
   const certificateInLinuxStore = await readFile(
     JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH,
+    { as: "string" },
   )
   if (certificateInLinuxStore !== certificate) {
     return "outdated"

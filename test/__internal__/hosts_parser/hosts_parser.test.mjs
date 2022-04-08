@@ -5,6 +5,7 @@ import { parseHosts } from "@jsenv/https-local/src/internal/hosts.js"
 
 const hostsAContent = await readFile(
   new URL("./hosts_files/hosts", import.meta.url),
+  { as: "string" },
 )
 const hostsA = parseHosts(hostsAContent)
 
@@ -37,6 +38,7 @@ const hostsA = parseHosts(hostsAContent)
   const actual = hostsA.asFileContent()
   const expected = await readFile(
     new URL("./hosts_files/hosts_after_removing_loopback", import.meta.url),
+    { as: "string" },
   )
   assert({ actual, expected })
 }
@@ -47,6 +49,7 @@ const hostsA = parseHosts(hostsAContent)
   const actual = hostsA.asFileContent()
   const expected = await readFile(
     new URL("./hosts_files/hosts_after_adding_example", import.meta.url),
+    { as: "string" },
   )
   assert({ actual, expected })
 }

@@ -1,4 +1,4 @@
-import { readFile, writeFile, removeFileSystemNode } from "@jsenv/filesystem"
+import { readFile, writeFile, removeEntry } from "@jsenv/filesystem"
 import { createLogger, createDetailedMessage } from "@jsenv/logger"
 
 import { infoSign, okSign } from "./internal/logs.js"
@@ -346,7 +346,7 @@ export const uninstallCertificateAuthority = async ({
     logger.info(`Removing certificate authority files...`)
     await Promise.all(
       filesToRemove.map(async (file) => {
-        await removeFileSystemNode(file)
+        await removeEntry(file)
       }),
     )
     logger.info(`${okSign} certificate authority files removed from filesystem`)

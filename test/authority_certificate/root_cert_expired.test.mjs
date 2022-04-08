@@ -1,10 +1,10 @@
 import { assert } from "@jsenv/assert"
+import { UNICODE } from "@jsenv/log"
 
 import {
   installCertificateAuthority,
   uninstallCertificateAuthority,
 } from "@jsenv/https-local"
-import { okSign, infoSign } from "@jsenv/https-local/src/internal/logs.js"
 import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
 
 await uninstallCertificateAuthority({
@@ -34,24 +34,24 @@ const { rootCertificateFilePath } = await installCertificateAuthority({
   const actual = { infos, warns, errors }
   const expected = {
     infos: [
-      `${okSign} authority root certificate found in filesystem`,
+      `${UNICODE.OK} authority root certificate found in filesystem`,
       `Checking certificate validity...`,
       assert.matchesRegExp(/certificate expired \d seconds ago/),
       `Generating authority root certificate with a validity of 1 second...`,
-      `${okSign} authority root certificate written at ${rootCertificateFilePath}`,
+      `${UNICODE.OK} authority root certificate written at ${rootCertificateFilePath}`,
       ...{
         darwin: [
-          `${infoSign} You should add certificate to mac keychain`,
-          `${infoSign} You should add certificate to firefox`,
+          `${UNICODE.INFO} You should add certificate to mac keychain`,
+          `${UNICODE.INFO} You should add certificate to firefox`,
         ],
         win32: [
-          `${infoSign} You should add certificate to windows`,
-          `${infoSign} You should add certificate to firefox`,
+          `${UNICODE.INFO} You should add certificate to windows`,
+          `${UNICODE.INFO} You should add certificate to firefox`,
         ],
         linux: [
-          `${infoSign} You should add certificate to linux`,
-          `${infoSign} You should add certificate to chrome`,
-          `${infoSign} You should add certificate to firefox`,
+          `${UNICODE.INFO} You should add certificate to linux`,
+          `${UNICODE.INFO} You should add certificate to chrome`,
+          `${UNICODE.INFO} You should add certificate to firefox`,
         ],
       }[process.platform],
     ],

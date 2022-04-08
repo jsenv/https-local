@@ -1,6 +1,6 @@
 import { createDetailedMessage, createLogger } from "@jsenv/logger"
+import { UNICODE } from "@jsenv/log"
 
-import { okSign, infoSign, warningSign, commandSign } from "./internal/logs.js"
 import {
   HOSTS_FILE_PATH,
   readHostsFile,
@@ -38,7 +38,7 @@ export const verifyHostsFile = async ({
   })
   const missingMappingCount = missingMappings.length
   if (missingMappingCount === 0) {
-    logger.info(`${okSign} all ip mappings found in hosts file`)
+    logger.info(`${UNICODE.OK} all ip mappings found in hosts file`)
     return
   }
 
@@ -50,7 +50,9 @@ export const verifyHostsFile = async ({
       .join(EOL)
     logger.warn(
       createDetailedMessage(
-        `${warningSign} ${formatXMappingMissingMessage(missingMappingCount)}`,
+        `${UNICODE.WARNING} ${formatXMappingMissingMessage(
+          missingMappingCount,
+        )}`,
         {
           "hosts file path": hostsFilePath,
           "line(s) to add": linesToAdd,
@@ -61,7 +63,7 @@ export const verifyHostsFile = async ({
   }
 
   logger.info(
-    `${infoSign} ${formatXMappingMissingMessage(missingMappingCount)}`,
+    `${UNICODE.INFO} ${formatXMappingMissingMessage(missingMappingCount)}`,
   )
   await missingMappings.reduce(async (previous, { ip, missingHostnames }) => {
     await previous
@@ -71,10 +73,10 @@ export const verifyHostsFile = async ({
     await writeLineInHostsFile(mapping, {
       hostsFilePath,
       onBeforeExecCommand: (command) => {
-        logger.info(`${commandSign} ${command}`)
+        logger.info(`${UNICODE.COMMAND} ${command}`)
       },
     })
-    logger.info(`${okSign} mapping added`)
+    logger.info(`${UNICODE.OK} mapping added`)
   }, Promise.resolve())
 }
 

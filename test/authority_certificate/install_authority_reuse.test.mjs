@@ -1,14 +1,10 @@
 import { assert } from "@jsenv/assert"
+import { UNICODE } from "@jsenv/log"
 
 import {
   installCertificateAuthority,
   uninstallCertificateAuthority,
 } from "@jsenv/https-local"
-import {
-  infoSign,
-  okSign,
-  failureSign,
-} from "@jsenv/https-local/src/internal/logs.js"
 import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
 
 await uninstallCertificateAuthority({
@@ -100,35 +96,35 @@ const expected = {
   },
   secondCallLogs: {
     infos: [
-      `${okSign} authority root certificate found in filesystem`,
+      `${UNICODE.OK} authority root certificate found in filesystem`,
       `Checking certificate validity...`,
-      `${okSign} certificate still valid for 20 years`,
+      `${UNICODE.OK} certificate still valid for 20 years`,
       `Detect if certificate attributes have changed...`,
-      `${okSign} certificate attributes are the same`,
+      `${UNICODE.OK} certificate attributes are the same`,
       ...{
         darwin: [
           "Check if certificate is in mac keychain...",
-          `${infoSign} certificate not found in mac keychain`,
+          `${UNICODE.INFO} certificate not found in mac keychain`,
           "Check if certificate is in firefox...",
-          `${failureSign} cannot check if certificate is in firefox
+          `${UNICODE.FAILURE} cannot check if certificate is in firefox
 --- reason ---
 "nss" is not installed`,
         ],
         win32: [
           "Check if certificate is in windows...",
-          `${infoSign} certificate not found in windows`,
+          `${UNICODE.INFO} certificate not found in windows`,
           "Check if certificate is in firefox...",
-          `${infoSign} cannot check if certificate is in firefox (not implemented on windows)`,
+          `${UNICODE.INFO} cannot check if certificate is in firefox (not implemented on windows)`,
         ],
         linux: [
           "Check if certificate is in linux...",
-          `${infoSign} certificate not in linux`,
+          `${UNICODE.INFO} certificate not in linux`,
           "Check if certificate is in chrome...",
-          `${failureSign} cannot check if certificate is in chrome
+          `${UNICODE.FAILURE} cannot check if certificate is in chrome
 --- reason ---
 "libnss3-tools" is not installed`,
           "Check if certificate is in firefox...",
-          `${failureSign} cannot check if certificate is in firefox
+          `${UNICODE.FAILURE} cannot check if certificate is in firefox
 --- reason ---
 "libnss3-tools" is not installed`,
         ],

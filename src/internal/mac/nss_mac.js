@@ -3,14 +3,10 @@ import {
   resolveUrl,
   urlToFileSystemPath,
 } from "@jsenv/filesystem"
+import { UNICODE } from "@jsenv/log"
 
 import { memoize } from "@jsenv/https-local/src/internal/memoize.js"
 import { exec } from "@jsenv/https-local/src/internal/exec.js"
-import {
-  infoSign,
-  okSign,
-  commandSign,
-} from "@jsenv/https-local/src/internal/logs.js"
 import { commandExists } from "@jsenv/https-local/src/internal/command.js"
 
 export const nssCommandName = "nss"
@@ -21,10 +17,10 @@ export const detectIfNSSIsInstalled = async ({ logger }) => {
 
   try {
     await exec(brewListCommand)
-    logger.debug(`${okSign} nss is installed`)
+    logger.debug(`${UNICODE.OK} nss is installed`)
     return true
   } catch (e) {
-    logger.debug(`${infoSign} nss not installed`)
+    logger.debug(`${UNICODE.INFO} nss not installed`)
     return false
   }
 }
@@ -50,7 +46,7 @@ export const getNSSDynamicInstallInfo = () => {
       logger.info(
         `"nss" is not installed, trying to install "nss" via Homebrew`,
       )
-      logger.info(`${commandSign} ${brewInstallCommand}`)
+      logger.info(`${UNICODE.COMMAND} ${brewInstallCommand}`)
       await exec(brewInstallCommand)
     },
   }

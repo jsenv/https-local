@@ -1,7 +1,7 @@
 import { createRequire } from "node:module"
 import { existsSync } from "node:fs"
+import { UNICODE } from "@jsenv/log"
 
-import { okSign, infoSign } from "@jsenv/https-local/src/internal/logs.js"
 import { memoize } from "@jsenv/https-local/src/internal/memoize.js"
 
 const require = createRequire(import.meta.url)
@@ -30,7 +30,7 @@ const detectChrome = memoize(({ logger }) => {
   logger.debug(`Detecting Chrome...`)
 
   if (process.env.CHROME_BIN && which.sync(process.env.CHROME_BIN)) {
-    logger.debug(`${okSign} Chrome detected`)
+    logger.debug(`${UNICODE.OK} Chrome detected`)
     return true
   }
 
@@ -53,10 +53,10 @@ const detectChrome = memoize(({ logger }) => {
     },
   )
   if (someExecutableFound) {
-    logger.debug(`${okSign} Chrome detected`)
+    logger.debug(`${UNICODE.OK} Chrome detected`)
     return true
   }
 
-  logger.debug(`${infoSign} Chrome detected`)
+  logger.debug(`${UNICODE.OK} Chrome detected`)
   return false
 })

@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs"
+import { UNICODE } from "@jsenv/log"
 
-import { okSign, infoSign } from "@jsenv/https-local/src/internal/logs.js"
 import { memoize } from "@jsenv/https-local/src/internal/memoize.js"
 
 const REASON_CHROME_NOT_DETECTED = `Chrome not detected`
@@ -25,10 +25,10 @@ const detectChrome = memoize(({ logger }) => {
   const chromeDetected = existsSync("/Applications/Google Chrome.app")
 
   if (chromeDetected) {
-    logger.debug(`${okSign} Chrome detected`)
+    logger.debug(`${UNICODE.OK} Chrome detected`)
     return true
   }
 
-  logger.debug(`${infoSign} Chrome not detected`)
+  logger.debug(`${UNICODE.INFO} Chrome not detected`)
   return false
 })

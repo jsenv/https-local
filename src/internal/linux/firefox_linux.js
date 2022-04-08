@@ -1,12 +1,8 @@
 import { existsSync } from "node:fs"
 import { execSync } from "node:child_process"
 import { resolveUrl, assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
+import { UNICODE } from "@jsenv/log"
 
-import {
-  okSign,
-  infoSign,
-  warningSign,
-} from "@jsenv/https-local/src/internal/logs.js"
 import {
   nssCommandName,
   detectIfNSSIsInstalled,
@@ -45,11 +41,11 @@ export const executeTrustQueryOnFirefox = ({
       const firefoxBinFileExists = existsSync("/usr/bin/firefox")
 
       if (firefoxBinFileExists) {
-        logger.debug(`${okSign} Firefox detected`)
+        logger.debug(`${UNICODE.OK} Firefox detected`)
         return true
       }
 
-      logger.debug(`${infoSign} Firefox not detected`)
+      logger.debug(`${UNICODE.INFO} Firefox not detected`)
       return false
     },
     browserNSSDBDirectoryUrl: resolveUrl(
@@ -62,14 +58,14 @@ export const executeTrustQueryOnFirefox = ({
       }
 
       logger.warn(
-        `${warningSign} waiting for you to close Firefox before resuming...`,
+        `${UNICODE.WARNING} waiting for you to close Firefox before resuming...`,
       )
       const next = async () => {
         await new Promise((resolve) => setTimeout(resolve, 50))
         if (isFirefoxOpen()) {
           await next()
         } else {
-          logger.info(`${okSign} Firefox closed, resuming`)
+          logger.info(`${UNICODE.OK} Firefox closed, resuming`)
           // wait 50ms more to ensure firefox has time to cleanup
           // othrwise sometimes there is an SEC_ERROR_REUSED_ISSUER_AND_SERIAL error
           // because we updated nss database file while firefox is not fully closed

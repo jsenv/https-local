@@ -5,13 +5,8 @@
 import { existsSync } from "node:fs"
 import { createDetailedMessage } from "@jsenv/logger"
 import { readFile, urlToFileSystemPath } from "@jsenv/filesystem"
+import { UNICODE } from "@jsenv/log"
 
-import {
-  commandSign,
-  okSign,
-  infoSign,
-  failureSign,
-} from "@jsenv/https-local/src/internal/logs.js"
 import { exec } from "@jsenv/https-local/src/internal/exec.js"
 import {
   VERB_CHECK_TRUST,
@@ -44,7 +39,7 @@ export const executeTrustQueryOnLinux = async ({
   verb,
 }) => {
   if (verb === VERB_CHECK_TRUST && certificateIsNew) {
-    logger.info(`${infoSign} You should add certificate to linux`)
+    logger.info(`${UNICODE.INFO} You should add certificate to linux`)
     return {
       status: "not_trusted",
       reason: REASON_NEW_AND_TRY_TO_TRUST_DISABLED,
@@ -60,9 +55,9 @@ export const executeTrustQueryOnLinux = async ({
 
   if (certificateStatus === "missing" || certificateStatus === "outdated") {
     if (certificateStatus === "missing") {
-      logger.info(`${infoSign} certificate not in linux`)
+      logger.info(`${UNICODE.INFO} certificate not in linux`)
     } else {
-      logger.info(`${infoSign} certificate in linux is outdated`)
+      logger.info(`${UNICODE.INFO} certificate in linux is outdated`)
     }
     if (verb === VERB_CHECK_TRUST || verb === VERB_REMOVE_TRUST) {
       return {
@@ -78,11 +73,11 @@ export const executeTrustQueryOnLinux = async ({
     const updateCertificateCommand = `sudo update-ca-certificates`
     logger.info(`Adding certificate to linux...`)
     try {
-      logger.info(`${commandSign} ${copyCertificateCommand}`)
+      logger.info(`${UNICODE.COMMAND} ${copyCertificateCommand}`)
       await exec(copyCertificateCommand)
-      logger.info(`${commandSign} ${updateCertificateCommand}`)
+      logger.info(`${UNICODE.COMMAND} ${updateCertificateCommand}`)
       await exec(updateCertificateCommand)
-      logger.info(`${okSign} certificate added to linux`)
+      logger.info(`${UNICODE.OK} certificate added to linux`)
       return {
         status: "trusted",
         reason: REASON_ADD_COMMAND_COMPLETED,
@@ -91,7 +86,7 @@ export const executeTrustQueryOnLinux = async ({
       console.error(e)
       logger.error(
         createDetailedMessage(
-          `${failureSign} failed to add certificate to linux`,
+          `${UNICODE.FAILURE} failed to add certificate to linux`,
           {
             "certificate file": certificateFilePath,
           },
@@ -104,7 +99,7 @@ export const executeTrustQueryOnLinux = async ({
     }
   }
 
-  logger.info(`${okSign} certificate found in linux`)
+  logger.info(`${UNICODE.OK} certificate found in linux`)
   if (verb === VERB_CHECK_TRUST || verb === VERB_ADD_TRUST) {
     return {
       status: "trusted",
@@ -116,11 +111,11 @@ export const executeTrustQueryOnLinux = async ({
   const removeCertificateCommand = `sudo rm ${JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH}`
   const updateCertificateCommand = `sudo update-ca-certificates`
   try {
-    logger.info(`${commandSign} ${removeCertificateCommand}`)
+    logger.info(`${UNICODE.COMMAND} ${removeCertificateCommand}`)
     await exec(removeCertificateCommand)
-    logger.info(`${commandSign} ${updateCertificateCommand}`)
+    logger.info(`${UNICODE.COMMAND} ${updateCertificateCommand}`)
     await exec(updateCertificateCommand)
-    logger.info(`${okSign} certificate removed from linux`)
+    logger.info(`${UNICODE.OK} certificate removed from linux`)
     return {
       status: "not_trusted",
       reason: REASON_REMOVE_COMMAND_COMPLETED,
@@ -128,7 +123,7 @@ export const executeTrustQueryOnLinux = async ({
   } catch (e) {
     logger.error(
       createDetailedMessage(
-        `${failureSign} failed to remove certificate from linux`,
+        `${UNICODE.FAILURE} failed to remove certificate from linux`,
         {
           "error stack": e.stack,
           "certificate file": JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH,

@@ -3,12 +3,7 @@
 import { urlToFileSystemPath } from "@jsenv/filesystem"
 import { createDetailedMessage } from "@jsenv/logger"
 
-import {
-  commandSign,
-  okSign,
-  infoSign,
-  failureSign,
-} from "@jsenv/https-local/src/internal/logs.js"
+import { UNICODE } from "@jsenv/log"
 import { exec } from "@jsenv/https-local/src/internal/exec.js"
 import { searchCertificateInCommandOutput } from "@jsenv/https-local/src/internal/search_certificate_in_command_output.js"
 import {
@@ -41,7 +36,7 @@ export const executeTrustQueryOnMacKeychain = async ({
   verb,
 }) => {
   if (verb === VERB_CHECK_TRUST && certificateIsNew) {
-    logger.info(`${infoSign} You should add certificate to mac keychain`)
+    logger.info(`${UNICODE.INFO} You should add certificate to mac keychain`)
     return {
       status: "not_trusted",
       reason: REASON_NEW_AND_TRY_TO_TRUST_DISABLED,
@@ -51,7 +46,7 @@ export const executeTrustQueryOnMacKeychain = async ({
   logger.info(`Check if certificate is in mac keychain...`)
   // https://ss64.com/osx/security-find-cert.html
   const findCertificateCommand = `security find-certificate -a -p ${systemKeychainPath}`
-  logger.debug(`${commandSign} ${findCertificateCommand}`)
+  logger.debug(`${UNICODE.COMMAND} ${findCertificateCommand}`)
   const findCertificateCommandOutput = await exec(findCertificateCommand)
   const certificateFoundInCommandOutput = searchCertificateInCommandOutput(
     findCertificateCommandOutput,
@@ -59,7 +54,7 @@ export const executeTrustQueryOnMacKeychain = async ({
   )
 
   if (!certificateFoundInCommandOutput) {
-    logger.info(`${infoSign} certificate not found in mac keychain`)
+    logger.info(`${UNICODE.INFO} certificate not found in mac keychain`)
     if (verb === VERB_CHECK_TRUST || verb === VERB_REMOVE_TRUST) {
       return {
         status: "not_trusted",
@@ -71,10 +66,10 @@ export const executeTrustQueryOnMacKeychain = async ({
     // https://ss64.com/osx/security-cert.html
     const addTrustedCertCommand = `sudo security add-trusted-cert -d -r trustRoot -k ${systemKeychainPath} "${certificateFilePath}"`
     logger.info(`Adding certificate to mac keychain...`)
-    logger.info(`${commandSign} ${addTrustedCertCommand}`)
+    logger.info(`${UNICODE.COMMAND} ${addTrustedCertCommand}`)
     try {
       await exec(addTrustedCertCommand)
-      logger.info(`${okSign} certificate added to mac keychain`)
+      logger.info(`${UNICODE.OK} certificate added to mac keychain`)
       return {
         status: "trusted",
         reason: REASON_ADD_TO_KEYCHAIN_COMMAND_COMPLETED,
@@ -82,7 +77,7 @@ export const executeTrustQueryOnMacKeychain = async ({
     } catch (e) {
       logger.error(
         createDetailedMessage(
-          `${failureSign} failed to add certificate to mac keychain`,
+          `${UNICODE.FAILURE} failed to add certificate to mac keychain`,
           {
             "error stack": e.stack,
             "certificate file": certificateFilePath,
@@ -100,7 +95,7 @@ export const executeTrustQueryOnMacKeychain = async ({
   // people can still manually untrust the root cert
   // but they shouldn't and I couldn't find an API to know if the cert is trusted or not
   // just if it's in the keychain
-  logger.info(`${okSign} certificate found in mac keychain`)
+  logger.info(`${UNICODE.OK} certificate found in mac keychain`)
   if (verb === VERB_CHECK_TRUST || verb === VERB_ADD_TRUST) {
     return {
       status: "trusted",
@@ -111,10 +106,10 @@ export const executeTrustQueryOnMacKeychain = async ({
   // https://ss64.com/osx/security-delete-cert.html
   const removeTrustedCertCommand = `sudo security delete-certificate -c "${certificateCommonName}"`
   logger.info(`Removing certificate from mac keychain...`)
-  logger.info(`${commandSign} ${removeTrustedCertCommand}`)
+  logger.info(`${UNICODE.COMMAND} ${removeTrustedCertCommand}`)
   try {
     await exec(removeTrustedCertCommand)
-    logger.info(`${okSign} certificate removed from mac keychain`)
+    logger.info(`${UNICODE.OK} certificate removed from mac keychain`)
     return {
       status: "not_trusted",
       reason: REASON_REMOVE_FROM_KEYCHAIN_COMMAND_COMPLETED,
@@ -122,7 +117,7 @@ export const executeTrustQueryOnMacKeychain = async ({
   } catch (e) {
     logger.error(
       createDetailedMessage(
-        `${failureSign} failed to remove certificate from mac keychain`,
+        `${UNICODE.FAILURE} failed to remove certificate from mac keychain`,
         {
           "error stack": e.stack,
           "certificate file url": certificateFileUrl,

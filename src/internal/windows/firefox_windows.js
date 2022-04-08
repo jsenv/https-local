@@ -5,8 +5,8 @@
 
 import { createRequire } from "node:module"
 import { existsSync } from "node:fs"
+import { UNICODE } from "@jsenv/log"
 
-import { okSign, infoSign } from "@jsenv/https-local/src/internal/logs.js"
 import { memoize } from "@jsenv/https-local/src/internal/memoize.js"
 
 const require = createRequire(import.meta.url)
@@ -26,7 +26,7 @@ export const executeTrustQueryOnFirefox = ({ logger, certificateIsNew }) => {
   }
 
   if (certificateIsNew) {
-    logger.info(`${infoSign} You should add certificate to firefox`)
+    logger.info(`${UNICODE.INFO} You should add certificate to firefox`)
     return {
       status: "not_trusted",
       reason: "certificate is new and tryToTrust is disabled",
@@ -35,7 +35,7 @@ export const executeTrustQueryOnFirefox = ({ logger, certificateIsNew }) => {
 
   logger.info(`Check if certificate is in firefox...`)
   logger.info(
-    `${infoSign} cannot check if certificate is in firefox (${REASON_NOT_IMPLEMENTED_ON_WINDOWS})`,
+    `${UNICODE.INFO} cannot check if certificate is in firefox (${REASON_NOT_IMPLEMENTED_ON_WINDOWS})`,
   )
   return {
     status: "unknown",
@@ -48,7 +48,7 @@ const detectFirefox = memoize(({ logger }) => {
   logger.debug(`Detecting Firefox...`)
 
   if (process.env.FIREFOX_BIN && which.sync(process.env.FIREFOX_BIN)) {
-    logger.debug(`${okSign} Firefox detected`)
+    logger.debug(`${UNICODE.OK} Firefox detected`)
     return true
   }
 
@@ -71,10 +71,10 @@ const detectFirefox = memoize(({ logger }) => {
     },
   )
   if (someExecutableFound) {
-    logger.debug(`${okSign} Firefox detected`)
+    logger.debug(`${UNICODE.OK} Firefox detected`)
     return true
   }
 
-  logger.debug(`${infoSign} Firefox detected`)
+  logger.debug(`${UNICODE.INFO} Firefox detected`)
   return false
 })

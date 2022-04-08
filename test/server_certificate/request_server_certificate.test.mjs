@@ -1,11 +1,11 @@
 import { assert } from "@jsenv/assert"
+import { UNICODE } from "@jsenv/log"
 
 import {
   installCertificateAuthority,
   uninstallCertificateAuthority,
   requestCertificateForLocalhost,
 } from "@jsenv/https-local"
-import { okSign } from "@jsenv/https-local/src/internal/logs.js"
 import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
 
 const loggerDuringTest = createLoggerForTest({
@@ -40,9 +40,9 @@ const returnValue = await requestCertificateForLocalhost({
   const expected = {
     debugs: [
       `Restoring certificate authority from filesystem...`,
-      `${okSign} certificate authority restored from filesystem`,
+      `${UNICODE.OK} certificate authority restored from filesystem`,
       "Generating server certificate...",
-      `${okSign} server certificate generated, it will be valid for 1 year`,
+      `${UNICODE.OK} server certificate generated, it will be valid for 1 year`,
     ],
     infos: [],
     warns: [],

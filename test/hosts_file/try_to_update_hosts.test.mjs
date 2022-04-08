@@ -1,12 +1,8 @@
 import { assert } from "@jsenv/assert"
 import { readFile, urlToFileSystemPath, writeFile } from "@jsenv/filesystem"
+import { UNICODE } from "@jsenv/log"
 
 import { verifyHostsFile } from "@jsenv/https-local"
-import {
-  infoSign,
-  commandSign,
-  okSign,
-} from "@jsenv/https-local/src/internal/logs.js"
 import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
 
 const hostFileUrl = new URL("./hosts", import.meta.url)
@@ -46,12 +42,12 @@ const hostsFilePath = urlToFileSystemPath(hostFileUrl)
         : `127.0.0.1 localhost\n127.0.0.1 jsenv\n`,
     infos: [
       `Check hosts file content...`,
-      `${infoSign} 1 mapping is missing in hosts file`,
+      `${UNICODE.INFO} 1 mapping is missing in hosts file`,
       `Append "127.0.0.1 jsenv" in host file...`,
       process.platform === "win32"
-        ? `${commandSign} (echo.& echo 127.0.0.1 jsenv) >> ${hostsFilePath}`
-        : `${commandSign} echo "\n127.0.0.1 jsenv" | tee -a ${hostsFilePath}`,
-      `${okSign} mapping added`,
+        ? `${UNICODE.COMMAND} (echo.& echo 127.0.0.1 jsenv) >> ${hostsFilePath}`
+        : `${UNICODE.COMMAND} echo "\n127.0.0.1 jsenv" | tee -a ${hostsFilePath}`,
+      `${UNICODE.OK} mapping added`,
     ],
     warns: [],
     errors: [],
@@ -108,7 +104,7 @@ const hostsFilePath = urlToFileSystemPath(hostFileUrl)
   const expected = {
     infos: [
       `Check hosts file content...`,
-      `${okSign} all ip mappings found in hosts file`,
+      `${UNICODE.OK} all ip mappings found in hosts file`,
     ],
     warns: [],
     errors: [],

@@ -5,13 +5,8 @@
 
 import { createDetailedMessage } from "@jsenv/logger"
 import { urlToFileSystemPath } from "@jsenv/filesystem"
+import { UNICODE } from "@jsenv/log"
 
-import {
-  commandSign,
-  okSign,
-  infoSign,
-  failureSign,
-} from "@jsenv/https-local/src/internal/logs.js"
 import { exec } from "@jsenv/https-local/src/internal/exec.js"
 import {
   VERB_CHECK_TRUST,
@@ -41,7 +36,7 @@ export const executeTrustQueryOnWindows = async ({
   verb,
 }) => {
   if (verb === VERB_CHECK_TRUST && certificateIsNew) {
-    logger.info(`${infoSign} You should add certificate to windows`)
+    logger.info(`${UNICODE.INFO} You should add certificate to windows`)
     return {
       status: "not_trusted",
       reason: REASON_NEW_AND_TRY_TO_TRUST_DISABLED,
@@ -52,7 +47,7 @@ export const executeTrustQueryOnWindows = async ({
   // https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil#-viewstore
   // TODO: check if -viewstore works better than -store
   const certutilListCommand = `certutil -store -user root`
-  logger.debug(`${commandSign} ${certutilListCommand}`)
+  logger.debug(`${UNICODE.COMMAND} ${certutilListCommand}`)
   const certutilListCommandOutput = await exec(certutilListCommand)
   const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
 
@@ -62,7 +57,7 @@ export const executeTrustQueryOnWindows = async ({
     certificateCommonName,
   )
   if (!certificateInStore) {
-    logger.info(`${infoSign} certificate not found in windows`)
+    logger.info(`${UNICODE.INFO} certificate not found in windows`)
     if (verb === VERB_CHECK_TRUST || verb === VERB_REMOVE_TRUST) {
       return {
         status: "not_trusted",
@@ -73,10 +68,10 @@ export const executeTrustQueryOnWindows = async ({
     // https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil#-addstore
     const certutilAddCommand = `certutil -addstore -user root ${certificateFilePath}`
     logger.info(`Adding certificate to windows...`)
-    logger.info(`${commandSign} ${certutilAddCommand}`)
+    logger.info(`${UNICODE.COMMAND} ${certutilAddCommand}`)
     try {
       await exec(certutilAddCommand)
-      logger.info(`${okSign} certificate added to windows`)
+      logger.info(`${UNICODE.OK} certificate added to windows`)
       return {
         status: "trusted",
         reason: REASON_ADD_COMMAND_COMPLETED,
@@ -84,7 +79,7 @@ export const executeTrustQueryOnWindows = async ({
     } catch (e) {
       logger.error(
         createDetailedMessage(
-          `${failureSign} Failed to add certificate to windows`,
+          `${UNICODE.FAILURE} Failed to add certificate to windows`,
           {
             "error stack": e.stack,
             "certificate file": certificateFilePath,
@@ -98,7 +93,7 @@ export const executeTrustQueryOnWindows = async ({
     }
   }
 
-  logger.info(`${okSign} certificate found in windows`)
+  logger.info(`${UNICODE.OK} certificate found in windows`)
   if (verb === VERB_CHECK_TRUST || verb === VERB_ADD_TRUST) {
     return {
       status: "trusted",
@@ -109,10 +104,10 @@ export const executeTrustQueryOnWindows = async ({
   // https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil#-delstore
   const certutilRemoveCommand = `certutil -delstore -user root "${certificateCommonName}"`
   logger.info(`Removing certificate from windows...`)
-  logger.info(`${commandSign} ${certutilRemoveCommand}`)
+  logger.info(`${UNICODE.COMMAND} ${certutilRemoveCommand}`)
   try {
     await exec(certutilRemoveCommand)
-    logger.info(`${okSign} certificate removed from windows`)
+    logger.info(`${UNICODE.OK} certificate removed from windows`)
     return {
       status: "not_trusted",
       reason: REASON_DELETE_COMMAND_COMPLETED,
@@ -120,7 +115,7 @@ export const executeTrustQueryOnWindows = async ({
   } catch (e) {
     logger.error(
       createDetailedMessage(
-        `${failureSign} failed to remove certificate from windows`,
+        `${UNICODE.FAILURE} failed to remove certificate from windows`,
         {
           "error stack": e.stack,
           "certificate file": certificateFilePath,

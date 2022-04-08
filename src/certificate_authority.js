@@ -1,7 +1,7 @@
-import { readFile, writeFile, removeFileSystemNode } from "@jsenv/filesystem"
+import { readFile, writeFile, removeEntry } from "@jsenv/filesystem"
 import { createLogger, createDetailedMessage } from "@jsenv/logger"
+import { UNICODE } from "@jsenv/log"
 
-import { infoSign, okSign } from "./internal/logs.js"
 import { getAuthorityFileInfos } from "./internal/authority_file_infos.js"
 import { attributeDescriptionFromAttributeArray } from "./internal/certificate_data_converter.js"
 import {
@@ -95,7 +95,7 @@ export const installCertificateAuthority = async ({
     )
 
     logger.info(
-      `${okSign} authority root certificate written at ${rootCertificateFileInfo.path}`,
+      `${UNICODE.OK} authority root certificate written at ${rootCertificateFileInfo.path}`,
     )
     return {
       rootCertificateForgeObject,
@@ -152,7 +152,7 @@ export const installCertificateAuthority = async ({
       `Authority root certificate is not on filesystem at ${rootCertificateFileInfo.path}`,
     )
     logger.info(
-      `${infoSign} authority root certificate not found in filesystem`,
+      `${UNICODE.INFO} authority root certificate not found in filesystem`,
     )
     return generate()
   }
@@ -161,14 +161,14 @@ export const installCertificateAuthority = async ({
       `Authority root certificate private key is not on filesystem at ${rootCertificatePrivateKeyFileInfo.path}`,
     )
     logger.info(
-      `${infoSign} authority root certificate not found in filesystem`,
+      `${UNICODE.INFO} authority root certificate not found in filesystem`,
     )
     return generate()
   }
   logger.debug(
     `found authority root certificate files at ${rootCertificateFileInfo.path} and ${rootCertificatePrivateKeyFileInfo.path}`,
   )
-  logger.info(`${okSign} authority root certificate found in filesystem`)
+  logger.info(`${UNICODE.OK} authority root certificate found in filesystem`)
 
   const rootCertificate = await readFile(rootCertificateFileInfo.path, {
     as: "string",
@@ -184,7 +184,7 @@ export const installCertificateAuthority = async ({
   )
   if (rootCertificateValidityRemainingMs < 0) {
     logger.info(
-      `${infoSign} certificate expired ${formatTimeDelta(
+      `${UNICODE.INFO} certificate expired ${formatTimeDelta(
         rootCertificateValidityRemainingMs,
       )}`,
     )
@@ -194,14 +194,14 @@ export const installCertificateAuthority = async ({
     rootCertificateValidityRemainingMs / rootCertificateValidityDurationInMs
   if (rootCertificateValidityRemainingRatio < aboutToExpireRatio) {
     logger.info(
-      `${infoSign} certificate will expire ${formatTimeDelta(
+      `${UNICODE.INFO} certificate will expire ${formatTimeDelta(
         rootCertificateValidityRemainingMs,
       )}`,
     )
     return regenerate()
   }
   logger.info(
-    `${okSign} certificate still valid for ${formatDuration(
+    `${UNICODE.OK} certificate still valid for ${formatDuration(
       rootCertificateValidityRemainingMs,
     )}`,
   )
@@ -217,11 +217,11 @@ export const installCertificateAuthority = async ({
   if (rootCertificateDifferences.length) {
     const paramNames = Object.keys(rootCertificateDifferences)
     logger.info(
-      `${infoSign} certificate attributes are outdated: ${paramNames}`,
+      `${UNICODE.INFO} certificate attributes are outdated: ${paramNames}`,
     )
     return regenerate()
   }
-  logger.info(`${okSign} certificate attributes are the same`)
+  logger.info(`${UNICODE.OK} certificate attributes are the same`)
 
   const rootCertificatePrivateKey = await readFile(
     rootCertificatePrivateKeyFileInfo.path,
@@ -346,10 +346,12 @@ export const uninstallCertificateAuthority = async ({
     logger.info(`Removing certificate authority files...`)
     await Promise.all(
       filesToRemove.map(async (file) => {
-        await removeFileSystemNode(file)
+        await removeEntry(file)
       }),
     )
-    logger.info(`${okSign} certificate authority files removed from filesystem`)
+    logger.info(
+      `${UNICODE.OK} certificate authority files removed from filesystem`,
+    )
   }
 }
 

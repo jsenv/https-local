@@ -1,4 +1,4 @@
-import { warningSign } from "@jsenv/https-local/src/internal/logs.js"
+import { UNICODE } from "@jsenv/log"
 
 const platformTrustInfo = {
   status: "unknown",
@@ -7,7 +7,7 @@ const platformTrustInfo = {
 
 export const executeTrustQuery = ({ logger }) => {
   logger.warn(
-    `${warningSign} platform not supported, cannot execute trust query`,
+    `${UNICODE.WARNING} platform not supported, cannot execute trust query`,
   )
   return {
     platform: platformTrustInfo,

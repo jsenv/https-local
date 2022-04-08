@@ -1,10 +1,10 @@
 import { assert } from "@jsenv/assert"
+import { UNICODE } from "@jsenv/log"
 
 import {
   installCertificateAuthority,
   uninstallCertificateAuthority,
 } from "@jsenv/https-local"
-import { infoSign, okSign } from "@jsenv/https-local/src/internal/logs.js"
 import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
 
 await uninstallCertificateAuthority({
@@ -45,22 +45,22 @@ const actual = {
 }
 const expected = {
   infos: [
-    `${infoSign} authority root certificate not found in filesystem`,
+    `${UNICODE.INFO} authority root certificate not found in filesystem`,
     `Generating authority root certificate with a validity of 20 years...`,
-    `${okSign} authority root certificate written at ${actual.rootCertificateFilePath}`,
+    `${UNICODE.OK} authority root certificate written at ${actual.rootCertificateFilePath}`,
     ...{
       darwin: [
-        `${infoSign} You should add certificate to mac keychain`,
-        `${infoSign} You should add certificate to firefox`,
+        `${UNICODE.INFO} You should add certificate to mac keychain`,
+        `${UNICODE.INFO} You should add certificate to firefox`,
       ],
       win32: [
-        `${infoSign} You should add certificate to windows`,
-        `${infoSign} You should add certificate to firefox`,
+        `${UNICODE.INFO} You should add certificate to windows`,
+        `${UNICODE.INFO} You should add certificate to firefox`,
       ],
       linux: [
-        `${infoSign} You should add certificate to linux`,
-        `${infoSign} You should add certificate to chrome`,
-        `${infoSign} You should add certificate to firefox`,
+        `${UNICODE.INFO} You should add certificate to linux`,
+        `${UNICODE.INFO} You should add certificate to chrome`,
+        `${UNICODE.INFO} You should add certificate to firefox`,
       ],
     }[process.platform],
   ],

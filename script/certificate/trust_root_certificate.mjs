@@ -11,7 +11,7 @@ await executeTrustQuery({
   logger: createLogger({ logLevel: "debug" }),
   certificateCommonName: jsenvParameters.certificateCommonName,
   certificateFileUrl: rootCertificateFileUrl,
-  certificate: await readFile(rootCertificateFileUrl),
+  certificate: await readFile(rootCertificateFileUrl, { as: "string" }),
   verb: "ADD_TRUST",
   NSSDynamicInstall: true,
 })

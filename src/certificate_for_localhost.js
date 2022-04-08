@@ -1,11 +1,11 @@
 import { readFile, writeFile } from "@jsenv/filesystem"
 import { createLogger, createDetailedMessage } from "@jsenv/logger"
+import { UNICODE } from "@jsenv/log"
 
 import {
   createValidityDurationOfXDays,
   verifyServerCertificateValidityDuration,
 } from "./validity_duration.js"
-import { okSign } from "./internal/logs.js"
 import { getAuthorityFileInfos } from "./internal/authority_file_infos.js"
 import { importNodeForge } from "./internal/forge.js"
 import { requestCertificateFromAuthority } from "./internal/certificate_generator.js"
@@ -76,7 +76,7 @@ export const requestCertificateForLocalhost = async ({
   const rootCertificatePrivateKeyForgeObject = pki.privateKeyFromPem(
     rootCertificatePrivateKey,
   )
-  logger.debug(`${okSign} certificate authority restored from filesystem`)
+  logger.debug(`${UNICODE.OK} certificate authority restored from filesystem`)
 
   const serverCertificateSerialNumber =
     certificateAuthorityData.serialNumber + 1
@@ -106,7 +106,9 @@ export const requestCertificateForLocalhost = async ({
     certificatePrivateKeyForgeObject,
   )
   logger.debug(
-    `${okSign} server certificate generated, it will be valid for ${formatDuration(
+    `${
+      UNICODE.OK
+    } server certificate generated, it will be valid for ${formatDuration(
       serverCertificateValidityDurationInMs,
     )}`,
   )

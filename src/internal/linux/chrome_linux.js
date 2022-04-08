@@ -2,11 +2,7 @@ import { existsSync } from "node:fs"
 import { execSync } from "node:child_process"
 import { resolveUrl, assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
 
-import {
-  okSign,
-  infoSign,
-  warningSign,
-} from "@jsenv/https-local/src/internal/logs.js"
+import { UNICODE } from "@jsenv/log"
 import {
   nssCommandName,
   detectIfNSSIsInstalled,
@@ -45,11 +41,11 @@ export const executeTrustQueryOnChrome = ({
       const chromeBinFileExists = existsSync("/usr/bin/google-chrome")
 
       if (chromeBinFileExists) {
-        logger.debug(`${okSign} Chrome detected`)
+        logger.debug(`${UNICODE.OK} Chrome detected`)
         return true
       }
 
-      logger.debug(`${infoSign} Chrome not detected`)
+      logger.debug(`${UNICODE.INFO} Chrome not detected`)
       return false
     },
     browserNSSDBDirectoryUrl: resolveUrl(
@@ -62,14 +58,14 @@ export const executeTrustQueryOnChrome = ({
       }
 
       logger.warn(
-        `${warningSign} waiting for you to close Chrome before resuming...`,
+        `${UNICODE.WARNING} waiting for you to close Chrome before resuming...`,
       )
       const next = async () => {
         await new Promise((resolve) => setTimeout(resolve, 50))
         if (isChromeOpen()) {
           await next()
         } else {
-          logger.info(`${okSign} Chrome closed, resuming`)
+          logger.info(`${UNICODE.OK} Chrome closed, resuming`)
           // wait 50ms more to ensure chrome has time to cleanup
           // othrwise sometimes there is an SEC_ERROR_REUSED_ISSUER_AND_SERIAL error
           // because we updated nss database file while chrome is not fully closed

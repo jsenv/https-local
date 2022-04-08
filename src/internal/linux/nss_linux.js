@@ -1,9 +1,6 @@
+import { UNICODE } from "@jsenv/log"
+
 import { memoize } from "@jsenv/https-local/src/internal/memoize.js"
-import {
-  commandSign,
-  infoSign,
-  okSign,
-} from "@jsenv/https-local/src/internal/logs.js"
 import { exec } from "@jsenv/https-local/src/internal/exec.js"
 
 export const nssCommandName = "libnss3-tools"
@@ -12,15 +9,15 @@ export const detectIfNSSIsInstalled = memoize(async ({ logger }) => {
   logger.debug(`Detect if nss installed....`)
 
   const aptCommand = `apt list libnss3-tools --installed`
-  logger.debug(`${commandSign} ${aptCommand}`)
+  logger.debug(`${UNICODE.COMMAND} ${aptCommand}`)
   const aptCommandOutput = await exec(aptCommand)
 
   if (aptCommandOutput.includes("libnss3-tools")) {
-    logger.debug(`${okSign} libnss3-tools is installed`)
+    logger.debug(`${UNICODE.OK} libnss3-tools is installed`)
     return true
   }
 
-  logger.debug(`${infoSign} libnss3-tools not installed`)
+  logger.debug(`${UNICODE.INFO} libnss3-tools not installed`)
   return false
 })
 
@@ -34,7 +31,7 @@ export const getNSSDynamicInstallInfo = ({ logger }) => {
       logger.info(
         `"libnss3-tools" is not installed, trying to install "libnss3-tools"`,
       )
-      logger.info(`${commandSign} ${aptInstallCommand}`)
+      logger.info(`${UNICODE.COMMAND} ${aptInstallCommand}`)
       await exec(aptInstallCommand)
     },
   }

@@ -1,5 +1,4 @@
 import { existsSync } from "node:fs"
-
 import { urlToFileSystemPath } from "@jsenv/filesystem"
 
 import { getCertificateAuthorityFileUrls } from "./certificate_authority_file_urls.js"

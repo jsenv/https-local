@@ -29,7 +29,7 @@ const appendToHostsFileOnWindows = async ({
   hostsFilePath,
   onBeforeExecCommand,
 }) => {
-  const hostsFileContent = await readFile(hostsFilePath)
+  const hostsFileContent = await readFile(hostsFilePath, { as: "string" })
   const echoCommand =
     hostsFileContent.length > 0 && !hostsFileContent.endsWith("\r\n")
       ? `(echo.& echo ${lineToAppend})`
@@ -68,7 +68,7 @@ const appendToHostsFileOnLinuxOrMac = async ({
   hostsFilePath,
   onBeforeExecCommand,
 }) => {
-  const hostsFileContent = await readFile(hostsFilePath)
+  const hostsFileContent = await readFile(hostsFilePath, { as: "string" })
   const echoCommand =
     hostsFileContent.length > 0 && !hostsFileContent.endsWith("\n")
       ? `echo "\n${lineToAppend}"`

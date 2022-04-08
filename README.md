@@ -1,4 +1,4 @@
-# https local [![npm package](https://img.shields.io/npm/v/@jsenv/https-local.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/https-local) [![github main](https://github.com/jsenv/https-local/workflows/main/badge.svg)](https://github.com/jsenv/https-local/actions?workflow=main) [![codecov coverage](https://codecov.io/gh/jsenv/https-local/branch/main/graph/badge.svg)](https://codecov.io/gh/jsenv/https-local)
+# https local [![npm package](https://img.shields.io/npm/v/@jsenv/https-local.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/https-local)
 
 A programmatic way to generate locally trusted certificates.
 

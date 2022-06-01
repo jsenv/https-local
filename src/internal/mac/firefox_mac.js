@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs"
 import { execSync } from "node:child_process"
 import { resolveUrl, assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
-import { UNICODE } from "@jsenv/log"
+import { UNICODE, createTaskLog } from "@jsenv/log"
 
 import { executeTrustQueryOnBrowserNSSDB } from "../nssdb_browser.js"
 import {
@@ -57,14 +57,15 @@ export const executeTrustQueryOnFirefox = ({
       }
 
       logger.warn(
-        `${UNICODE.WARNING} waiting for you to close firefox before resuming...`,
+        `${UNICODE.WARNING} firefox is running, it must be stopped before resuming...`,
       )
+      const closeFirefoxTask = createTaskLog("waiting for firefox to close")
       const next = async () => {
         await new Promise((resolve) => setTimeout(resolve, 50))
         if (isFirefoxOpen()) {
           await next()
         } else {
-          logger.info(`${UNICODE.OK} firefox closed, resuming`)
+          closeFirefoxTask.done()
           // wait 50ms more to ensure firefox has time to cleanup
           // othrwise sometimes there is an SEC_ERROR_REUSED_ISSUER_AND_SERIAL error
           // because we updated nss database file while firefox is not fully closed

@@ -5,7 +5,6 @@
       "name": "node",
       "type": "node",
       "request": "launch",
-      "protocol": "inspector",
       "program": "${file}",
       "runtimeArgs": [
         "--unhandled-rejections=strict",

@@ -1,6 +1,7 @@
 {
   "search.exclude": {
-    "**/.jsenv/**": true
+    "**/.jsenv/**": true,
+    "./package-lock.json": true
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode"
 }

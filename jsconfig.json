@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "/*": ["./*"],
+      "@jsenv/https-local/*": ["./*"]
+    }
+  }
+}

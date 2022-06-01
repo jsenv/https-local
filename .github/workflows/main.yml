@@ -43,8 +43,6 @@ jobs:
         run: npm install
       - name: Playwright installation
         run: npm run playwright-install
-      - name: Generate importmap
-        run: npm run importmap
       - name: Run ESLint
         run: npm run eslint
       - name: Run tests
@@ -53,7 +51,7 @@ jobs:
         uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          # see "coverageJsonFileRelativeUrl" in script/test/test.mjs
+          # see "coverageJsonFileRelativeUrl" in scripts/test/test.mjs
           files: ./coverage/coverage.json
           verbose: true
 

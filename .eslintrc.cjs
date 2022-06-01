@@ -15,9 +15,10 @@ const {
 const eslintConfig = composeEslintConfig(
   eslintConfigBase,
 
+  // enable top level await
   {
     parserOptions: {
-      ecmaVersion: 2022, // top level await
+      ecmaVersion: 2022,
     },
   },
 
@@ -45,12 +46,10 @@ const eslintConfig = composeEslintConfig(
     plugins: ["import"],
     settings: {
       "import/resolver": {
-        // Tell ESLint to use the importmap to resolve imports.
-        // Read more in https://github.com/jsenv/importmap-node-module#Configure-vscode-and-eslint-for-importmap
-        "@jsenv/importmap-eslint-resolver": {
-          projectDirectoryUrl: __dirname,
-          importMapFileRelativeUrl: "./node_resolution.importmap",
-          node: true,
+        "@jsenv/eslint-import-resolver": {
+          rootDirectoryUrl: __dirname,
+          // logLevel: "debug",
+          packageConditions: ["node", "import"],
         },
       },
       "import/extensions": [".js", ".mjs"],
@@ -81,11 +80,13 @@ const eslintConfig = composeEslintConfig(
           require: true,
           exports: true,
         },
-
         // inside *.cjs files, use commonjs module resolution
         settings: {
           "import/resolver": {
-            node: {},
+            "@jsenv/eslint-import-resolver": {
+              rootDirectoryUrl: __dirname,
+              packageConditions: ["node", "require"],
+            },
           },
         },
       },

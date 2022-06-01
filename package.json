@@ -12,11 +12,11 @@
     "type": "git",
     "url": "https://github.com/jsenv/https-local"
   },
-  "engines": {
-    "node": ">=16.13.0"
-  },
   "publishConfig": {
     "access": "public"
+  },
+  "engines": {
+    "node": ">=16.13.0"
   },
   "type": "module",
   "exports": {
@@ -31,9 +31,7 @@
     "/main.js"
   ],
   "scripts": {
-    "eslint": "npx eslint . --ext=.js,.mjs",
-    "importmap": "node ./script/importmap/importmap.mjs",
-    "performances": "node --expose-gc ./script/performance/generate_performance_report.mjs --log",
+    "eslint": "npx eslint . --ext=.js,.mjs,.cjs",
     "test": "node ./script/test/test.mjs",
     "test-with-coverage": "npm run test -- --coverage",
     "start-node-server": "node ./script/certificate/start_node_server.mjs",
@@ -49,8 +47,9 @@
     "playwright-install": "npx playwright install-deps && npx playwright install"
   },
   "dependencies": {
-    "@jsenv/filesystem": "3.1.0",
-    "@jsenv/log": "1.5.1",
+    "@jsenv/eslint-import-resolver": "0.1.7",
+    "@jsenv/filesystem": "3.2.2",
+    "@jsenv/log": "1.6.0",
     "@jsenv/logger": "4.0.1",
     "command-exists": "1.2.9",
     "node-forge": "1.3.1",
@@ -58,17 +57,17 @@
     "which": "2.0.2"
   },
   "devDependencies": {
-    "@jsenv/assert": "2.5.3",
-    "@jsenv/core": "26.0.1",
+    "@jsenv/assert": "2.5.4",
+    "@jsenv/core": "27.0.0-alpha.61",
     "@jsenv/eslint-config": "16.0.9",
-    "@jsenv/github-release-package": "1.3.5",
+    "@jsenv/github-release-package": "1.4.0",
     "@jsenv/importmap-eslint-resolver": "5.2.5",
     "@jsenv/importmap-node-module": "5.1.3",
-    "@jsenv/package-publish": "1.7.2",
-    "@jsenv/performance-impact": "2.2.8",
-    "eslint": "8.12.0",
+    "@jsenv/package-publish": "1.7.4",
+    "@jsenv/performance-impact": "2.2.11",
+    "eslint": "8.16.0",
     "eslint-plugin-import": "2.26.0",
-    "playwright": "1.20.2",
+    "playwright": "1.22.2",
     "prettier": "2.6.2"
   }
 }

@@ -3,16 +3,14 @@
  * See https://github.com/jsenv/jsenv-core/blob/master/docs/testing/readme.md#jsenv-test-runner
  */
 
-import { executeTestPlan, nodeRuntime } from "@jsenv/core"
-
-import { projectDirectoryUrl } from "../../jsenv.config.mjs"
+import { executeTestPlan, nodeProcess } from "@jsenv/core"
 
 await executeTestPlan({
-  projectDirectoryUrl,
+  rootDirectoryUrl: new URL("../../", import.meta.url),
   testPlan: {
     "test/**/*.test.mjs": {
       node: {
-        runtime: nodeRuntime,
+        runtime: nodeProcess,
       },
     },
   },

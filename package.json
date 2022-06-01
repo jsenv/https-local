@@ -33,6 +33,7 @@
   "scripts": {
     "eslint": "npx eslint . --ext=.js,.mjs,.cjs",
     "test": "node ./scripts/test/test.mjs",
+    "performance": "node --expose-gc ./scripts/performance/performance.mjs  --local --log",
     "test-with-coverage": "npm run test -- --coverage",
     "start-node-server": "node ./scripts/certificate/start_node_server.mjs",
     "log-root-certificate-trust": "node ./scripts/certificate/log_root_certificate_trust.mjs",

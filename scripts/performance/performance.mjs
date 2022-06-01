@@ -19,7 +19,7 @@ const { packageImportMetrics, packageTarballMetrics } =
     metricsDescriptions: {
       packageImportMetrics: {
         file: "./measure_package_import.mjs#packageImportMetrics",
-        iterations: process.argv.includes("--once") ? 1 : 7,
+        iterations: process.argv.includes("--local") ? 1 : 7,
         msToWaitBetweenEachIteration: 500,
       },
       packageTarballMetrics: {

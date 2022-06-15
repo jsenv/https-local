@@ -4,14 +4,10 @@
  */
 
 import { existsSync } from "node:fs"
+import { fileURLToPath } from "node:url"
 import { createDetailedMessage } from "@jsenv/logger"
-import {
-  assertAndNormalizeDirectoryUrl,
-  collectFiles,
-  resolveUrl,
-  urlToFilename,
-  urlToFileSystemPath,
-} from "@jsenv/filesystem"
+import { urlToFilename } from "@jsenv/urls"
+import { assertAndNormalizeDirectoryUrl, collectFiles } from "@jsenv/filesystem"
 import { UNICODE } from "@jsenv/log"
 
 import { exec } from "@jsenv/https-local/src/internal/exec.js"
@@ -131,7 +127,7 @@ export const executeTrustQueryOnBrowserNSSDB = async ({
     }
   }
 
-  const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
+  const certificateFilePath = fileURLToPath(certificateFileUrl)
   const certutilBinPath = await getCertutilBinPath()
 
   const checkNSSDB = async ({ NSSDBFileUrl }) => {
@@ -288,7 +284,7 @@ const findNSSDBFiles = async ({ logger, NSSDBDirectoryUrl }) => {
   }
 
   logger.debug(`Searching nss database files in directory...`)
-  const NSSDBDirectoryPath = urlToFileSystemPath(NSSDBDirectoryUrl)
+  const NSSDBDirectoryPath = fileURLToPath(NSSDBDirectoryUrl)
   const NSSDBDirectoryExists = existsSync(NSSDBDirectoryPath)
   if (!NSSDBDirectoryExists) {
     logger.info(
@@ -300,13 +296,9 @@ const findNSSDBFiles = async ({ logger, NSSDBDirectoryUrl }) => {
   NSSDBDirectoryUrl = assertAndNormalizeDirectoryUrl(NSSDBDirectoryUrl)
   const NSSDBFiles = await collectFiles({
     directoryUrl: NSSDBDirectoryUrl,
-    structuredMetaMap: {
-      isLegacyNSSDB: {
-        "./**/cert8.db": true,
-      },
-      isModernNSSDB: {
-        "./**/cert9.db": true,
-      },
+    associations: {
+      isLegacyNSSDB: { "./**/cert8.db": true },
+      isModernNSSDB: { "./**/cert9.db": true },
     },
     predicate: ({ isLegacyNSSDB, isModernNSSDB }) =>
       isLegacyNSSDB || isModernNSSDB,
@@ -324,7 +316,7 @@ const findNSSDBFiles = async ({ logger, NSSDBDirectoryUrl }) => {
     `${UNICODE.OK} found ${fileCount} nss database file in ${NSSDBDirectoryUrl}`,
   )
   const files = NSSDBFiles.map((file) => {
-    return resolveUrl(file.relativeUrl, NSSDBDirectoryUrl)
+    return new URL(file.relativeUrl, NSSDBDirectoryUrl).href
   })
   NSSDirectoryCache[NSSDBDirectoryUrl] = files
   return files
@@ -332,8 +324,8 @@ const findNSSDBFiles = async ({ logger, NSSDBDirectoryUrl }) => {
 
 const getDirectoryArgFromNSSDBFileUrl = (NSSDBFileUrl) => {
   const nssDBFilename = urlToFilename(NSSDBFileUrl)
-  const nssDBDirectoryUrl = resolveUrl("./", NSSDBFileUrl)
-  const nssDBDirectoryPath = urlToFileSystemPath(nssDBDirectoryUrl)
+  const nssDBDirectoryUrl = new URL("./", NSSDBFileUrl).href
+  const nssDBDirectoryPath = fileURLToPath(nssDBDirectoryUrl)
   return nssDBFilename === "cert8.db"
     ? `"${nssDBDirectoryPath}"`
     : `sql:"${nssDBDirectoryPath}"`

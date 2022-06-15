@@ -1,8 +1,5 @@
-import {
-  assertAndNormalizeDirectoryUrl,
-  resolveUrl,
-  urlToFilename,
-} from "@jsenv/filesystem"
+import { urlToFilename } from "@jsenv/urls"
+import { assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
 
 export const getCertificateAuthorityFileUrls = () => {
   // we need a directory common to every instance of @jsenv/https-local
@@ -20,10 +17,10 @@ export const getCertificateAuthorityFileUrls = () => {
     applicationDirectoryUrl,
   )
 
-  const rootCertificatePrivateKeyFileUrl = resolveUrl(
+  const rootCertificatePrivateKeyFileUrl = new URL(
     "./https_local_root_certificate.key",
     applicationDirectoryUrl,
-  )
+  ).href
 
   return {
     certificateAuthorityJsonFileUrl,
@@ -37,18 +34,19 @@ export const getRootCertificateSymlinkUrls = ({
   rootPrivateKeyFileUrl,
   serverCertificateFileUrl,
 }) => {
-  const serverCertificateDirectory = resolveUrl("./", serverCertificateFileUrl)
+  const serverCertificateDirectory = new URL("./", serverCertificateFileUrl)
+    .href
 
   const rootCertificateFilename = urlToFilename(rootCertificateFileUrl)
-  const rootCertificateSymlinkUrl = resolveUrl(
+  const rootCertificateSymlinkUrl = new URL(
     rootCertificateFilename,
     serverCertificateDirectory,
-  )
+  ).href
   const rootPrivateKeyFilename = urlToFilename(rootPrivateKeyFileUrl)
-  const rootPrivateKeySymlinkUrl = resolveUrl(
+  const rootPrivateKeySymlinkUrl = new URL(
     rootPrivateKeyFilename,
     serverCertificateDirectory,
-  )
+  ).href
 
   return {
     rootCertificateSymlinkUrl,
@@ -61,37 +59,37 @@ const getJsenvApplicationDirectoryUrl = () => {
   const { platform } = process
 
   if (platform === "darwin") {
-    return resolveUrl(
+    return new URL(
       `./Library/Application Support/https_local/`,
       assertAndNormalizeDirectoryUrl(process.env.HOME),
-    )
+    ).href
   }
 
   if (platform === "linux") {
     if (process.env.XDG_CONFIG_HOME) {
-      return resolveUrl(
+      return new URL(
         `./https_local/`,
         assertAndNormalizeDirectoryUrl(process.env.XDG_CONFIG_HOME),
-      )
+      ).href
     }
-    return resolveUrl(
+    return new URL(
       `./.config/https_local/`,
       assertAndNormalizeDirectoryUrl(process.env.HOME),
-    )
+    ).href
   }
 
   if (platform === "win32") {
     if (process.env.LOCALAPPDATA) {
-      return resolveUrl(
+      return new URL(
         `./https_local/`,
         assertAndNormalizeDirectoryUrl(process.env.LOCALAPPDATA),
-      )
+      ).href
     }
 
-    return resolveUrl(
+    return new URL(
       `./Local Settings/Application Data/https_local/`,
       assertAndNormalizeDirectoryUrl(process.env.USERPROFILE),
-    )
+    ).href
   }
 
   throw new Error(`platform not supported`)

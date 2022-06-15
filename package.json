@@ -1,6 +1,6 @@
 {
   "name": "@jsenv/https-local",
-  "version": "1.0.11",
+  "version": "1.1.0",
   "description": "A programmatic way to generate locally trusted certificates",
   "license": "MIT",
   "author": {
@@ -48,10 +48,10 @@
     "playwright-install": "npx playwright install-deps && npx playwright install"
   },
   "dependencies": {
-    "@jsenv/eslint-import-resolver": "0.1.7",
-    "@jsenv/filesystem": "3.2.2",
-    "@jsenv/log": "1.6.0",
-    "@jsenv/logger": "4.0.1",
+    "@jsenv/filesystem": "4.0.2",
+    "@jsenv/log": "1.6.3",
+    "@jsenv/logger": "4.1.1",
+    "@jsenv/urls": "1.1.2",
     "command-exists": "1.2.9",
     "node-forge": "1.3.1",
     "sudo-prompt": "9.2.1",
@@ -59,16 +59,17 @@
   },
   "devDependencies": {
     "@jsenv/assert": "2.5.4",
-    "@jsenv/core": "27.0.0-alpha.61",
+    "@jsenv/core": "27.0.0-alpha.69",
     "@jsenv/eslint-config": "16.0.9",
+    "@jsenv/eslint-import-resolver": "0.1.11",
     "@jsenv/github-release-package": "1.4.0",
     "@jsenv/importmap-eslint-resolver": "5.2.5",
     "@jsenv/importmap-node-module": "5.1.3",
-    "@jsenv/package-publish": "1.7.4",
+    "@jsenv/package-publish": "1.7.5",
     "@jsenv/performance-impact": "2.2.11",
-    "eslint": "8.16.0",
+    "eslint": "8.17.0",
     "eslint-plugin-import": "2.26.0",
     "playwright": "1.22.2",
-    "prettier": "2.6.2"
+    "prettier": "2.7.0"
   }
 }

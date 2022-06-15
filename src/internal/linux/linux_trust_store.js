@@ -3,8 +3,9 @@
  */
 
 import { existsSync } from "node:fs"
+import { fileURLToPath } from "node:url"
 import { createDetailedMessage } from "@jsenv/logger"
-import { readFile, urlToFileSystemPath } from "@jsenv/filesystem"
+import { readFile } from "@jsenv/filesystem"
 import { UNICODE } from "@jsenv/log"
 
 import { exec } from "@jsenv/https-local/src/internal/exec.js"
@@ -50,7 +51,7 @@ export const executeTrustQueryOnLinux = async ({
   logger.debug(
     `Searching certificate file at ${JSENV_AUTHORITY_ROOT_CERTIFICATE_PATH}...`,
   )
-  const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
+  const certificateFilePath = fileURLToPath(certificateFileUrl)
   const certificateStatus = await getCertificateStatus({ certificate })
 
   if (certificateStatus === "missing" || certificateStatus === "outdated") {

@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs"
 import { execSync } from "node:child_process"
-import { resolveUrl, assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
+import { assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
 import { UNICODE, createTaskLog } from "@jsenv/log"
 
 import { executeTrustQueryOnBrowserNSSDB } from "../nssdb_browser.js"
@@ -47,10 +47,10 @@ export const executeTrustQueryOnFirefox = ({
       logger.debug(`${UNICODE.INFO} firefox not detected`)
       return false
     },
-    browserNSSDBDirectoryUrl: resolveUrl(
+    browserNSSDBDirectoryUrl: new URL(
       `./Library/Application Support/Firefox/Profiles/`,
       assertAndNormalizeDirectoryUrl(process.env.HOME),
-    ),
+    ).href,
     getBrowserClosedPromise: async () => {
       if (!isFirefoxOpen()) {
         return

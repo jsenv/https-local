@@ -1,6 +1,6 @@
 // https://ss64.com/osx/security.html
 
-import { urlToFileSystemPath } from "@jsenv/filesystem"
+import { fileURLToPath } from "node:url"
 import { createDetailedMessage } from "@jsenv/logger"
 
 import { UNICODE } from "@jsenv/log"
@@ -62,7 +62,7 @@ export const executeTrustQueryOnMacKeychain = async ({
       }
     }
 
-    const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
+    const certificateFilePath = fileURLToPath(certificateFileUrl)
     // https://ss64.com/osx/security-cert.html
     const addTrustedCertCommand = `sudo security add-trusted-cert -d -r trustRoot -k ${systemKeychainPath} "${certificateFilePath}"`
     logger.info(`Adding certificate to mac keychain...`)

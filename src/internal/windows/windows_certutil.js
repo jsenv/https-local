@@ -3,8 +3,8 @@
  * https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil
  */
 
+import { fileURLToPath } from "node:url"
 import { createDetailedMessage } from "@jsenv/logger"
-import { urlToFileSystemPath } from "@jsenv/filesystem"
 import { UNICODE } from "@jsenv/log"
 
 import { exec } from "@jsenv/https-local/src/internal/exec.js"
@@ -49,7 +49,7 @@ export const executeTrustQueryOnWindows = async ({
   const certutilListCommand = `certutil -store -user root`
   logger.debug(`${UNICODE.COMMAND} ${certutilListCommand}`)
   const certutilListCommandOutput = await exec(certutilListCommand)
-  const certificateFilePath = urlToFileSystemPath(certificateFileUrl)
+  const certificateFilePath = fileURLToPath(certificateFileUrl)
 
   // it's not super accurate and do not take into account if the cert is different
   // but it's the best I could do with certutil command on windows

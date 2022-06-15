@@ -1,8 +1,5 @@
-import {
-  assertAndNormalizeDirectoryUrl,
-  resolveUrl,
-  urlToFileSystemPath,
-} from "@jsenv/filesystem"
+import { fileURLToPath } from "node:url"
+import { assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
 import { UNICODE } from "@jsenv/log"
 
 import { memoize } from "@jsenv/https-local/src/internal/memoize.js"
@@ -31,8 +28,8 @@ export const getCertutilBinPath = memoize(async () => {
   const nssCommandDirectoryUrl = assertAndNormalizeDirectoryUrl(
     brewCommandOutput.trim(),
   )
-  const certutilBinUrl = resolveUrl(`./bin/certutil`, nssCommandDirectoryUrl)
-  const certutilBinPath = urlToFileSystemPath(certutilBinUrl)
+  const certutilBinUrl = new URL(`./bin/certutil`, nssCommandDirectoryUrl).href
+  const certutilBinPath = fileURLToPath(certutilBinUrl)
   return certutilBinPath
 })
 

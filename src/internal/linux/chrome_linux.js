@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs"
 import { execSync } from "node:child_process"
-import { resolveUrl, assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
+import { assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
 
 import { UNICODE } from "@jsenv/log"
 import {
@@ -48,10 +48,10 @@ export const executeTrustQueryOnChrome = ({
       logger.debug(`${UNICODE.INFO} Chrome not detected`)
       return false
     },
-    browserNSSDBDirectoryUrl: resolveUrl(
+    browserNSSDBDirectoryUrl: new URL(
       ".pki/nssdb",
       assertAndNormalizeDirectoryUrl(process.env.HOME),
-    ),
+    ).href,
     getBrowserClosedPromise: async () => {
       if (!isChromeOpen()) {
         return

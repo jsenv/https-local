@@ -5,7 +5,7 @@ import {
   installCertificateAuthority,
   uninstallCertificateAuthority,
 } from "@jsenv/https-local"
-import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
+import { createLoggerForTest } from "@jsenv/https-local/tests/test_helpers.mjs"
 
 await uninstallCertificateAuthority({
   logLevel: "warn",

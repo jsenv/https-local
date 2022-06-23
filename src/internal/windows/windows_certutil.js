@@ -4,10 +4,9 @@
  */
 
 import { fileURLToPath } from "node:url"
-import { createDetailedMessage } from "@jsenv/logger"
-import { UNICODE } from "@jsenv/log"
+import { createDetailedMessage, UNICODE } from "@jsenv/log"
 
-import { exec } from "@jsenv/https-local/src/internal/exec.js"
+import { exec } from "../exec.js"
 import {
   VERB_CHECK_TRUST,
   VERB_ADD_TRUST,

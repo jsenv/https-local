@@ -5,13 +5,12 @@
 
 import { existsSync } from "node:fs"
 import { fileURLToPath } from "node:url"
-import { createDetailedMessage } from "@jsenv/logger"
 import { urlToFilename } from "@jsenv/urls"
+import { createDetailedMessage, UNICODE } from "@jsenv/log"
 import { assertAndNormalizeDirectoryUrl, collectFiles } from "@jsenv/filesystem"
-import { UNICODE } from "@jsenv/log"
 
-import { exec } from "@jsenv/https-local/src/internal/exec.js"
-import { searchCertificateInCommandOutput } from "@jsenv/https-local/src/internal/search_certificate_in_command_output.js"
+import { exec } from "./exec.js"
+import { searchCertificateInCommandOutput } from "./search_certificate_in_command_output.js"
 import { VERB_CHECK_TRUST, VERB_ADD_TRUST } from "./trust_query.js"
 
 export const executeTrustQueryOnBrowserNSSDB = async ({

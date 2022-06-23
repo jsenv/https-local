@@ -1,7 +1,7 @@
 // https://github.com/digitalbazaar/forge/blob/master/examples/create-cert.js
 // https://github.com/digitalbazaar/forge/issues/660#issuecomment-467145103
 
-import { importNodeForge } from "./forge.js"
+import { forge } from "./forge.js"
 import {
   attributeArrayFromAttributeDescription,
   attributeDescriptionFromAttributeArray,
@@ -23,7 +23,6 @@ export const createAuthorityRootCertificate = async ({
     throw new TypeError(`serial must be a number but received ${serialNumber}`)
   }
 
-  const forge = await importNodeForge()
   const { pki } = forge
   const rootCertificateForgeObject = pki.createCertificate()
   const keyPair = pki.rsa.generateKeyPair(2048) // TODO: use async version https://github.com/digitalbazaar/forge#rsa
@@ -86,7 +85,7 @@ export const createAuthorityRootCertificate = async ({
   }
 }
 
-export const requestCertificateFromAuthority = async ({
+export const requestCertificateFromAuthority = ({
   authorityCertificateForgeObject, // could be intermediate or root certificate authority
   auhtorityCertificatePrivateKeyForgeObject,
   serialNumber,
@@ -116,7 +115,6 @@ export const requestCertificateFromAuthority = async ({
     )
   }
 
-  const forge = await importNodeForge()
   const { pki } = forge
   const certificateForgeObject = pki.createCertificate()
   const keyPair = pki.rsa.generateKeyPair(2048) // TODO: use async version https://github.com/digitalbazaar/forge#rsa

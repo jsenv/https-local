@@ -1,39 +1,38 @@
-import { readFile, writeFile } from "@jsenv/filesystem"
-import { createLogger, createDetailedMessage } from "@jsenv/logger"
-import { UNICODE } from "@jsenv/log"
+import { readFileSync } from "node:fs"
+import { writeFileSync } from "@jsenv/filesystem"
+import { UNICODE, createLogger, createDetailedMessage } from "@jsenv/log"
 
+import { forge } from "./internal/forge.js"
 import {
   createValidityDurationOfXDays,
   verifyServerCertificateValidityDuration,
 } from "./validity_duration.js"
 import { getAuthorityFileInfos } from "./internal/authority_file_infos.js"
-import { importNodeForge } from "./internal/forge.js"
 import { requestCertificateFromAuthority } from "./internal/certificate_generator.js"
 import { formatDuration } from "./internal/validity_formatting.js"
 
-export const requestCertificateForLocalhost = async ({
+export const requestCertificateForLocalhost = ({
   logLevel,
   logger = createLogger({ logLevel }), // to be able to catch logs during unit tests
 
-  serverCertificateAltNames = ["localhost"],
-  serverCertificateCommonName = "https local server certificate",
-  serverCertificateValidityDurationInMs = createValidityDurationOfXDays(396),
+  altNames = ["localhost"],
+  commonName = "https local server certificate",
+  validityDurationInMs = createValidityDurationOfXDays(396),
 } = {}) => {
-  if (typeof serverCertificateValidityDurationInMs !== "number") {
+  if (typeof validityDurationInMs !== "number") {
     throw new TypeError(
-      `serverCertificateValidityDurationInMs must be a number but received ${serverCertificateValidityDurationInMs}`,
+      `validityDurationInMs must be a number but received ${validityDurationInMs}`,
     )
   }
-  if (serverCertificateValidityDurationInMs < 1) {
+  if (validityDurationInMs < 1) {
     throw new TypeError(
-      `serverCertificateValidityDurationInMs must be > 0 but received ${serverCertificateValidityDurationInMs}`,
+      `validityDurationInMs must be > 0 but received ${validityDurationInMs}`,
     )
   }
-  const validityDurationInfo = verifyServerCertificateValidityDuration(
-    serverCertificateValidityDurationInMs,
-  )
+  const validityDurationInfo =
+    verifyServerCertificateValidityDuration(validityDurationInMs)
   if (!validityDurationInfo.ok) {
-    serverCertificateValidityDurationInMs = validityDurationInfo.maxAllowedValue
+    validityDurationInMs = validityDurationInfo.maxAllowedValue
     logger.warn(
       createDetailedMessage(validityDurationInfo.message, {
         details: validityDurationInfo.details,
@@ -59,19 +58,16 @@ export const requestCertificateForLocalhost = async ({
   }
 
   logger.debug(`Restoring certificate authority from filesystem...`)
-  const { pki } = await importNodeForge()
-  const rootCertificate = await readFile(rootCertificateFileInfo.url, {
-    as: "string",
-  })
-  const rootCertificatePrivateKey = await readFile(
-    rootCertificatePrivateKeyFileInfo.url,
-    {
-      as: "string",
-    },
+  const { pki } = forge
+  const rootCertificate = String(
+    readFileSync(new URL(rootCertificateFileInfo.url)),
   )
-  const certificateAuthorityData = await readFile(authorityJsonFileInfo.url, {
-    as: "json",
-  })
+  const rootCertificatePrivateKey = String(
+    readFileSync(new URL(rootCertificatePrivateKeyFileInfo.url)),
+  )
+  const certificateAuthorityData = JSON.parse(
+    String(readFileSync(new URL(authorityJsonFileInfo.url))),
+  )
   const rootCertificateForgeObject = pki.certificateFromPem(rootCertificate)
   const rootCertificatePrivateKeyForgeObject = pki.privateKeyFromPem(
     rootCertificatePrivateKey,
@@ -80,26 +76,26 @@ export const requestCertificateForLocalhost = async ({
 
   const serverCertificateSerialNumber =
     certificateAuthorityData.serialNumber + 1
-  await writeFile(
+  writeFileSync(
     authorityJsonFileInfo.url,
     JSON.stringify({ serialNumber: serverCertificateSerialNumber }, null, "  "),
   )
 
-  if (!serverCertificateAltNames.includes("localhost")) {
-    serverCertificateAltNames.push("localhost")
+  if (!altNames.includes("localhost")) {
+    altNames.push("localhost")
   }
 
   logger.debug(`Generating server certificate...`)
   const { certificateForgeObject, certificatePrivateKeyForgeObject } =
-    await requestCertificateFromAuthority({
+    requestCertificateFromAuthority({
       logger,
       authorityCertificateForgeObject: rootCertificateForgeObject,
       auhtorityCertificatePrivateKeyForgeObject:
         rootCertificatePrivateKeyForgeObject,
       serialNumber: serverCertificateSerialNumber,
-      altNames: serverCertificateAltNames,
-      commonName: serverCertificateCommonName,
-      validityDurationInMs: serverCertificateValidityDurationInMs,
+      altNames,
+      commonName,
+      validityDurationInMs,
     })
   const serverCertificate = pki.certificateToPem(certificateForgeObject)
   const serverCertificatePrivateKey = pki.privateKeyToPem(
@@ -109,13 +105,13 @@ export const requestCertificateForLocalhost = async ({
     `${
       UNICODE.OK
     } server certificate generated, it will be valid for ${formatDuration(
-      serverCertificateValidityDurationInMs,
+      validityDurationInMs,
     )}`,
   )
 
   return {
-    serverCertificate,
-    serverCertificatePrivateKey,
+    certificate: serverCertificate,
+    privateKey: serverCertificatePrivateKey,
     rootCertificateFilePath: rootCertificateFileInfo.path,
   }
 }

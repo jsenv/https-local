@@ -1,15 +1,14 @@
 import { createServer } from "node:https"
 import { requestCertificateForLocalhost } from "@jsenv/https-local"
 
-const { serverCertificate, serverCertificatePrivateKey } =
-  await requestCertificateForLocalhost({
-    serverCertificateAltNames: ["localhost", "local.example"],
-  })
+const { certificate, privateKey } = requestCertificateForLocalhost({
+  altNames: ["localhost", "local.example"],
+})
 
 const server = createServer(
   {
-    cert: serverCertificate,
-    key: serverCertificatePrivateKey,
+    cert: certificate,
+    key: privateKey,
   },
   (request, response) => {
     const body = "Hello world"

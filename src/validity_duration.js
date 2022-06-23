@@ -3,7 +3,6 @@ const MILLISECONDS_PER_YEAR = MILLISECONDS_PER_DAY * 365
 
 export const verifyRootCertificateValidityDuration = (validityDurationInMs) => {
   const durationInYears = validityDurationInMs / MILLISECONDS_PER_YEAR
-
   if (durationInYears > 25) {
     return {
       ok: false,
@@ -13,26 +12,22 @@ export const verifyRootCertificateValidityDuration = (validityDurationInMs) => {
         "https://serverfault.com/questions/847190/in-theory-could-a-ca-make-a-certificate-that-is-valid-for-arbitrarily-long",
     }
   }
-
   return { ok: true }
 }
 
 export const verifyServerCertificateValidityDuration = (
-  serverCertificateValidityDurationInMs,
+  validityDurationInMs,
 ) => {
-  const serverCertificateValidityDurationInDays =
-    serverCertificateValidityDurationInMs / MILLISECONDS_PER_DAY
-
-  if (serverCertificateValidityDurationInDays > 397) {
+  const validityDurationInDays = validityDurationInMs / MILLISECONDS_PER_DAY
+  if (validityDurationInDays > 397) {
     return {
       ok: false,
       maxAllowedValue: MILLISECONDS_PER_DAY * 397,
-      message: `certificate validity duration of ${serverCertificateValidityDurationInMs} days is too much, using the max recommended duration: 397 days`,
+      message: `certificate validity duration of ${validityDurationInMs} days is too much, using the max recommended duration: 397 days`,
       details:
         "https://www.globalsign.com/en/blog/maximum-ssltls-certificate-validity-now-one-year",
     }
   }
-
   return { ok: true }
 }
 

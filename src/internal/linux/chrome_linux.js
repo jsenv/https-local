@@ -1,16 +1,15 @@
 import { existsSync } from "node:fs"
 import { execSync } from "node:child_process"
 import { assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
-
 import { UNICODE } from "@jsenv/log"
+
+import { executeTrustQueryOnBrowserNSSDB } from "../nssdb_browser.js"
 import {
   nssCommandName,
   detectIfNSSIsInstalled,
   getNSSDynamicInstallInfo,
   getCertutilBinPath,
 } from "./nss_linux.js"
-
-import { executeTrustQueryOnBrowserNSSDB } from "../nssdb_browser.js"
 
 export const executeTrustQueryOnChrome = ({
   logger,

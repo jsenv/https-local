@@ -1,10 +1,10 @@
 import { fileURLToPath } from "node:url"
 import { assert } from "@jsenv/assert"
-import { readFile, writeFile } from "@jsenv/filesystem"
+import { readFile, writeFile, removeEntry } from "@jsenv/filesystem"
 import { UNICODE } from "@jsenv/log"
 
 import { verifyHostsFile } from "@jsenv/https-local"
-import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
+import { createLoggerForTest } from "@jsenv/https-local/tests/test_helpers.mjs"
 
 const hostFileUrl = new URL("./hosts", import.meta.url)
 const hostsFilePath = fileURLToPath(hostFileUrl)
@@ -112,3 +112,5 @@ const hostsFilePath = fileURLToPath(hostFileUrl)
   }
   assert({ actual, expected })
 }
+
+await removeEntry(hostFileUrl)

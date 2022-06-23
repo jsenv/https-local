@@ -2,7 +2,7 @@ import { createRequire } from "node:module"
 import { existsSync } from "node:fs"
 import { UNICODE } from "@jsenv/log"
 
-import { memoize } from "@jsenv/https-local/src/internal/memoize.js"
+import { memoize } from "../memoize.js"
 
 const require = createRequire(import.meta.url)
 

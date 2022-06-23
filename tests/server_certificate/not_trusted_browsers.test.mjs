@@ -11,7 +11,7 @@ import {
   launchFirefox,
   launchWebkit,
   requestServerUsingBrowser,
-} from "@jsenv/https-local/test/test_helpers.mjs"
+} from "@jsenv/https-local/tests/test_helpers.mjs"
 
 await uninstallCertificateAuthority({
   logLevel: "warn",
@@ -19,14 +19,13 @@ await uninstallCertificateAuthority({
 await installCertificateAuthority({
   logLevel: "warn",
 })
-const { serverCertificate, serverCertificatePrivateKey } =
-  await requestCertificateForLocalhost({
-    logLevel: "warn",
-  })
+const { certificate, privateKey } = requestCertificateForLocalhost({
+  logLevel: "warn",
+})
 
 const serverOrigin = await startServerForTest({
-  serverCertificate,
-  serverCertificatePrivateKey,
+  certificate,
+  privateKey,
 })
 
 {

@@ -7,13 +7,13 @@
 export {
   installCertificateAuthority,
   uninstallCertificateAuthority,
-} from "./src/certificate_authority.js"
+} from "./certificate_authority.js"
 
 export {
   createValidityDurationOfXYears,
   createValidityDurationOfXDays,
-} from "./src/validity_duration.js"
+} from "./validity_duration.js"
 
-export { verifyHostsFile } from "./src/hosts_file_verif.js"
+export { verifyHostsFile } from "./hosts_file_verif.js"
 
-export { requestCertificateForLocalhost } from "./src/certificate_for_localhost.js"
+export { requestCertificateForLocalhost } from "./certificate_for_localhost.js"

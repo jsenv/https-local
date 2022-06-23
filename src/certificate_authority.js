@@ -1,14 +1,13 @@
 import { readFile, writeFile, removeEntry } from "@jsenv/filesystem"
-import { createLogger, createDetailedMessage } from "@jsenv/logger"
-import { UNICODE } from "@jsenv/log"
+import { UNICODE, createLogger, createDetailedMessage } from "@jsenv/log"
 
+import { forge } from "./internal/forge.js"
 import { getAuthorityFileInfos } from "./internal/authority_file_infos.js"
 import { attributeDescriptionFromAttributeArray } from "./internal/certificate_data_converter.js"
 import {
   formatTimeDelta,
   formatDuration,
 } from "./internal/validity_formatting.js"
-import { importNodeForge } from "./internal/forge.js"
 import { createAuthorityRootCertificate } from "./internal/certificate_generator.js"
 import { importPlatformMethods } from "./internal/platform.js"
 import { jsenvParameters } from "./jsenvParameters.js"
@@ -79,7 +78,7 @@ export const installCertificateAuthority = async ({
         serialNumber: 0,
       })
 
-    const { pki } = await importNodeForge()
+    const { pki } = forge
     const rootCertificate = pemAsFileContent(
       pki.certificateToPem(rootCertificateForgeObject),
     )
@@ -173,7 +172,7 @@ export const installCertificateAuthority = async ({
   const rootCertificate = await readFile(rootCertificateFileInfo.path, {
     as: "string",
   })
-  const { pki } = await importNodeForge()
+  const { pki } = forge
   const rootCertificateForgeObject = pki.certificateFromPem(rootCertificate)
 
   logger.info(`Checking certificate validity...`)
@@ -323,7 +322,7 @@ export const uninstallCertificateAuthority = async ({
       const rootCertificate = await readFile(rootCertificateFileInfo.url, {
         as: "string",
       })
-      const { pki } = await importNodeForge()
+      const { pki } = forge
       const rootCertificateForgeObject = pki.certificateFromPem(rootCertificate)
       const rootCertificateCommonName = attributeDescriptionFromAttributeArray(
         rootCertificateForgeObject.subject.attributes,

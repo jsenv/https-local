@@ -59,15 +59,15 @@ export const createLoggerForTest = ({ forwardToConsole = false } = {}) => {
 }
 
 export const startServerForTest = async ({
-  serverCertificate,
-  serverCertificatePrivateKey,
+  certificate,
+  privateKey,
   keepAlive = false,
   port = 0,
 }) => {
   const server = createServer(
     {
-      cert: serverCertificate,
-      key: serverCertificatePrivateKey,
+      cert: certificate,
+      key: privateKey,
     },
     (request, response) => {
       const body = "Hello world"

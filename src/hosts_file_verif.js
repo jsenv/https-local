@@ -1,5 +1,4 @@
-import { createDetailedMessage, createLogger } from "@jsenv/logger"
-import { UNICODE } from "@jsenv/log"
+import { createDetailedMessage, createLogger, UNICODE } from "@jsenv/log"
 
 import {
   HOSTS_FILE_PATH,

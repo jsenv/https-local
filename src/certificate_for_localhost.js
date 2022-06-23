@@ -1,16 +1,17 @@
-import { readFile, writeFile } from "@jsenv/filesystem"
+import { readFileSync } from "node:fs"
+import { writeFileSync } from "@jsenv/filesystem"
 import { UNICODE, createLogger, createDetailedMessage } from "@jsenv/log"
 
+import { forge } from "./internal/forge.js"
 import {
   createValidityDurationOfXDays,
   verifyServerCertificateValidityDuration,
 } from "./validity_duration.js"
 import { getAuthorityFileInfos } from "./internal/authority_file_infos.js"
-import { importNodeForge } from "./internal/forge.js"
 import { requestCertificateFromAuthority } from "./internal/certificate_generator.js"
 import { formatDuration } from "./internal/validity_formatting.js"
 
-export const requestCertificateForLocalhost = async ({
+export const requestCertificateForLocalhost = ({
   logLevel,
   logger = createLogger({ logLevel }), // to be able to catch logs during unit tests
 
@@ -58,19 +59,14 @@ export const requestCertificateForLocalhost = async ({
   }
 
   logger.debug(`Restoring certificate authority from filesystem...`)
-  const { pki } = await importNodeForge()
-  const rootCertificate = await readFile(rootCertificateFileInfo.url, {
-    as: "string",
-  })
-  const rootCertificatePrivateKey = await readFile(
-    rootCertificatePrivateKeyFileInfo.url,
-    {
-      as: "string",
-    },
+  const { pki } = forge
+  const rootCertificate = String(readFileSync(rootCertificateFileInfo.url))
+  const rootCertificatePrivateKey = String(
+    readFileSync(rootCertificatePrivateKeyFileInfo.url),
   )
-  const certificateAuthorityData = await readFile(authorityJsonFileInfo.url, {
-    as: "json",
-  })
+  const certificateAuthorityData = JSON.parse(
+    String(readFileSync(authorityJsonFileInfo.url)),
+  )
   const rootCertificateForgeObject = pki.certificateFromPem(rootCertificate)
   const rootCertificatePrivateKeyForgeObject = pki.privateKeyFromPem(
     rootCertificatePrivateKey,
@@ -79,7 +75,7 @@ export const requestCertificateForLocalhost = async ({
 
   const serverCertificateSerialNumber =
     certificateAuthorityData.serialNumber + 1
-  await writeFile(
+  writeFileSync(
     authorityJsonFileInfo.url,
     JSON.stringify({ serialNumber: serverCertificateSerialNumber }, null, "  "),
   )
@@ -90,7 +86,7 @@ export const requestCertificateForLocalhost = async ({
 
   logger.debug(`Generating server certificate...`)
   const { certificateForgeObject, certificatePrivateKeyForgeObject } =
-    await requestCertificateFromAuthority({
+    requestCertificateFromAuthority({
       logger,
       authorityCertificateForgeObject: rootCertificateForgeObject,
       auhtorityCertificatePrivateKeyForgeObject:

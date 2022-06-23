@@ -5,19 +5,18 @@ import {
 } from "@jsenv/https-local/tests/test_helpers.mjs"
 
 // await resetAllCertificateFiles()
-const { serverCertificate, serverPrivateKey } =
-  await requestCertificateForLocalhost({
-    logLevel: "debug",
-    serverCertificateFileUrl: new URL(
-      "./certificate/server.crt",
-      import.meta.url,
-    ),
-    rootCertificateOrganizationName: "jsenv",
-    rootCertificateOrganizationalUnitName: "https localhost",
-  })
+const { certificate, privateKey } = requestCertificateForLocalhost({
+  logLevel: "debug",
+  serverCertificateFileUrl: new URL(
+    "./certificate/server.crt",
+    import.meta.url,
+  ),
+  rootCertificateOrganizationName: "jsenv",
+  rootCertificateOrganizationalUnitName: "https localhost",
+})
 const serverOrigin = await startServerForTest({
-  serverCertificate,
-  serverPrivateKey,
+  certificate,
+  privateKey,
   keepAlive: true,
   port: 5000,
 })

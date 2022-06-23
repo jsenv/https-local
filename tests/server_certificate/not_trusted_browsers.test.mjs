@@ -19,14 +19,13 @@ await uninstallCertificateAuthority({
 await installCertificateAuthority({
   logLevel: "warn",
 })
-const { serverCertificate, serverCertificatePrivateKey } =
-  await requestCertificateForLocalhost({
-    logLevel: "warn",
-  })
+const { certificate, privateKey } = requestCertificateForLocalhost({
+  logLevel: "warn",
+})
 
 const serverOrigin = await startServerForTest({
-  serverCertificate,
-  serverCertificatePrivateKey,
+  certificate,
+  privateKey,
 })
 
 {

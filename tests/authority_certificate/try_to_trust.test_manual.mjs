@@ -14,13 +14,10 @@ await uninstallCertificateAuthority({
 await installCertificateAuthority({
   tryToTrust: true,
 })
-const {
-  serverCertificate,
-  serverCertificatePrivateKey,
-  rootCertificateFilePath,
-} = await requestCertificateForLocalhost({
-  serverCertificateAltNames: ["localhost", "*.localhost"],
-})
+const { certificate, privateKey, rootCertificateFilePath } =
+  requestCertificateForLocalhost({
+    serverCertificateAltNames: ["localhost", "*.localhost"],
+  })
 
 if (process.platform !== "win32") {
   // not on windows because symlink requires admin rights
@@ -35,8 +32,8 @@ if (process.platform !== "win32") {
 
 const serverOrigin = await startServerForTest({
   port: 4456,
-  serverCertificate,
-  serverCertificatePrivateKey,
+  certificate,
+  privateKey,
   keepAlive: true,
 })
 console.log(`Open ${serverOrigin} in a browser`)

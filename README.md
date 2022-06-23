@@ -67,13 +67,12 @@ node ./install_certificate_authority.mjs
 import { createServer } from "node:https"
 import { requestCertificateForLocalhost } from "@jsenv/https-local"
 
-const { serverCertificate, serverCertificatePrivateKey } =
-  await requestCertificateForLocalhost()
+const { certificate, privateKey } = requestCertificateForLocalhost()
 
 const server = createServer(
   {
-    cert: serverCertificate,
-    key: serverCertificatePrivateKey,
+    cert: certificate,
+    key: privateKey,
   },
   (request, response) => {
     const body = "Hello world"
@@ -361,10 +360,9 @@ _requestCertificateForLocalhost_ function returns a certificate and private key 
 import { createServer } from "node:https"
 import { requestCertificateForLocalhost } from "@jsenv/https-local"
 
-const { serverCertificate, serverCertificatePrivateKey } =
-  await requestCertificateForLocalhost({
-    serverCertificateAltNames: ["localhost", "local.example"],
-  })
+const { certificate, privateKey } = requestCertificateForLocalhost({
+  serverCertificateAltNames: ["localhost", "local.example"],
+})
 ```
 
 [installCertificateAuthority](#installCertificateAuthority) must be called before this function.

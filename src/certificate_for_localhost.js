@@ -1,6 +1,5 @@
 import { readFile, writeFile } from "@jsenv/filesystem"
-import { createLogger, createDetailedMessage } from "@jsenv/logger"
-import { UNICODE } from "@jsenv/log"
+import { UNICODE, createLogger, createDetailedMessage } from "@jsenv/log"
 
 import {
   createValidityDurationOfXDays,

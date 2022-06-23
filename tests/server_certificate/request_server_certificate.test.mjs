@@ -6,7 +6,7 @@ import {
   uninstallCertificateAuthority,
   requestCertificateForLocalhost,
 } from "@jsenv/https-local"
-import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
+import { createLoggerForTest } from "@jsenv/https-local/tests/test_helpers.mjs"
 
 const loggerDuringTest = createLoggerForTest({
   // forwardToConsole: true,

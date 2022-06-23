@@ -4,16 +4,15 @@
 
 import { existsSync } from "node:fs"
 import { fileURLToPath } from "node:url"
-import { createDetailedMessage } from "@jsenv/logger"
 import { readFile } from "@jsenv/filesystem"
-import { UNICODE } from "@jsenv/log"
+import { createDetailedMessage, UNICODE } from "@jsenv/log"
 
-import { exec } from "@jsenv/https-local/src/internal/exec.js"
 import {
   VERB_CHECK_TRUST,
   VERB_ADD_TRUST,
   VERB_REMOVE_TRUST,
 } from "../trust_query.js"
+import { exec } from "../exec.js"
 
 const REASON_NEW_AND_TRY_TO_TRUST_DISABLED =
   "certificate is new and tryToTrust is disabled"

@@ -1,4 +1,4 @@
-import { createLogger } from "@jsenv/logger"
+import { createLogger } from "@jsenv/log"
 import { readFile } from "@jsenv/filesystem"
 
 import { jsenvParameters } from "@jsenv/https-local/src/jsenvParameters.js"

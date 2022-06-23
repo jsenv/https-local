@@ -2,9 +2,9 @@ import { fileURLToPath } from "node:url"
 import { assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
 import { UNICODE } from "@jsenv/log"
 
-import { memoize } from "@jsenv/https-local/src/internal/memoize.js"
-import { exec } from "@jsenv/https-local/src/internal/exec.js"
-import { commandExists } from "@jsenv/https-local/src/internal/command.js"
+import { memoize } from "../memoize.js"
+import { exec } from "../exec.js"
+import { commandExists } from "../command.js"
 
 export const nssCommandName = "nss"
 

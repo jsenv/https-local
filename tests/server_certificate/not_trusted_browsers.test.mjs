@@ -11,7 +11,7 @@ import {
   launchFirefox,
   launchWebkit,
   requestServerUsingBrowser,
-} from "@jsenv/https-local/test/test_helpers.mjs"
+} from "@jsenv/https-local/tests/test_helpers.mjs"
 
 await uninstallCertificateAuthority({
   logLevel: "warn",

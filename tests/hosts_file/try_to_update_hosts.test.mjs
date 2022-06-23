@@ -4,7 +4,7 @@ import { readFile, writeFile } from "@jsenv/filesystem"
 import { UNICODE } from "@jsenv/log"
 
 import { verifyHostsFile } from "@jsenv/https-local"
-import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
+import { createLoggerForTest } from "@jsenv/https-local/tests/test_helpers.mjs"
 
 const hostFileUrl = new URL("./hosts", import.meta.url)
 const hostsFilePath = fileURLToPath(hostFileUrl)

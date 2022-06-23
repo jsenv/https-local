@@ -6,7 +6,7 @@ import {
   uninstallCertificateAuthority,
   requestCertificateForLocalhost,
 } from "@jsenv/https-local"
-import { startServerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
+import { startServerForTest } from "@jsenv/https-local/tests/test_helpers.mjs"
 
 await uninstallCertificateAuthority({
   tryToUntrust: true,

@@ -4,7 +4,7 @@ import {
   createAuthorityRootCertificate,
   requestCertificateFromAuthority,
 } from "@jsenv/https-local/src/internal/certificate_generator.js"
-import { createLoggerForTest } from "@jsenv/https-local/test/test_helpers.mjs"
+import { createLoggerForTest } from "@jsenv/https-local/tests/test_helpers.mjs"
 import { importNodeForge } from "@jsenv/https-local/src/internal/forge.js"
 
 const {

@@ -1,11 +1,10 @@
 // https://ss64.com/osx/security.html
 
 import { fileURLToPath } from "node:url"
-import { createDetailedMessage } from "@jsenv/logger"
+import { createDetailedMessage, UNICODE } from "@jsenv/log"
 
-import { UNICODE } from "@jsenv/log"
-import { exec } from "@jsenv/https-local/src/internal/exec.js"
-import { searchCertificateInCommandOutput } from "@jsenv/https-local/src/internal/search_certificate_in_command_output.js"
+import { exec } from "../exec.js"
+import { searchCertificateInCommandOutput } from "../search_certificate_in_command_output.js"
 import {
   VERB_CHECK_TRUST,
   VERB_ADD_TRUST,

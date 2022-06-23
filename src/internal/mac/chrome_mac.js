@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs"
 import { UNICODE } from "@jsenv/log"
 
-import { memoize } from "@jsenv/https-local/src/internal/memoize.js"
+import { memoize } from "../memoize.js"
 
 const REASON_CHROME_NOT_DETECTED = `Chrome not detected`
 

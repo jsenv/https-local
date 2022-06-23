@@ -1,6 +1,5 @@
 import { readFile, writeFile, removeEntry } from "@jsenv/filesystem"
-import { createLogger, createDetailedMessage } from "@jsenv/logger"
-import { UNICODE } from "@jsenv/log"
+import { UNICODE, createLogger, createDetailedMessage } from "@jsenv/log"
 
 import { getAuthorityFileInfos } from "./internal/authority_file_infos.js"
 import { attributeDescriptionFromAttributeArray } from "./internal/certificate_data_converter.js"

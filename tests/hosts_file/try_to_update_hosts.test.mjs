@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url"
 import { assert } from "@jsenv/assert"
-import { readFile, writeFile } from "@jsenv/filesystem"
+import { readFile, writeFile, removeEntry } from "@jsenv/filesystem"
 import { UNICODE } from "@jsenv/log"
 
 import { verifyHostsFile } from "@jsenv/https-local"
@@ -112,3 +112,5 @@ const hostsFilePath = fileURLToPath(hostFileUrl)
   }
   assert({ actual, expected })
 }
+
+await removeEntry(hostFileUrl)

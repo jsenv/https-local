@@ -13,8 +13,6 @@
 # -> do not track node module files
 /node_modules/
 
-/tests/**/hosts
-
 # secrets.json is a file where to put secret data
 # that must not be published by git.
 /secrets.json

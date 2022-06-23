@@ -1,4 +1,8 @@
 ## 2.0.0
 
-- requestCertificateForLocalhost becomes sync
-- requestCertificateForLocalhost returns {certificate, privateKey} instead of {serverCertificate, serverPrivateKey}
+- requestCertificateForLocalhost changes
+  - becomes sync
+  - serverCertificateAltNames renamed altNames
+  - serverCertificateValidityDurationInMs renamed validityDurationInMs
+  - serverCertificateCommonName renamed commonName
+  - returns { certificate, privateKey } instead of { serverCertificate, serverPrivateKey }

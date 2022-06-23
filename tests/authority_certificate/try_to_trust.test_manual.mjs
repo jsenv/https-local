@@ -16,7 +16,7 @@ await installCertificateAuthority({
 })
 const { certificate, privateKey, rootCertificateFilePath } =
   requestCertificateForLocalhost({
-    serverCertificateAltNames: ["localhost", "*.localhost"],
+    altNames: ["localhost", "*.localhost"],
   })
 
 if (process.platform !== "win32") {

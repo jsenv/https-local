@@ -15,25 +15,24 @@ export const requestCertificateForLocalhost = ({
   logLevel,
   logger = createLogger({ logLevel }), // to be able to catch logs during unit tests
 
-  serverCertificateAltNames = ["localhost"],
-  serverCertificateCommonName = "https local server certificate",
-  serverCertificateValidityDurationInMs = createValidityDurationOfXDays(396),
+  altNames = ["localhost"],
+  commonName = "https local server certificate",
+  validityDurationInMs = createValidityDurationOfXDays(396),
 } = {}) => {
-  if (typeof serverCertificateValidityDurationInMs !== "number") {
+  if (typeof validityDurationInMs !== "number") {
     throw new TypeError(
-      `serverCertificateValidityDurationInMs must be a number but received ${serverCertificateValidityDurationInMs}`,
+      `validityDurationInMs must be a number but received ${validityDurationInMs}`,
     )
   }
-  if (serverCertificateValidityDurationInMs < 1) {
+  if (validityDurationInMs < 1) {
     throw new TypeError(
-      `serverCertificateValidityDurationInMs must be > 0 but received ${serverCertificateValidityDurationInMs}`,
+      `validityDurationInMs must be > 0 but received ${validityDurationInMs}`,
     )
   }
-  const validityDurationInfo = verifyServerCertificateValidityDuration(
-    serverCertificateValidityDurationInMs,
-  )
+  const validityDurationInfo =
+    verifyServerCertificateValidityDuration(validityDurationInMs)
   if (!validityDurationInfo.ok) {
-    serverCertificateValidityDurationInMs = validityDurationInfo.maxAllowedValue
+    validityDurationInMs = validityDurationInfo.maxAllowedValue
     logger.warn(
       createDetailedMessage(validityDurationInfo.message, {
         details: validityDurationInfo.details,
@@ -60,12 +59,14 @@ export const requestCertificateForLocalhost = ({
 
   logger.debug(`Restoring certificate authority from filesystem...`)
   const { pki } = forge
-  const rootCertificate = String(readFileSync(rootCertificateFileInfo.url))
+  const rootCertificate = String(
+    readFileSync(new URL(rootCertificateFileInfo.url)),
+  )
   const rootCertificatePrivateKey = String(
-    readFileSync(rootCertificatePrivateKeyFileInfo.url),
+    readFileSync(new URL(rootCertificatePrivateKeyFileInfo.url)),
   )
   const certificateAuthorityData = JSON.parse(
-    String(readFileSync(authorityJsonFileInfo.url)),
+    String(readFileSync(new URL(authorityJsonFileInfo.url))),
   )
   const rootCertificateForgeObject = pki.certificateFromPem(rootCertificate)
   const rootCertificatePrivateKeyForgeObject = pki.privateKeyFromPem(
@@ -80,8 +81,8 @@ export const requestCertificateForLocalhost = ({
     JSON.stringify({ serialNumber: serverCertificateSerialNumber }, null, "  "),
   )
 
-  if (!serverCertificateAltNames.includes("localhost")) {
-    serverCertificateAltNames.push("localhost")
+  if (!altNames.includes("localhost")) {
+    altNames.push("localhost")
   }
 
   logger.debug(`Generating server certificate...`)
@@ -92,9 +93,9 @@ export const requestCertificateForLocalhost = ({
       auhtorityCertificatePrivateKeyForgeObject:
         rootCertificatePrivateKeyForgeObject,
       serialNumber: serverCertificateSerialNumber,
-      altNames: serverCertificateAltNames,
-      commonName: serverCertificateCommonName,
-      validityDurationInMs: serverCertificateValidityDurationInMs,
+      altNames,
+      commonName,
+      validityDurationInMs,
     })
   const serverCertificate = pki.certificateToPem(certificateForgeObject)
   const serverCertificatePrivateKey = pki.privateKeyToPem(
@@ -104,13 +105,13 @@ export const requestCertificateForLocalhost = ({
     `${
       UNICODE.OK
     } server certificate generated, it will be valid for ${formatDuration(
-      serverCertificateValidityDurationInMs,
+      validityDurationInMs,
     )}`,
   )
 
   return {
-    serverCertificate,
-    serverCertificatePrivateKey,
+    certificate: serverCertificate,
+    privateKey: serverCertificatePrivateKey,
     rootCertificateFilePath: rootCertificateFileInfo.path,
   }
 }

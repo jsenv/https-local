@@ -361,7 +361,7 @@ import { createServer } from "node:https"
 import { requestCertificateForLocalhost } from "@jsenv/https-local"
 
 const { certificate, privateKey } = requestCertificateForLocalhost({
-  serverCertificateAltNames: ["localhost", "local.example"],
+  altNames: ["localhost", "local.example"],
 })
 ```
 

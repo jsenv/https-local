@@ -1,11 +1,11 @@
 import { assert } from "@jsenv/assert"
 
+import { forge } from "@jsenv/https-local/src/internal/forge.js"
 import {
   createAuthorityRootCertificate,
   requestCertificateFromAuthority,
 } from "@jsenv/https-local/src/internal/certificate_generator.js"
 import { createLoggerForTest } from "@jsenv/https-local/tests/test_helpers.mjs"
-import { importNodeForge } from "@jsenv/https-local/src/internal/forge.js"
 
 const {
   rootCertificateForgeObject,
@@ -38,7 +38,7 @@ const {
 }
 
 {
-  const { pki } = await importNodeForge()
+  const { pki } = forge
   // const rootCertificate = pki.certificateToPem(rootCertificateForgeObject)
   // const authorityCertificateForgeObject = pki.certificateFromPem(rootCertificate)
   const rootCertificatePrivateKey = pki.privateKeyToPem(
@@ -60,7 +60,7 @@ const {
     certificateForgeObject,
     certificatePublicKeyForgeObject,
     certificatePrivateKeyForgeObject,
-  } = await requestCertificateFromAuthority({
+  } = requestCertificateFromAuthority({
     authorityCertificateForgeObject: rootCertificateForgeObject,
     auhtorityCertificatePrivateKeyForgeObject:
       rootCertificatePrivateKeyForgeObject,
@@ -83,7 +83,7 @@ const {
   // ici ça serais bien de tester des truc de forge,
   // genre que le certificat issuer est bien l'authorité
   // {
-  //   const { pki } = await importNodeForge()
+  //   const { pki } = forge
   //   const caStore = pki.createCaStore()
   //   caStore.addCertificate(rootCertificateForgeObject)
   //   caStore.addCertificate(certificateForgeObject)

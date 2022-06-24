@@ -11,7 +11,11 @@ import { assertAndNormalizeDirectoryUrl, collectFiles } from "@jsenv/filesystem"
 
 import { exec } from "./exec.js"
 import { searchCertificateInCommandOutput } from "./search_certificate_in_command_output.js"
-import { VERB_CHECK_TRUST, VERB_ADD_TRUST } from "./trust_query.js"
+import {
+  VERB_CHECK_TRUST,
+  VERB_ADD_TRUST,
+  VERB_ENSURE_TRUST,
+} from "./trust_query.js"
 
 export const executeTrustQueryOnBrowserNSSDB = async ({
   logger,
@@ -52,7 +56,7 @@ export const executeTrustQueryOnBrowserNSSDB = async ({
   const nssIsInstalled = await detectIfNSSIsInstalled({ logger })
   const cannotCheckMessage = `${UNICODE.FAILURE} cannot check if certificate is in ${browserName}`
   if (!nssIsInstalled) {
-    if (verb === VERB_ADD_TRUST) {
+    if (verb === VERB_ADD_TRUST || verb === VERB_ENSURE_TRUST) {
       const nssDynamicInstallInfo = await getNSSDynamicInstallInfo({ logger })
       if (!nssDynamicInstallInfo.isInstallable) {
         const reason = `"${nssCommandName}" is not installed and not cannot be installed`
@@ -209,7 +213,7 @@ export const executeTrustQueryOnBrowserNSSDB = async ({
     }
   }
 
-  if (verb === VERB_ADD_TRUST) {
+  if (verb === VERB_ADD_TRUST || verb === VERB_ENSURE_TRUST) {
     if (missingCount === 0 && outdatedCount === 0) {
       logger.info(`${UNICODE.OK} certificate found in ${browserName}`)
       return {

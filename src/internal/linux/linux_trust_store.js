@@ -10,6 +10,7 @@ import { createDetailedMessage, UNICODE } from "@jsenv/log"
 import {
   VERB_CHECK_TRUST,
   VERB_ADD_TRUST,
+  VERB_ENSURE_TRUST,
   VERB_REMOVE_TRUST,
 } from "../trust_query.js"
 import { exec } from "../exec.js"
@@ -100,7 +101,11 @@ export const executeTrustQueryOnLinux = async ({
   }
 
   logger.info(`${UNICODE.OK} certificate found in linux`)
-  if (verb === VERB_CHECK_TRUST || verb === VERB_ADD_TRUST) {
+  if (
+    verb === VERB_CHECK_TRUST ||
+    verb === VERB_ADD_TRUST ||
+    verb === VERB_ENSURE_TRUST
+  ) {
     return {
       status: "trusted",
       reason: REASON_FOUND_IN_LINUX,

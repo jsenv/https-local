@@ -231,13 +231,12 @@ export const installCertificateAuthority = async ({
   const rootCertificatePrivateKeyForgeObject = pki.privateKeyFromPem(
     rootCertificatePrivateKey,
   )
-
   const trustInfo = await platformMethods.executeTrustQuery({
     logger,
     certificateCommonName,
     certificateFileUrl: rootCertificateFileInfo.url,
     certificate: rootCertificate,
-    verb: tryToTrust ? "ADD_TRUST" : "CHECK_TRUST",
+    verb: tryToTrust ? "ENSURE_TRUST" : "CHECK_TRUST",
     NSSDynamicInstall,
   })
 

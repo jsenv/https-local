@@ -10,6 +10,7 @@ import { exec } from "../exec.js"
 import {
   VERB_CHECK_TRUST,
   VERB_ADD_TRUST,
+  VERB_ENSURE_TRUST,
   VERB_REMOVE_TRUST,
 } from "../trust_query.js"
 
@@ -93,7 +94,11 @@ export const executeTrustQueryOnWindows = async ({
   }
 
   logger.info(`${UNICODE.OK} certificate found in windows`)
-  if (verb === VERB_CHECK_TRUST || verb === VERB_ADD_TRUST) {
+  if (
+    verb === VERB_CHECK_TRUST ||
+    verb === VERB_ADD_TRUST ||
+    verb === VERB_ENSURE_TRUST
+  ) {
     return {
       status: "trusted",
       reason: REASON_FOUND_IN_WINDOWS,

@@ -8,6 +8,7 @@ import { searchCertificateInCommandOutput } from "../search_certificate_in_comma
 import {
   VERB_CHECK_TRUST,
   VERB_ADD_TRUST,
+  VERB_ENSURE_TRUST,
   VERB_REMOVE_TRUST,
 } from "../trust_query.js"
 
@@ -52,6 +53,35 @@ export const executeTrustQueryOnMacKeychain = async ({
     certificate,
   )
 
+  const removeCert = async () => {
+    // https://ss64.com/osx/security-delete-cert.html
+    const removeTrustedCertCommand = `sudo security delete-certificate -c "${certificateCommonName}"`
+    logger.info(`Removing certificate from mac keychain...`)
+    logger.info(`${UNICODE.COMMAND} ${removeTrustedCertCommand}`)
+    try {
+      await exec(removeTrustedCertCommand)
+      logger.info(`${UNICODE.OK} certificate removed from mac keychain`)
+      return {
+        status: "not_trusted",
+        reason: REASON_REMOVE_FROM_KEYCHAIN_COMMAND_COMPLETED,
+      }
+    } catch (e) {
+      logger.error(
+        createDetailedMessage(
+          `${UNICODE.FAILURE} failed to remove certificate from mac keychain`,
+          {
+            "error stack": e.stack,
+            "certificate file url": certificateFileUrl,
+          },
+        ),
+      )
+      return {
+        status: "not_trusted",
+        reason: REASON_REMOVE_FROM_KEYCHAIN_COMMAND_FAILED,
+      }
+    }
+  }
+
   if (!certificateFoundInCommandOutput) {
     logger.info(`${UNICODE.INFO} certificate not found in mac keychain`)
     if (verb === VERB_CHECK_TRUST || verb === VERB_REMOVE_TRUST) {
@@ -60,7 +90,13 @@ export const executeTrustQueryOnMacKeychain = async ({
         reason: REASON_NOT_IN_KEYCHAIN,
       }
     }
-
+    if (verb === VERB_ENSURE_TRUST) {
+      // It seems possible for certificate PEM representation to be different
+      // in mackeychain and in the one we have written on the filesystem
+      // When it happens the certificate is not found but actually exists on mackeychain
+      // and must be deleted first
+      await removeCert()
+    }
     const certificateFilePath = fileURLToPath(certificateFileUrl)
     // https://ss64.com/osx/security-cert.html
     const addTrustedCertCommand = `sudo security add-trusted-cert -d -r trustRoot -k ${systemKeychainPath} "${certificateFilePath}"`
@@ -95,37 +131,16 @@ export const executeTrustQueryOnMacKeychain = async ({
   // but they shouldn't and I couldn't find an API to know if the cert is trusted or not
   // just if it's in the keychain
   logger.info(`${UNICODE.OK} certificate found in mac keychain`)
-  if (verb === VERB_CHECK_TRUST || verb === VERB_ADD_TRUST) {
+  if (
+    verb === VERB_CHECK_TRUST ||
+    verb === VERB_ADD_TRUST ||
+    verb === VERB_ENSURE_TRUST
+  ) {
     return {
       status: "trusted",
       reason: REASON_IN_KEYCHAIN,
     }
   }
 
-  // https://ss64.com/osx/security-delete-cert.html
-  const removeTrustedCertCommand = `sudo security delete-certificate -c "${certificateCommonName}"`
-  logger.info(`Removing certificate from mac keychain...`)
-  logger.info(`${UNICODE.COMMAND} ${removeTrustedCertCommand}`)
-  try {
-    await exec(removeTrustedCertCommand)
-    logger.info(`${UNICODE.OK} certificate removed from mac keychain`)
-    return {
-      status: "not_trusted",
-      reason: REASON_REMOVE_FROM_KEYCHAIN_COMMAND_COMPLETED,
-    }
-  } catch (e) {
-    logger.error(
-      createDetailedMessage(
-        `${UNICODE.FAILURE} failed to remove certificate from mac keychain`,
-        {
-          "error stack": e.stack,
-          "certificate file url": certificateFileUrl,
-        },
-      ),
-    )
-    return {
-      status: "not_trusted",
-      reason: REASON_REMOVE_FROM_KEYCHAIN_COMMAND_FAILED,
-    }
-  }
+  return removeCert()
 }

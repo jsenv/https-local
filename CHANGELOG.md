@@ -1,3 +1,7 @@
+## 3.0.1
+
+- fix firefox is running detection (could return true because of playwright)
+
 ## 3.0.0
 
 - requestCertificateForLocalhost renamed requestCertificate

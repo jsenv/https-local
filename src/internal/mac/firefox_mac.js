@@ -78,5 +78,6 @@ export const executeTrustQueryOnFirefox = ({
 }
 
 const isFirefoxOpen = () => {
-  return execSync("ps aux").includes("firefox")
+  const psAux = execSync("ps aux")
+  return psAux.includes("Firefox.app")
 }

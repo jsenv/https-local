@@ -3,7 +3,7 @@ import { assert } from "@jsenv/assert"
 import {
   installCertificateAuthority,
   uninstallCertificateAuthority,
-  requestCertificateForLocalhost,
+  requestCertificate,
 } from "@jsenv/https-local"
 import {
   startServerForTest,
@@ -19,7 +19,7 @@ await uninstallCertificateAuthority({
 await installCertificateAuthority({
   logLevel: "warn",
 })
-const { certificate, privateKey } = requestCertificateForLocalhost({
+const { certificate, privateKey } = requestCertificate({
   logLevel: "warn",
 })
 

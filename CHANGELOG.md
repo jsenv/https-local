@@ -1,3 +1,8 @@
+## 3.0.0
+
+- requestCertificateForLocalhost renamed requestCertificate
+- do not force "localhost" in altNames anymore
+
 ## 2.1.0
 
 - installCertificateAuthority properly retrust root cert on macOS

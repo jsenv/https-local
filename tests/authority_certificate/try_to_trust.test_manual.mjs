@@ -4,7 +4,7 @@ import { writeSymbolicLink } from "@jsenv/filesystem"
 import {
   installCertificateAuthority,
   uninstallCertificateAuthority,
-  requestCertificateForLocalhost,
+  requestCertificate,
 } from "@jsenv/https-local"
 import { startServerForTest } from "@jsenv/https-local/tests/test_helpers.mjs"
 
@@ -14,10 +14,11 @@ await uninstallCertificateAuthority({
 await installCertificateAuthority({
   tryToTrust: true,
 })
-const { certificate, privateKey, rootCertificateFilePath } =
-  requestCertificateForLocalhost({
+const { certificate, privateKey, rootCertificateFilePath } = requestCertificate(
+  {
     altNames: ["localhost", "*.localhost"],
-  })
+  },
+)
 
 if (process.platform !== "win32") {
   // not on windows because symlink requires admin rights

@@ -1,11 +1,11 @@
-import { requestCertificateForLocalhost } from "@jsenv/https-local"
+import { requestCertificate } from "@jsenv/https-local"
 import {
   // resetAllCertificateFiles,
   startServerForTest,
 } from "@jsenv/https-local/tests/test_helpers.mjs"
 
 // await resetAllCertificateFiles()
-const { certificate, privateKey } = requestCertificateForLocalhost({
+const { certificate, privateKey } = requestCertificate({
   logLevel: "debug",
   serverCertificateFileUrl: new URL(
     "./certificate/server.crt",

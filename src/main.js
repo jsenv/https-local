@@ -16,4 +16,4 @@ export {
 
 export { verifyHostsFile } from "./hosts_file_verif.js"
 
-export { requestCertificateForLocalhost } from "./certificate_for_localhost.js"
+export { requestCertificate } from "./certificate_request.js"

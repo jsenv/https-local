@@ -61,13 +61,13 @@ node ./install_certificate_authority.mjs
  *
  * > node ./install_certificate_authority.mjs
  *
- * Read more in https://github.com/jsenv/https-local#requestCertificateForLocalhost
+ * Read more in https://github.com/jsenv/https-local#requestCertificate
  */
 
 import { createServer } from "node:https"
-import { requestCertificateForLocalhost } from "@jsenv/https-local"
+import { requestCertificate } from "@jsenv/https-local"
 
-const { certificate, privateKey } = requestCertificateForLocalhost()
+const { certificate, privateKey } = requestCertificate()
 
 const server = createServer(
   {
@@ -99,10 +99,10 @@ The rest of the documentation goes into details.
 
 # Certificate expiration
 
-| Certificate | Expires after | How to renew?                           |
-| ----------- | ------------- | --------------------------------------- |
-| server      | 1 year        | Re-run _requestCertificateForLocalhost_ |
-| authority   | 20 year       | Re-run _installCertificateAuthority_    |
+| Certificate | Expires after | How to renew?                        |
+| ----------- | ------------- | ------------------------------------ |
+| server      | 1 year        | Re-run _requestCertificate_          |
+| authority   | 20 year       | Re-run _installCertificateAuthority_ |
 
 The **server** certificate expires after one year which is the maximum duration allowed by web browsers. In the unlikely scenario where your local server is running for more than a year without interruption, restart it and you're good for one more year.
 
@@ -352,15 +352,15 @@ Check if certificate is trusted by firefox...
 
 </details>
 
-# requestCertificateForLocalhost
+# requestCertificate
 
-_requestCertificateForLocalhost_ function returns a certificate and private key that can be used to start a server in HTTPS.
+_requestCertificate_ function returns a certificate and private key that can be used to start a server in HTTPS.
 
 ```js
 import { createServer } from "node:https"
-import { requestCertificateForLocalhost } from "@jsenv/https-local"
+import { requestCertificate } from "@jsenv/https-local"
 
-const { certificate, privateKey } = requestCertificateForLocalhost({
+const { certificate, privateKey } = requestCertificate({
   altNames: ["localhost", "local.example"],
 })
 ```

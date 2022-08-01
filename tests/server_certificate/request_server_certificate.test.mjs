@@ -4,7 +4,7 @@ import { UNICODE } from "@jsenv/log"
 import {
   installCertificateAuthority,
   uninstallCertificateAuthority,
-  requestCertificateForLocalhost,
+  requestCertificate,
 } from "@jsenv/https-local"
 import { createLoggerForTest } from "@jsenv/https-local/tests/test_helpers.mjs"
 
@@ -18,7 +18,7 @@ await uninstallCertificateAuthority({
 await installCertificateAuthority({
   logLevel: "warn",
 })
-const returnValue = await requestCertificateForLocalhost({
+const returnValue = await requestCertificate({
   // logLevel: "warn",
   logger: loggerDuringTest,
 })

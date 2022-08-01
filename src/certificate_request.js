@@ -11,7 +11,7 @@ import { getAuthorityFileInfos } from "./internal/authority_file_infos.js"
 import { requestCertificateFromAuthority } from "./internal/certificate_generator.js"
 import { formatDuration } from "./internal/validity_formatting.js"
 
-export const requestCertificateForLocalhost = ({
+export const requestCertificate = ({
   logLevel,
   logger = createLogger({ logLevel }), // to be able to catch logs during unit tests
 
@@ -47,7 +47,7 @@ export const requestCertificateForLocalhost = ({
   } = getAuthorityFileInfos()
   if (!rootCertificateFileInfo.exists) {
     throw new Error(
-      `Certificate authority not found, "installCertificateAuthority" must be called before "requestCertificateForLocalhost"`,
+      `Certificate authority not found, "installCertificateAuthority" must be called before "requestServerCertificate"`,
     )
   }
   if (!rootCertificatePrivateKeyFileInfo.exists) {
@@ -80,10 +80,6 @@ export const requestCertificateForLocalhost = ({
     authorityJsonFileInfo.url,
     JSON.stringify({ serialNumber: serverCertificateSerialNumber }, null, "  "),
   )
-
-  if (!altNames.includes("localhost")) {
-    altNames.push("localhost")
-  }
 
   logger.debug(`Generating server certificate...`)
   const { certificateForgeObject, certificatePrivateKeyForgeObject } =

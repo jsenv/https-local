@@ -18,7 +18,8 @@ npm install --save-dev @jsenv/https-local
 
 ```js
 /*
- * This file needs to be executed once. After that the root certificate is valid for 20 years.
+ * This file needs to be executed once.
+ * After that the root certificate is valid for 20 years.
  * Re-executing this file will log the current root certificate validity and trust status.
  * Re-executing this file 20 years later would reinstall a root certificate and re-trust it.
  *
@@ -42,7 +43,7 @@ await verifyHostsFile({
 })
 ```
 
-3 - Run file to install certificate authority with node
+3 - Run with node
 
 ```console
 node ./install_certificate_authority.mjs
@@ -88,14 +89,14 @@ server.listen(8080)
 console.log(`Server listening at https://local.example:8080`)
 ```
 
-5 - Run file to start server with node
+5 - Start server with node
 
 ```console
 node ./start_dev_server.mjs
 ```
 
-At this stage of the documentation you have a server running in https.
-The rest of the documentation goes into details.
+At this stage you have a server running in https.
+The rest of this documentation goes into more details.
 
 # Certificate expiration
 
@@ -104,9 +105,11 @@ The rest of the documentation goes into details.
 | server      | 1 year        | Re-run _requestCertificate_          |
 | authority   | 20 year       | Re-run _installCertificateAuthority_ |
 
-The **server** certificate expires after one year which is the maximum duration allowed by web browsers. In the unlikely scenario where your local server is running for more than a year without interruption, restart it and you're good for one more year.
+The **server certificate** expires after one year which is the maximum duration allowed by web browsers.
+In the unlikely scenario where a local server is running for more than a year without interruption, restart it to re-run requestCertificate.
 
-The **authority** root certificate expires after 20 years which is close to the maximum allowed duration. In the very unlikely scenario where you are using the same machine for more than 20 years, re-execute [installCertificateAuthority](#installCertificateAuthority) to update certificate authority then restart your server.
+The **authority root certificate** expires after 20 years which is close to the maximum allowed duration.
+In the very unlikely scenario where you are using the same machine for more than 20 years, re-execute [installCertificateAuthority](#installCertificateAuthority) to update certificate authority then restart your server.
 
 # installCertificateAuthority
 

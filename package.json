@@ -44,7 +44,7 @@
     "verify-localhost-mappings": "node ./scripts/hosts/verify_localhost_mappings.mjs",
     "ensure-localhost-mappings": "node ./scripts/hosts/ensure_localhost_mappings.mjs",
     "prettier": "prettier --write .",
-    "playwright-install": "npx playwright install-deps && npx playwright install"
+    "playwright:install": "npx playwright install-deps && npx playwright install"
   },
   "dependencies": {
     "@jsenv/filesystem": "4.1.6",

@@ -1,6 +1,6 @@
 {
   "name": "@jsenv/https-local",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "description": "A programmatic way to generate locally trusted certificates",
   "license": "MIT",
   "author": {
@@ -47,7 +47,7 @@
     "playwright:install": "npx playwright install-deps && npx playwright install"
   },
   "dependencies": {
-    "@jsenv/filesystem": "4.1.8",
+    "@jsenv/filesystem": "4.1.9",
     "@jsenv/log": "3.3.2",
     "@jsenv/urls": "1.2.8",
     "command-exists": "1.2.9",
@@ -57,9 +57,9 @@
   },
   "devDependencies": {
     "@jsenv/assert": "2.8.0",
-    "@jsenv/core": "30.0.3",
-    "@jsenv/eslint-config": "16.3.1",
-    "@jsenv/eslint-import-resolver": "0.4.3",
+    "@jsenv/core": "30.0.4",
+    "@jsenv/eslint-config": "16.3.2",
+    "@jsenv/eslint-import-resolver": "0.4.4",
     "@jsenv/github-release-package": "1.5.1",
     "@jsenv/package-publish": "1.10.1",
     "@jsenv/performance-impact": "4.1.0",

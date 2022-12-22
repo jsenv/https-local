@@ -1,3 +1,7 @@
+# 3.0.4
+
+- proper fix for firefox nss database
+
 # 3.0.3
 
 - update deps to fix firefox nssb not found on mac

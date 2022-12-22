@@ -3,6 +3,7 @@
 - add nssdb store paths on linux
 - improve firefox and chrome detection on linux
 - update dependencies and devDependencies
+- update mac os to 2022 in github workflow
 
 ## 3.0.1
 

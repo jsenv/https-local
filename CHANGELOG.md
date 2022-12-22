@@ -1,3 +1,9 @@
+## 3.0.2
+
+- add nssdb store paths on linux
+- improve firefox and chrome detection on linux
+- update dependencies and devDependencies
+
 ## 3.0.1
 
 - fix firefox is running detection (could return true because of playwright)

@@ -57,7 +57,7 @@ if (process.platform !== "win32") {
   } catch (e) {
     const actual = e.errorText
     const expected = "SEC_ERROR_UNKNOWN_ISSUER"
-    assert({ actual, expected })
+    assert({ actual, expected, context: { browser: "firefox", error: e } })
   } finally {
     browser.close()
   }

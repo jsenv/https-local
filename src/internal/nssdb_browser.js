@@ -9,6 +9,7 @@ import { urlToFilename } from "@jsenv/urls"
 import { createDetailedMessage, UNICODE } from "@jsenv/log"
 import { assertAndNormalizeDirectoryUrl, collectFiles } from "@jsenv/filesystem"
 
+import { detectBrowser } from "./browser_detection.js"
 import { exec } from "./exec.js"
 import { searchCertificateInCommandOutput } from "./search_certificate_in_command_output.js"
 import {
@@ -32,17 +33,21 @@ export const executeTrustQueryOnBrowserNSSDB = async ({
   getCertutilBinPath,
 
   browserName,
-  detectBrowser,
-  browserNSSDBDirectoryUrl,
+  browserPaths,
+  browserNSSDBDirectoryUrls,
   getBrowserClosedPromise,
 }) => {
-  const browserDetected = detectBrowser({ logger })
+  logger.debug(`Detecting ${browserName}...`)
+
+  const browserDetected = detectBrowser(browserPaths)
   if (!browserDetected) {
+    logger.debug(`${UNICODE.INFO} ${browserName} not detected`)
     return {
       status: "other",
       reason: `${browserName} not detected`,
     }
   }
+  logger.debug(`${UNICODE.OK} ${browserName} detected`)
 
   if (verb === VERB_CHECK_TRUST && certificateIsNew) {
     logger.info(`${UNICODE.INFO} You should add certificate to ${browserName}`)
@@ -116,10 +121,17 @@ export const executeTrustQueryOnBrowserNSSDB = async ({
     }
   }
 
-  const NSSDBFiles = await findNSSDBFiles({
-    logger,
-    NSSDBDirectoryUrl: browserNSSDBDirectoryUrl,
-  })
+  let NSSDBFiles
+  for (const browserNSSDBDirectoryUrl of browserNSSDBDirectoryUrls) {
+    NSSDBFiles = await findNSSDBFiles({
+      logger,
+      NSSDBDirectoryUrl: browserNSSDBDirectoryUrl,
+    })
+    if (NSSDBFiles.length > 0) {
+      break
+    }
+  }
+
   const fileCount = NSSDBFiles.length
   if (fileCount === 0) {
     const reason = `could not find nss database file`
@@ -281,6 +293,7 @@ const isCertificateNotFoundError = (error) => {
 
 const NSSDirectoryCache = {}
 const findNSSDBFiles = async ({ logger, NSSDBDirectoryUrl }) => {
+  NSSDBDirectoryUrl = String(NSSDBDirectoryUrl)
   const resultFromCache = NSSDirectoryCache[NSSDBDirectoryUrl]
   if (resultFromCache) {
     return resultFromCache

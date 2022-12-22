@@ -1,4 +1,3 @@
-import { existsSync } from "node:fs"
 import { execSync } from "node:child_process"
 import { assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
 import { UNICODE, createTaskLog } from "@jsenv/log"
@@ -35,22 +34,18 @@ export const executeTrustQueryOnFirefox = ({
     getCertutilBinPath,
 
     browserName: "firefox",
-    detectBrowser: () => {
-      logger.debug(`Detecting firefox...`)
-      const firefoxDetected = existsSync("/Applications/Firefox.app")
-
-      if (firefoxDetected) {
-        logger.debug(`${UNICODE.OK} firefox detected`)
-        return true
-      }
-
-      logger.debug(`${UNICODE.INFO} firefox not detected`)
-      return false
-    },
-    browserNSSDBDirectoryUrl: new URL(
-      `./Library/Application Support/Firefox/Profiles/`,
-      assertAndNormalizeDirectoryUrl(process.env.HOME),
-    ).href,
+    browserPaths: [
+      "/Applications/Firefox.app",
+      "/Applications/FirefoxDeveloperEdition.app",
+      "/Applications/Firefox Developer Edition.app",
+      "/Applications/Firefox Nightly.app",
+    ],
+    browserNSSDBDirectoryUrls: [
+      new URL(
+        `./Library/Application Support/Firefox/Profiles/`,
+        assertAndNormalizeDirectoryUrl(process.env.HOME),
+      ),
+    ],
     getBrowserClosedPromise: async () => {
       if (!isFirefoxOpen()) {
         return

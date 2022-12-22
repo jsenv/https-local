@@ -1,4 +1,3 @@
-import { existsSync } from "node:fs"
 import { execSync } from "node:child_process"
 import { assertAndNormalizeDirectoryUrl } from "@jsenv/filesystem"
 import { UNICODE } from "@jsenv/log"
@@ -35,22 +34,15 @@ export const executeTrustQueryOnChrome = ({
     getCertutilBinPath,
 
     browserName: "chrome",
-    detectBrowser: () => {
-      logger.debug(`Detecting Chrome...`)
-      const chromeBinFileExists = existsSync("/usr/bin/google-chrome")
-
-      if (chromeBinFileExists) {
-        logger.debug(`${UNICODE.OK} Chrome detected`)
-        return true
-      }
-
-      logger.debug(`${UNICODE.INFO} Chrome not detected`)
-      return false
-    },
-    browserNSSDBDirectoryUrl: new URL(
-      ".pki/nssdb",
-      assertAndNormalizeDirectoryUrl(process.env.HOME),
-    ).href,
+    browserPaths: ["/usr/bin/google-chrome"],
+    browserNSSDBDirectoryUrls: [
+      new URL(".pki/nssdb", assertAndNormalizeDirectoryUrl(process.env.HOME)),
+      new URL(
+        "snap/chromium/current/.pki/nssdb",
+        assertAndNormalizeDirectoryUrl(process.env.HOME),
+      ), // Snapcraft
+      "file:///etc/pki/nssdb", // CentOS 7
+    ],
     getBrowserClosedPromise: async () => {
       if (!isChromeOpen()) {
         return

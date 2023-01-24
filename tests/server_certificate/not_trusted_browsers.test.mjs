@@ -45,7 +45,8 @@ const serverOrigin = await startServerForTest({
   }
 }
 
-// disabled on windows for now, there is a little something to change to make it work
+// disabled on windows for now
+// there is a little something to change in the expected error to make it pass
 if (process.platform !== "win32") {
   const browser = await launchFirefox()
   try {

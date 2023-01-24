@@ -1,3 +1,7 @@
+# 3.0.6
+
+- Fix certutil command on windows
+
 # 3.0.4
 
 - proper fix for firefox nss database

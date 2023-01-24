@@ -66,7 +66,7 @@ export const executeTrustQueryOnWindows = async ({
     }
 
     // https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil#-addstore
-    const certutilAddCommand = `certutil -addstore -user root ${certificateFilePath}`
+    const certutilAddCommand = `certutil -addstore -user root "${certificateFilePath}"`
     logger.info(`Adding certificate to windows...`)
     logger.info(`${UNICODE.COMMAND} ${certutilAddCommand}`)
     try {

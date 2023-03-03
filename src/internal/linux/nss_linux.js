@@ -1,3 +1,5 @@
+// https://github.com/FiloSottile/mkcert/issues/447
+
 import { UNICODE } from "@jsenv/log"
 
 import { memoize } from "../memoize.js"

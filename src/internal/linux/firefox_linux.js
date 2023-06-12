@@ -46,6 +46,10 @@ export const executeTrustQueryOnFirefox = ({
         assertAndNormalizeDirectoryUrl(process.env.HOME),
       ),
       new URL(
+        "/.mozilla/firefox-trunk/",
+        assertAndNormalizeDirectoryUrl(process.env.HOME),
+      ),
+      new URL(
         "/snap/firefox/common/.mozilla/firefox/",
         assertAndNormalizeDirectoryUrl(process.env.HOME),
       ),

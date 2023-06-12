@@ -35,6 +35,8 @@ export const executeTrustQueryOnChrome = ({
 
     browserName: "chrome",
     browserPaths: ["/usr/bin/google-chrome"],
+    // chromium seems to use its own store and not ".pki/nssdb" anymore
+    // as explained in https://chromium.googlesource.com/chromium/src/+/main/net/data/ssl/chrome_root_store/faq.md
     browserNSSDBDirectoryUrls: [
       new URL(".pki/nssdb", assertAndNormalizeDirectoryUrl(process.env.HOME)),
       new URL(

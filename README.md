@@ -1,5 +1,7 @@
 # https local [![npm package](https://img.shields.io/npm/v/@jsenv/https-local.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/https-local)
 
+MOVED TO https://github.com/jsenv/core/tree/main/packages/independent/https-local
+
 A programmatic way to generate locally trusted certificates.
 
 Generate certificate(s) trusted by your operating system and browsers.
